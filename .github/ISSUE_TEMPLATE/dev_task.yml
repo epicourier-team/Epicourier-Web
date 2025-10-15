@@ -1,0 +1,53 @@
+name: "Development Task"
+description: "Create a lightweight issue for upcoming implementation or refactor."
+labels: ["task"]
+
+body:
+  - type: input
+    id: summary
+    attributes:
+      label: "Task summary"
+      description: "Briefly describe what needs to be implemented or changed."
+      placeholder: "Example: Implement user signup API"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: "Context or background"
+      description: "Why is this task needed? What problem does it solve?"
+      placeholder: "This API is needed for onboarding flow. It will connect to the auth service."
+    validations:
+      required: false
+
+  - type: textarea
+    id: plan
+    attributes:
+      label: "Implementation plan"
+      description: "Rough outline of how you plan to implement it."
+      placeholder: |
+        - Create new endpoint `/api/signup`
+        - Add user validation logic
+        - Connect to DB and return JWT token
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: goal
+    attributes:
+      label: "Goal of this issue"
+      options:
+        - label: "Implement new functionality"
+        - label: "Refactor existing code"
+        - label: "Write supporting tests"
+        - label: "Update documentation"
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: "Notes or references"
+      description: "Add related issue numbers, links, or design documents if any."
+      placeholder: "Related: #45 (Signup flow design), #52 (DB schema update)"

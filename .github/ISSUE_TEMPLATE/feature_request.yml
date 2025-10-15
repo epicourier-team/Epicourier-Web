@@ -1,0 +1,46 @@
+name: "Feature Request"
+description: "Suggest a new feature or improvement."
+labels: ["enhancement"]
+
+body:
+  - type: input
+    id: summary
+    attributes:
+      label: "Short summary"
+      description: "Briefly describe the proposed feature."
+      placeholder: "Example: Add dark mode to settings page"
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: "Motivation"
+      description: "Explain the problem this feature solves or the value it adds."
+      placeholder: "Users struggle with bright screens in dark environments."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: "Proposed solution"
+      description: "Describe how you think this should be implemented."
+      placeholder: "Add a theme toggle and store preference in user settings."
+
+  - type: checkboxes
+    id: goal
+    attributes:
+      label: "Goal of this issue"
+      options:
+        - label: "Add a new feature"
+        - label: "Improve existing functionality"
+        - label: "Enhance usability or design"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: "Additional context"
+      description: "Add references, mockups, or related discussions if any."
