@@ -1,5 +1,7 @@
 Epicourier
 
+## Coverage
+[![codecov](https://codecov.io/github/epicourier-team/Epicourier-Web/graph/bundle/main/badge.svg)](https://codecov.io/github/epicourier-team/Epicourier-Web)
 
 ## Badges
 
