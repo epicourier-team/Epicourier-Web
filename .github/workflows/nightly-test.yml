@@ -1,0 +1,39 @@
+name: Nightly Coverage Report
+
+on:
+  schedule:
+    - cron: "0 5 * * *"   # Every midnight Eastern Time (UTC+5)
+  workflow_dispatch: 
+
+jobs:
+  nightly-coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout latest code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd web
+          npm ci
+
+      - name: Run Jest with coverage
+        run: |
+          cd web
+          npm test -- --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: web/coverage
+          flags: nightly
+          fail_ci_if_error: true
