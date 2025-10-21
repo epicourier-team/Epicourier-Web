@@ -1,0 +1,38 @@
+name: License Header Check
+
+on:
+  pull_request:
+
+jobs:
+  check-license:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: cd web && npm ci
+
+      - name: Check license headers
+        id: license_check
+        run: |
+          cd web && npm run check-license || echo "missing_headers" > result.txt
+
+      - name: Comment on PR if license headers are missing
+        if: ${{ failure() || hashFiles('result.txt') != '' }}
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ⚠️ **License header check failed!**
+            
+            Please run:
+            ```bash
+            npm run add-license
+            ```
+            to automatically add missing headers before committing again.
