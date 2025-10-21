@@ -2,15 +2,6 @@
   "organization": "Epicourier Team",
   "license": "../LICENSE.md",
   "cwd": "src",
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx"
-  ],
-  "ignore": [
-    "node_modules/**/*",
-    "*.config.*",
-    ".gitignore",
-    "*.setup.*",
-    "*.md"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "ignore": ["node_modules/**/*", "*.config.*", ".gitignore", "*.setup.*", "*.md", ".prettierrc"]
 }
