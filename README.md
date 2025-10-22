@@ -17,3 +17,6 @@ Test
 
 Code Style Checker
 [![Prettier](https://img.shields.io/badge/prettier-1A2C34?logo=prettier&logoColor=F7BA3E)](#)
+
+Dataset
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17419485.svg)](https://doi.org/10.5281/zenodo.17419485)
