@@ -41,17 +41,24 @@ export default function AddMealModal({
       mealType.charAt(0).toUpperCase() + mealType.slice(1)
     }`;
 
-    await fetch("/api/events", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title,
-        mealType,
-        startTime,
-        endTime: startTime,
-        mealItems: mealItems.filter(Boolean), // ✅ 移除空白欄位
-      }),
-    });
+    try {
+      const res = await fetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          meal_type: mealType,
+          // For all-day events, prefer date-only and let the server derive end
+          start_time: startTime.split("T")[0],
+          meal_items: mealItems.filter(Boolean),
+        }),
+      });
+      if (!res.ok) throw new Error(`POST /api/events ${res.status}`);
+    } catch (e) {
+      alert("Failed to save. Please try again.");
+      console.error(e);
+      return;
+    }
 
     //setTitle("");
     setDate("");
