@@ -20,3 +20,6 @@ Code Style Checker
 
 Dataset
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17419485.svg)](https://doi.org/10.5281/zenodo.17419485)
+
+
+For dataset construction: refer here: [data/README.md](data/README.md)
