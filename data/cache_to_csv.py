@@ -5,26 +5,33 @@ from pathlib import Path
 
 
 def load_recipes_data(recipes_csv_path='recipes.csv'):
-    recipes_desc = {}
+    recipes_data = {}
     try:
         with open(recipes_csv_path, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
-                recipes_desc[row['idMeal']] = row['strInstructions']
+                recipes_data[row['idMeal']] = {
+                    'description': row['strInstructions'],
+                    'tags': row.get('strTags', '')  # 태그 정보 추가
+                }
     except FileNotFoundError:
-        print(f"Warning: {recipes_csv_path} not found. Descriptions will be empty.")
-    return recipes_desc
+        print(f"Warning: {recipes_csv_path} not found. Descriptions and tags will be empty.")
+    return recipes_data
 
 def process_json_files(cache_dir='cache', recipes_csv_path='recipes.csv'):
-    recipes_desc = load_recipes_data(recipes_csv_path)
-
+    recipes_data = load_recipes_data(recipes_csv_path)
+    
     ingredients_dict = {}  # key: (name, unit), value: ingredient data
     recipes_list = []
     maps_list = []
+    tags_dict = {}  # key: tag_name, value: tag data
+    recipe_tag_maps_list = []
     
     ingredient_id_map = {}
     next_ingredient_id = 1
     next_map_id = 1
+    next_tag_id = 1
+    next_recipe_tag_map_id = 1
     
     cache_path = Path(cache_dir)
     if not cache_path.exists():
@@ -34,7 +41,7 @@ def process_json_files(cache_dir='cache', recipes_csv_path='recipes.csv'):
     json_files = list(cache_path.glob('*.json'))
     print(f"Found {len(json_files)} JSON files in {cache_dir}")
     
-    for json_file in sorted(json_files)[:30]:
+    for json_file in sorted(json_files)[:50]:
         print(f"Processing {json_file.name}...")
         
         with open(json_file, 'r', encoding='utf-8') as f:
@@ -70,16 +77,37 @@ def process_json_files(cache_dir='cache', recipes_csv_path='recipes.csv'):
         
         recipe = data['recipe']
         recipe_id_str = str(recipe['id'])
-        description = recipes_desc.get(recipe_id_str, '')
+        recipe_data = recipes_data.get(recipe_id_str, {'description': '', 'tags': ''})
         
         recipes_list.append({
             'id': recipe['id'],
             'name': recipe['name'],
-            'description': description,
+            'description': recipe_data['description'],
             'min_prep_time': recipe['min_prep_time'],
             'green_score': recipe['green_score'],
             'image_url': recipe['image_url']
         })
+        
+        tags_str = recipe_data['tags']
+        if tags_str and tags_str.strip():
+            tag_names = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
+            
+            for tag_name in tag_names:
+                if tag_name not in tags_dict:
+                    tags_dict[tag_name] = {
+                        'id': next_tag_id,
+                        'name': tag_name,
+                        'description': ''
+                    }
+                    next_tag_id += 1
+                
+                tag_id = tags_dict[tag_name]['id']
+                recipe_tag_maps_list.append({
+                    'id': next_recipe_tag_map_id,
+                    'recipe_id': recipe['id'],
+                    'tag_id': tag_id
+                })
+                next_recipe_tag_map_id += 1
         
         for map_item in data['map']:
             new_ingredient_id = ingredient_id_map[(recipe['id'], map_item['ingredient_id'])]
@@ -122,10 +150,29 @@ def process_json_files(cache_dir='cache', recipes_csv_path='recipes.csv'):
         writer.writerows(maps_list)
     print(f"✓ recipe_ingredient_map-supabase.csv created ({len(maps_list)} rows)")
     
+    # 4. Tags CSV
+    tags_list = sorted(tags_dict.values(), key=lambda x: x['id'])
+    with open('tags-supabase.csv', 'w', newline='', encoding='utf-8') as f:
+        fieldnames = ['id', 'name', 'description']
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(tags_list)
+    print(f"✓ tags-supabase.csv created ({len(tags_list)} rows)")
+    
+    # 5. Recipe-Tag Map CSV
+    with open('recipe_tag_map-supabase.csv', 'w', newline='', encoding='utf-8') as f:
+        fieldnames = ['id', 'recipe_id', 'tag_id']
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(recipe_tag_maps_list)
+    print(f"✓ recipe_tag_map-supabase.csv created ({len(recipe_tag_maps_list)} rows)")
+    
     print("\nSummary:")
     print(f"- Unique ingredients: {len(ingredients_list)}")
     print(f"- Recipes: {len(recipes_list)}")
     print(f"- Recipe-Ingredient mappings: {len(maps_list)}")
+    print(f"- Unique tags: {len(tags_list)}")
+    print(f"- Recipe-Tag mappings: {len(recipe_tag_maps_list)}")
 
 if __name__ == '__main__':
-    process_json_files(cache_dir='cache', recipes_csv_path='recipes.csv')
+    process_json_files(cache_dir='cache', recipes_csv_path='recipes.csv') 
