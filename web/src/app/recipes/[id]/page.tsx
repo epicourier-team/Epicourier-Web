@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { API_BASE_URL, NUTRIENT_NAME } from "../../../lib/constants";
+import { getBaseUrl, NUTRIENT_NAME } from "../../../lib/constants";
 import { RecipeDetail } from "../../../types/data";
 
 export async function generateStaticParams() {
@@ -12,7 +12,7 @@ export async function generateStaticParams() {
 export const revalidate = 3600;
 
 async function getRecipeDetail(id: string): Promise<RecipeDetail | null> {
-  const res = await fetch(`${API_BASE_URL}/api/recipes/${id}`, {
+  const res = await fetch(`${getBaseUrl()}/api/recipes/${id}`, {
     cache: "no-cache",
   });
   if (!res.ok) return null;
