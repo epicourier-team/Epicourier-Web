@@ -7,6 +7,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import AddMealModal from "./components/AddMealModal";
 import { EventInput } from "@fullcalendar/core";
+import Footer from "./components/Footer";
 
 export type CalendarEvent = EventInput & {
   extendedProps: {
@@ -37,10 +38,10 @@ export default function Home() {
         t === "breakfast"
           ? "#fef08a"
           : t === "lunch"
-          ? "#86efac"
-          : t === "dinner"
-          ? "#93c5fd"
-          : "#e5e7eb";
+            ? "#86efac"
+            : t === "dinner"
+              ? "#93c5fd"
+              : "#e5e7eb";
       setEvents(
         (Array.isArray(data) ? data : []).map((e: MealEvent): CalendarEvent => {
           const mealType = e.meal_type ?? "other";
@@ -52,9 +53,7 @@ export default function Home() {
             title:
               e.title ??
               (dateOnly
-                ? `${dateOnly} ${String(mealType ?? "").replace(/^./, (c) =>
-                    c.toUpperCase()
-                  )}`
+                ? `${dateOnly} ${String(mealType ?? "").replace(/^./, (c) => c.toUpperCase())}`
                 : "Meal"),
             start: dateOnly, // date-only ISO for all-day
             allDay: true,
@@ -76,20 +75,19 @@ export default function Home() {
   }, [loadEvents]);
 
   return (
-    <main className="min-h-screen p-6 bg-gray-500">
+    <main className="min-h-screen bg-gray-500 p-6">
       {/* Header toolbar */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">🍽️ Meal Planner Calendar</h1>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          className="rounded-lg bg-indigo-600 px-4 py-2 text-white transition hover:bg-indigo-700"
         >
           + Add Meal
         </button>
       </div>
-
       {/* Calendar */}
-      <div className="bg-white p-4 text-black rounded-xl shadow">
+      <div className="rounded-xl bg-white p-4 text-black shadow">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
@@ -110,13 +108,13 @@ export default function Home() {
           }}
         />
       </div>
-
       {/* Modal */}
       <AddMealModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSaved={loadEvents}
       />
+      <Footer />;
     </main>
   );
 }
