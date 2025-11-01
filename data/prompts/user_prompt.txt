@@ -1,0 +1,13 @@
+Recipe Name: {strMeal}
+Category: {strCategory}
+Area: {strArea}
+Tags: {strTags}
+Instructions: {strInstructions}
+Image: {strMealThumb}
+Source: {strSource}
+Youtube: {strYoutube}
+
+Ingredients and Measures:
+{ingredient_list}
+
+Now, fill the JSON schema as instructed above. Return only valid JSON.
