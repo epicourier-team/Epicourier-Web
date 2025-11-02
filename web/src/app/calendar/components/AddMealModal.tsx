@@ -1,68 +1,92 @@
 "use client";
 
-import {
-  Dialog,
-  DialogBackdrop,
-  DialogPanel,
-  DialogTitle,
-} from "@headlessui/react";
-import { useState } from "react";
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
+import { useEffect, useState } from "react";
+import { Food } from "../types/food";
 
-export default function AddMealModal({
-  isOpen,
-  onClose,
-  onSaved,
-}: {
+interface AddMealModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSaved: () => void;
-}) {
-  const [mealItems, setMealItems] = useState<string[]>([""]);
+  userId: string;
+}
+
+export default function AddMealModal({ isOpen, onClose, onSaved, userId }: AddMealModalProps) {
   const [mealType, setMealType] = useState("breakfast");
   const [date, setDate] = useState("");
+  const [foods, setFoods] = useState<Food[]>([]);
+  const [search, setSearch] = useState("");
+  const [selectedFoods, setSelectedFoods] = useState<Food[]>([]);
 
-  const handleAddDish = () => {
-    if (mealItems.length >= 5) return alert("You can only add up to 5 dishes.");
-    setMealItems([...mealItems, ""]);
-  };
+  // ✅ 載入所有食物資料
+  useEffect(() => {
+    const loadFoods = async () => {
+      try {
+        const res = await fetch("/calendar/api/foods");
+        const data = await res.json();
+        setFoods(data);
+      } catch (err) {
+        console.error("Failed to load foods:", err);
+      }
+    };
+    loadFoods();
+  }, []);
 
-  const handleChange = (index: number, value: string) => {
-    const updated = [...mealItems];
-    updated[index] = value;
-    setMealItems(updated);
-  };
-  const handleSave = async () => {
-    if (mealItems.filter(Boolean).length === 0 || !date)
-      return alert("Please fill in all fields");
+  // ✅ 根據輸入過濾搜尋結果
+  const filteredFoods = foods.filter(
+    (food) =>
+      food.name.toLowerCase().includes(search.toLowerCase()) &&
+      !selectedFoods.some((f) => f.id === food.id)
+  );
 
-    const startTime = `${date}T00:00:00`;
-    const formattedDate = startTime.split("T")[0];
-    const title = `${formattedDate} ${
-      mealType.charAt(0).toUpperCase() + mealType.slice(1)
-    }`;
-
-    try {
-      const res = await fetch("/api/events", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          meal_type: mealType,
-          // For all-day events, prefer date-only and let the server derive end
-          start_time: startTime.split("T")[0],
-          meal_items: mealItems.filter(Boolean),
-        }),
-      });
-      if (!res.ok) throw new Error(`POST /api/events ${res.status}`);
-    } catch (e) {
-      alert("Failed to save. Please try again.");
-      console.error(e);
+  // ✅ 點擊後選擇食物
+  const handleSelectFood = (food: Food) => {
+    if (selectedFoods.length >= 5) {
+      alert("You can select up to 5 foods per meal.");
       return;
     }
 
-    //setTitle("");
+    // ✅ 更新 state（一定要用 prev callback 形式）
+    setSelectedFoods((prev) => [...prev, food]);
+
+    // ✅ 清空搜尋框，但不要清空 filteredFoods（讓標籤顯示）
+    setSearch("");
+  };
+
+  // ✅ 移除已選食物
+  const handleRemoveFood = (foodId: number) => {
+    setSelectedFoods((prev) => prev.filter((f) => f.id !== foodId));
+  };
+
+  // ✅ save events
+  const handleSave = async () => {
+    if (!date || selectedFoods.length === 0) {
+      alert("Please select a date and at least one food.");
+      return;
+    }
+
+    const startTime = `${date}T00:00:00`;
+    const endTime = `${date}T23:59:59`;
+    const formattedDate = date;
+    const title = `${formattedDate} ${mealType.charAt(0).toUpperCase() + mealType.slice(1)}`;
+
+    await fetch("calendar/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: userId,
+        title,
+        mealType,
+        startTime,
+        endTime,
+        food_ids: selectedFoods.map((f) => f.id),
+      }),
+    });
+
+    // ✅ 清空狀態
     setDate("");
-    setMealType("breakfast");
+    setSelectedFoods([]);
+    setSearch("");
     onSaved();
     onClose();
   };
@@ -70,79 +94,99 @@ export default function AddMealModal({
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
       <DialogBackdrop className="fixed inset-0 bg-black/20 backdrop-blur-sm" />
-
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="bg-white rounded-xl p-6 shadow-lg w-full max-w-md">
-          <DialogTitle className="text-lg font-semibold text-black mb-4">
-            Add Meal
-          </DialogTitle>
+        <DialogPanel className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
+          <DialogTitle className="mb-4 text-lg font-semibold">Add Meal</DialogTitle>
 
           <div className="space-y-4">
             {/* Meal Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Meal Type
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Meal Type</label>
               <select
                 value={mealType}
                 onChange={(e) => setMealType(e.target.value)}
-                className="w-full border rounded-lg text-gray-600 px-3 py-2 mt-1"
+                className="mt-1 w-full rounded-lg border px-3 py-2"
               >
                 <option value="breakfast">Breakfast 🍳</option>
                 <option value="lunch">Lunch 🍱</option>
                 <option value="dinner">Dinner 🍲</option>
               </select>
             </div>
+
             {/* Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Date
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Date</label>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full border rounded-lg text-gray-600 px-3 py-2 mt-1"
+                className="mt-1 w-full rounded-lg border px-3 py-2"
               />
             </div>
-            {/* Dishes */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Dishes (up to 5)
-              </label>
-              {mealItems.map((item, i) => (
-                <input
-                  key={i}
-                  type="text"
-                  placeholder={`Dish ${i + 1}`}
-                  value={item}
-                  onChange={(e) => handleChange(i, e.target.value)}
-                  className="w-full border rounded-lg text-gray-700 px-3 py-2 mb-2"
-                />
-              ))}
 
-              {mealItems.length < 5 && (
-                <button
-                  type="button"
-                  onClick={handleAddDish}
-                  className="text-indigo-600 hover:underline text-sm"
-                >
-                  + Add another dish
-                </button>
+            {/* Search Foods */}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Select Foods (max 5)
+              </label>
+              <input
+                type="text"
+                placeholder="Search foods..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="mb-2 w-full rounded-lg border px-3 py-2"
+              />
+
+              {/* Autocomplete 下拉清單 */}
+              {search && filteredFoods.length > 0 && (
+                <div className="max-h-40 overflow-y-auto rounded-lg border bg-white shadow">
+                  {filteredFoods.map((food) => (
+                    <div
+                      key={food.id}
+                      onClick={() => handleSelectFood(food)}
+                      className="cursor-pointer px-3 py-2 text-sm hover:bg-indigo-50"
+                    >
+                      {food.name}{" "}
+                      <span className="text-xs text-gray-500">({food.calories ?? 0} kcal)</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* ✅ 已選食物標籤區 */}
+              {selectedFoods.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {selectedFoods.map((food) => (
+                    <span
+                      key={food.id}
+                      className="flex items-center gap-1 rounded-lg bg-indigo-100 px-2 py-1 text-sm text-indigo-700"
+                    >
+                      {food.name}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFood(food.id)}
+                        className="text-xs text-red-500 hover:text-red-700"
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  ))}
+                </div>
               )}
             </div>
           </div>
+
           {/* Buttons */}
-          <div className="flex justify-end gap-2 mt-6">
+          <div className="mt-6 flex justify-end gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+              className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
             >
               Save
             </button>

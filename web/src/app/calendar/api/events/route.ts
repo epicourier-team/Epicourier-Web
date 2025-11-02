@@ -19,18 +19,32 @@ export async function GET() {
 // 新增事件
 export async function POST(req: Request) {
   const body = await req.json();
-  const { user_id, meal_type, start_time, food_ids } = body;
+  const { title, mealType, startTime, endTime, food_ids } = body;
 
-  const { data, error } = await supabaseServer
+  const { data: eventData, error: eventError } = await supabaseServer
     .from("events")
-    .insert([{ user_id, meal_type, start_time }])
-    .select();
+    .insert([{ title, meal_type: mealType, start_time: startTime, end_time: endTime }])
+    .select("id")
+    .single();
 
-  if (error) {
-    console.error("POST error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (eventError) {
+    console.error("POST error:", eventError);
+    return NextResponse.json({ error: eventError.message }, { status: 500 });
   }
 
-  // 這裡之後可接續插入 event_foods
-  return NextResponse.json(data[0]);
+  // 🔗 建立關聯
+  if (food_ids?.length > 0) {
+    const linkData = food_ids.map((fid: number) => ({
+      event_id: eventData.id,
+      food_id: fid,
+    }));
+
+    const { error: linkError } = await supabaseServer.from("event_foods").insert(linkData);
+
+    if (linkError) {
+      console.error("Link error:", linkError);
+    }
+  }
+
+  return NextResponse.json(eventData);
 }
