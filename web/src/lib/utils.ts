@@ -79,6 +79,8 @@ export async function getRecipeDetail(
     acc.vit_a_microg += (curr.ingredient.vit_a_microg ?? 0) * factor;
     acc.vit_c_mg += (curr.ingredient.vit_c_mg ?? 0) * factor;
     acc.vit_d_microg += (curr.ingredient.vit_d_microg ?? 0) * factor;
+    acc.vit_e_mg += (curr.ingredient.vit_e_mg ?? 0) * factor;
+    acc.vit_k_microg += (curr.ingredient.vit_k_microg ?? 0) * factor;
     return acc;
   }, initialNutrients);
 
