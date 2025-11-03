@@ -45,6 +45,11 @@ const Modes = () => {
               className="relative overflow-hidden border-2 border-gray-200 hover:shadow-xl transition-all duration-400 hover-lift group"
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${mode.gradient} opacity-0 group-hover:opacity-10 transition-all duration-400`} />
+              {mode.title === "Eco Mode" && (
+                <span className="absolute top-4 right-4 bg-amber-50 text-amber-700 text-xs font-semibold px-2 py-1 rounded-full border border-amber-100 z-20">
+                  Coming soon
+                </span>
+              )}
               <CardContent className="p-8 text-center relative z-10">
                 <div className={`w-16 h-16 rounded-full ${mode.color} flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-all duration-400`}>
                   <mode.icon className="w-8 h-8 text-white" />
