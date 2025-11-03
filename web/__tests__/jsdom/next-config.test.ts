@@ -1,4 +1,4 @@
-import nextConfig from "../next.config";
+import nextConfig from "../../next.config";
 
 describe("next.config.ts", () => {
   it("exports a valid NextConfig object", () => {
@@ -19,9 +19,7 @@ describe("next.config.ts", () => {
 
   it("allows external images from themealdb", () => {
     const domains = nextConfig.images?.domains || [];
-    const hasTheMealDB = domains.some((domain) =>
-      domain.includes("themealdb.com")
-    );
+    const hasTheMealDB = domains.some((domain) => domain.includes("themealdb.com"));
     expect(hasTheMealDB).toBe(true);
   });
 });
