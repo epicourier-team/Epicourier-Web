@@ -8,8 +8,8 @@ export type RecipeTagMap = Database["public"]["Tables"]["Recipe-Tag_Map"]["Row"]
 
 export type RecipeDetail = {
   recipe: Recipe;
-  ingredients: (RecipeIngredientMap & { ingredient: Ingredient })[];
-  tags: (RecipeTagMap & { tag: Tag })[];
+  ingredients: (Pick<RecipeIngredientMap, "relative_unit_100"> & { ingredient: Ingredient })[];
+  tags: { tag: Tag }[];
   sumNutrients: Pick<
     Ingredient,
     | "agg_fats_g"

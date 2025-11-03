@@ -1,23 +1,17 @@
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getBaseUrl, NUTRIENT_NAME } from "../../../lib/constants";
-import { RecipeDetail } from "../../../types/data";
+import { NUTRIENT_NAME } from "../../../lib/constants";
+import { getRecipeDetail } from "../../../lib/utils";
 
 export async function generateStaticParams() {
-  const { data: recipes } = await supabase.from("recipe").select("id");
+  const { data: recipes } = await supabase.from("Recipe").select("id");
   return (recipes ?? []).map((r) => ({ id: String(r.id) }));
 }
 
-export const revalidate = 3600;
+export const dynamicParams = true;
 
-async function getRecipeDetail(id: string): Promise<RecipeDetail | null> {
-  const res = await fetch(`${getBaseUrl()}/api/recipes/${id}`, {
-    cache: "no-cache",
-  });
-  if (!res.ok) return null;
-  return res.json();
-}
+export const revalidate = 3600;
 
 export default async function RecipeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
