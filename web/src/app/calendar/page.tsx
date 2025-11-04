@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import FullCalendar from "@fullcalendar/react";
 import { EventClickArg } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import { supabase } from "@/lib/supabaseClient";
+// ⭐ 步驟 1: 匯入正確的 client
+import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
 // ------------------------------
@@ -18,15 +19,12 @@ interface CalendarEvent {
   start: string;
   allDay: boolean;
   extendedProps: {
-    // 儲存從 API 來的原始資料
     calendarData: CalendarApiResponse;
   };
-  // 根據 status 改變顏色
   backgroundColor: string;
   borderColor: string;
 }
 
-// Recipe Type
 interface Recipe {
   id: number;
   name: string;
@@ -36,17 +34,16 @@ interface Recipe {
   green_score?: number | string;
 }
 
-// CalendarApiResponse Type
 interface CalendarApiResponse {
   id: number;
   date: string;
   meal_type: string;
-  status: boolean | null; // 確保 status 被讀取
+  status: boolean | null;
   Recipe: {
     id: number;
     name: string;
     image_url?: string;
-    description?: string; // 確保 description 被讀取
+    description?: string;
     min_prep_time?: number;
     green_score?: number | string;
   } | null;
@@ -54,66 +51,43 @@ interface CalendarApiResponse {
 
 export default function CalendarPage() {
   const router = useRouter();
+
+  // ⭐ 步驟 2: 在 component 內部建立 client 實例
+  const supabase = createClient();
+
   // ------------------------------
   // State management
   // ------------------------------
-  // const [users, setUsers] = useState<{ id: number; fullname: string }[]>([]); // development
-  // const [selectedUser, setSelectedUser] = useState<string>(""); // for development
+  const [userName, setUserName] = useState<string>("");
   const [recommendations, setRecommendations] = useState<Recipe[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-  // "Add Modal" 狀態
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [showDateModal, setShowDateModal] = useState(false);
   const [mealType, setMealType] = useState("breakfast");
 
-  // ⭐ [新功能] "Edit/Detail Modal" 狀態
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  // 用來存放被點擊的日曆事件的完整資料
   const [selectedCalendarEntry, setSelectedCalendarEntry] = useState<CalendarApiResponse | null>(
     null
   );
 
   // ------------------------------
-  // load user info
+  // 載入日曆事件 (使用 useCallback)
   // ------------------------------
-  // const loadUsers = async () => {
-  //   const res = await fetch("/api/users");
-  //   const data = await res.json();
-  //   if (Array.isArray(data)) setUsers(data);
-  // };
-  // 檢查登入狀態的 Effect (取代原本的 loadUsers)
-  // 載入時：
-  // 1. 檢查使用者是否登入
-  // 2. 如果登入，就載入他們的事件
-  useEffect(() => {
-    const checkUserAndLoadEvents = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser(); // 這是 client-side check
-
-      if (!user) {
-        // 雖然 middleware 會阻擋，但這是一個好的雙重保險
-        router.push("/signin");
-      } else {
-        // 使用者已登入，載入他們的事件
-        loadEvents();
-      }
-    };
-
-    checkUserAndLoadEvents();
-    // 我們只希望這個 effect 在頁面載入時執行一次。
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  // ------------------------------
-  // load current user info
-  // ------------------------------
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     const res = await fetch(`/api/events`);
+    if (!res.ok) {
+      if (res.status === 401) {
+        router.push("/signin");
+        return;
+      }
+      console.error("Failed to fetch events");
+      return;
+    }
+
     const data: CalendarApiResponse[] = await res.json();
 
-    // trans data into FullCalendar format
     const formatted = (data ?? []).map((c: CalendarApiResponse) => {
       const isCompleted = c.status === true;
       return {
@@ -121,20 +95,18 @@ export default function CalendarPage() {
         title: `${c.meal_type ? c.meal_type.charAt(0).toUpperCase() + c.meal_type.slice(1) : ""} - ${c.Recipe?.name ?? "Meal"}`,
         start: c.date,
         allDay: true,
-        // ⭐ [新功能] 儲存原始資料
         extendedProps: {
           calendarData: c,
         },
-        // ⭐ [新功能] 根據 status 改變外觀
-        backgroundColor: isCompleted ? "#22c55e" : "#3b82f6", // 完成: 綠色 / 未完成: 藍色
+        backgroundColor: isCompleted ? "#22c55e" : "#3b82f6",
         borderColor: isCompleted ? "#16a34a" : "#2563eb",
       };
     });
     setEvents(formatted);
-  };
+  }, [router]); // loadEvents 依賴 router
 
   // ------------------------------
-  // load recommendate receipts
+  // 載入推薦
   // ------------------------------
   const loadRecommendations = async () => {
     const res = await fetch("/api/recommendations");
@@ -145,22 +117,13 @@ export default function CalendarPage() {
   };
 
   // ------------------------------
-  // add to calendar (POST)
+  // 新增到日曆 (POST)
   // ------------------------------
   const handleAddToCalendar = async () => {
-    console.log("▶ handleAddToCalendar triggered");
-
     if (!selectedRecipe || !selectedDate) {
       alert("Please select a user, recipe, and date.");
-      console.warn("Missing fields:", { selectedRecipe, selectedDate });
       return;
     }
-
-    console.log("Sending to API:", {
-      recipe_id: selectedRecipe.id,
-      date: selectedDate,
-      meal_type: mealType,
-    });
 
     const res = await fetch("/api/events", {
       method: "POST",
@@ -173,12 +136,10 @@ export default function CalendarPage() {
       }),
     });
 
-    console.log("API Response status:", res.status);
-
     if (res.ok) {
       alert("✅ Added to Calendar!");
       setShowDateModal(false);
-      await loadEvents(); // 重新載入事件
+      await loadEvents();
     } else {
       const err: { error?: string } = await res.json();
       console.error("❌ Error from API:", err);
@@ -186,32 +147,19 @@ export default function CalendarPage() {
     }
   };
 
-  // ⭐ [新功能] 處理 FullCalendar 事件點擊
+  // ------------------------------
+  // 處理點擊
+  // ------------------------------
   const handleEventClick = (clickInfo: EventClickArg) => {
-    // 從 extendedProps 中取出我們儲存的原始資料
     const eventData = clickInfo.event.extendedProps.calendarData as CalendarApiResponse;
-
-    // 如果 API 回傳的資料中沒有食譜描述 (description)，
-    // 你可以在這裡呼叫 API 獲取更完整的食譜資訊：
-    //
-    // const recipeId = eventData.Recipe?.id;
-    // if (recipeId) {
-    //   const res = await fetch(`/api/recipes/${recipeId}`);
-    //   const fullRecipe = await res.json();
-    //   // ... 然後把 fullRecipe 存到 state 中
-    // }
-    //
-    // 為了簡單起見，我們假設 API 已經回傳了 description (如步驟 1 的 GET 所示)
-
-    console.log("Clicked event:", eventData);
     setSelectedCalendarEntry(eventData);
     setIsDetailModalOpen(true);
   };
 
-  // ⭐ [新功能] 處理更新狀態 (PATCH)
+  // ------------------------------
+  // 處理更新狀態 (PATCH)
+  // ------------------------------
   const handleUpdateStatus = async (entryId: number, newStatus: boolean) => {
-    console.log(`Updating entry ${entryId} to status: ${newStatus}`);
-
     const res = await fetch(`/api/events/${entryId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -222,8 +170,8 @@ export default function CalendarPage() {
 
     if (res.ok) {
       alert(newStatus ? "✅ Meal marked as completed!" : "👌 Meal status updated!");
-      setIsDetailModalOpen(false); // 關閉 Modal
-      await loadEvents(); // 重新載入事件 (FullCalendar 會自動更新顏色)
+      setIsDetailModalOpen(false);
+      await loadEvents();
     } else {
       const err: { error?: string } = await res.json();
       console.error("❌ Error updating status:", err);
@@ -232,16 +180,36 @@ export default function CalendarPage() {
   };
 
   // ------------------------------
-  // init load user
+  // ⭐ 步驟 3: 簡化初始載入
   // ------------------------------
-  // useEffect(() => {
-  //   loadUsers();
-  // }, []);
-
-  /*   // Initial load for the logged-in user
   useEffect(() => {
     loadEvents();
-  }, []); // */
+  }, [loadEvents]);
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      // 1. 獲取 auth 使用者
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user && user.email) {
+        // 2. 根據 email 查詢 public.User 表
+        const { data: profile } = await supabase
+          .from("User")
+          .select("fullname, username") // 抓取 fullname 或 username
+          .eq("email", user.email)
+          .single();
+
+        if (profile) {
+          // 3. 設定 state
+          setUserName(profile.fullname || profile.username || "Welcome!");
+        }
+      }
+    };
+
+    fetchUserName();
+  }, [supabase]); // 依賴 supabase client
 
   // ------------------------------
   // UI Rendering
@@ -250,24 +218,10 @@ export default function CalendarPage() {
     <main className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        {/* ... (既有的 Header 內容) ... */}
-        <div className="flex items-center gap-4">
-          {/* <div>
-            <label className="mb-1 block text-sm font-medium text-gray-600">Current User</label>
-            <select
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
-              className="rounded-lg border px-3 py-2"
-            >
-              <option value="">Select user</option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.fullname}
-                </option>
-              ))}
-            </select>
-          </div> */}
-        </div>
+        {/* ⭐ 已移除 "Current User" 下拉選單，因為不再需要 */}
+        <h1 className="text-2xl font-semibold text-gray-800">
+          {userName ? `${userName}'s Calendar` : "Loading Calendar..."}
+        </h1>
         <button
           onClick={loadRecommendations}
           className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
@@ -279,7 +233,6 @@ export default function CalendarPage() {
       {/* 'recommendations'*/}
       {recommendations.length > 0 && (
         <div className="mb-6 rounded-xl bg-white p-4 shadow">
-          {/* ... (既有的推薦食譜 UI) ... */}
           <h2 className="mb-3 text-lg font-semibold">Recommended Recipes</h2>
           <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {recommendations.map((r) => (
@@ -315,7 +268,6 @@ export default function CalendarPage() {
       {/* "Add Meal" Modal */}
       {showDateModal && selectedRecipe && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          {/* ... (既有的 "Add Meal" Modal UI) ... */}
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
             <h2 className="mb-4 text-lg font-semibold">Select Date for {selectedRecipe.name}</h2>
             <label className="mb-2 block text-sm font-medium text-gray-700">Choose a date:</label>
@@ -359,7 +311,6 @@ export default function CalendarPage() {
       {isDetailModalOpen && selectedCalendarEntry && selectedCalendarEntry.Recipe && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg">
-            {/* 食譜圖片 */}
             {selectedCalendarEntry.Recipe.image_url && (
               <img
                 src={selectedCalendarEntry.Recipe.image_url}
@@ -367,27 +318,21 @@ export default function CalendarPage() {
                 className="mb-4 h-48 w-full rounded-lg object-cover"
               />
             )}
-            {/* 食譜名稱 */}
             <h2 className="mb-2 text-2xl font-bold">{selectedCalendarEntry.Recipe.name}</h2>
-            {/* 餐別和日期 */}
             <p className="mb-4 text-gray-500">
               {selectedCalendarEntry.meal_type.charAt(0).toUpperCase() +
                 selectedCalendarEntry.meal_type.slice(1)}{" "}
               on {selectedCalendarEntry.date}
             </p>
 
-            {/* 食譜描述 (如果 API 有提供) */}
             {selectedCalendarEntry.Recipe.description && (
               <p className="mb-6 max-h-40 overflow-y-auto whitespace-pre-line text-gray-700">
                 {selectedCalendarEntry.Recipe.description}
               </p>
             )}
 
-            {/* 操作按鈕 */}
             <div className="flex items-center justify-between gap-3">
-              {/* 根據目前狀態顯示不同的按鈕 */}
               {selectedCalendarEntry.status === true ? (
-                // 顯示「標記為未完成」
                 <button
                   onClick={() => handleUpdateStatus(selectedCalendarEntry.id, false)}
                   className="w-full rounded-lg bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
@@ -395,7 +340,6 @@ export default function CalendarPage() {
                   Mark as Incomplete
                 </button>
               ) : (
-                // 顯示「標記為已完成」
                 <button
                   onClick={() => handleUpdateStatus(selectedCalendarEntry.id, true)}
                   className="w-full rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
@@ -418,7 +362,6 @@ export default function CalendarPage() {
       {/* FullCalendar */}
       <div className="rounded-xl bg-white p-4 shadow">
         <FullCalendar
-          // key={selectedUser}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           headerToolbar={{
@@ -430,7 +373,6 @@ export default function CalendarPage() {
           events={events}
           displayEventTime={false}
           timeZone="local"
-          // ⭐ [新功能] 綁定點擊事件
           eventClick={handleEventClick}
         />
       </div>
