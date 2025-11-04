@@ -2,6 +2,9 @@ name: Run Jest Tests
 
 on:
   pull_request:
+      paths:
+      - "web/**"
+      - ".github/workflows/ci-jest.yml"  
 
 jobs:
   test:
