@@ -22,11 +22,17 @@ export default function CalendarPage() {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
+  // add Modal status
+  const [selectedRecipe, setSelectedRecipe] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [showDateModal, setShowDateModal] = useState(false);
+  const [mealType, setMealType] = useState("breakfast");
+
   // ------------------------------
   // load user info
   // ------------------------------
   const loadUsers = async () => {
-    const res = await fetch("api/users");
+    const res = await fetch("/api/users");
     const data = await res.json();
     if (Array.isArray(data)) setUsers(data);
   };
@@ -36,13 +42,13 @@ export default function CalendarPage() {
   // ------------------------------
   const loadEvents = async (userId: string) => {
     if (!userId) return setEvents([]);
-    const res = await fetch(`api/calendar?user_id=${userId}`);
+    const res = await fetch(`/api/calendar?user_id=${userId}`);
     const data = await res.json();
 
     // trans data into FullCalendar format
     const formatted = (data ?? []).map((c: any) => ({
       id: String(c.id),
-      title: c.Recipe?.name ?? "Meal",
+      title: `${c.meal_type ? c.meal_type.charAt(0).toUpperCase() + c.meal_type.slice(1) : ""} - ${c.Recipe?.name ?? "Meal"}`,
       start: c.date,
       allDay: true,
     }));
@@ -53,7 +59,7 @@ export default function CalendarPage() {
   // load recommendate receipts
   // ------------------------------
   const loadRecommendations = async () => {
-    const res = await fetch("api/recommendations");
+    const res = await fetch("/api/recommendations");
     const data = await res.json();
     setRecommendations(data);
   };
@@ -61,29 +67,42 @@ export default function CalendarPage() {
   // ------------------------------
   // add to calendar
   // ------------------------------
-  const handleAddToCalendar = async (recipeId: number) => {
-    if (!selectedUser) {
-      alert("Please select a user first.");
+  const handleAddToCalendar = async () => {
+    console.log("▶ handleAddToCalendar triggered");
+
+    if (!selectedUser || !selectedRecipe || !selectedDate) {
+      alert("Please select a user, recipe, and date.");
+      console.warn("Missing fields:", { selectedUser, selectedRecipe, selectedDate });
       return;
     }
 
-    const date = new Date().toISOString().split("T")[0]; // 預設今天
+    console.log("Sending to API:", {
+      user_id: selectedUser,
+      recipe_id: selectedRecipe.id,
+      date: selectedDate,
+      meal_type: mealType, // 如果有加餐別
+    });
 
-    const res = await fetch("api/calendar", {
+    const res = await fetch("/api/calendar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         user_id: selectedUser,
-        recipe_id: recipeId,
-        date,
+        recipe_id: selectedRecipe.id,
+        date: selectedDate,
+        meal_type: mealType,
       }),
     });
 
+    console.log("API Response status:", res.status);
+
     if (res.ok) {
       alert("✅ Added to Calendar!");
+      setShowDateModal(false);
       await loadEvents(selectedUser);
     } else {
       const err = await res.json();
+      console.error("❌ Error from API:", err);
       alert(`❌ Error: ${err.error}`);
     }
   };
@@ -188,7 +207,10 @@ export default function CalendarPage() {
                     ⏱ {r.min_prep_time ?? 0} mins • 🌿 Score {r.green_score ?? "?"}
                   </p>
                   <button
-                    onClick={() => handleAddToCalendar(r.id)}
+                    onClick={() => {
+                      setSelectedRecipe(r);
+                      setShowDateModal(true);
+                    }}
                     className="mt-2 w-full rounded bg-blue-600 py-1 text-white hover:bg-blue-700"
                   >
                     + Add to Calendar
@@ -197,6 +219,48 @@ export default function CalendarPage() {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+      {/* 日期選擇 Modal */}
+      {showDateModal && selectedRecipe && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
+            <h2 className="mb-4 text-lg font-semibold">Select Date for {selectedRecipe.name}</h2>
+
+            <label className="mb-2 block text-sm font-medium text-gray-700">Choose a date:</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="mb-4 w-full rounded-lg border px-3 py-2"
+            />
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Choose meal type:
+            </label>
+            <select
+              value={mealType}
+              onChange={(e) => setMealType(e.target.value)}
+              className="mb-4 w-full rounded-lg border px-3 py-2"
+            >
+              <option value="breakfast">🍳 Breakfast</option>
+              <option value="lunch">🍱 Lunch</option>
+              <option value="dinner">🍲 Dinner</option>
+            </select>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDateModal(false)}
+                className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddToCalendar}
+                className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
