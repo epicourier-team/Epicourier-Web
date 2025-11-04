@@ -95,8 +95,6 @@ const SignUp = () => {
       const errMsg = (err as { message: string })?.message || "Signup failed";
       toast({ title: "Signup failed", description: errMsg, variant: "destructive" });
     }
-    // Handle signup logic here
-    console.log("Signup:", formData);
   };
 
   return (
