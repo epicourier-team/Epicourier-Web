@@ -2,10 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { validatePassword } from "@/lib/utils";
 import { Utensils } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { signup } from './actions'
+import { signup } from "./actions";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -15,10 +17,86 @@ const SignUp = () => {
     confirmPassword: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { toast } = useToast();
+
+  const [errors, setErrors] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const validateForm = () => {
+    const newErrors = { username: "", email: "", password: "", confirmPassword: "" };
+    let firstError = "";
+
+    // required checks
+    if (!formData.username.trim()) {
+      newErrors.username = "Username is required";
+      if (!firstError) firstError = newErrors.username;
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+      if (!firstError) firstError = newErrors.email;
+    } else {
+      // simple email format check
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        newErrors.email = "Please enter a valid email address";
+        if (!firstError) firstError = newErrors.email;
+      }
+    }
+
+    // password requirements
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+      if (!firstError) firstError = newErrors.password;
+    } else {
+      const pw = validatePassword(formData.password);
+      if (!pw.isValid) {
+        newErrors.password = pw.error;
+        if (!firstError) firstError = newErrors.password;
+      } else if (formData.password.length < 8) {
+        newErrors.password = "Password must be at least 8 characters";
+        if (!firstError) firstError = newErrors.password;
+      }
+    }
+
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+      if (!firstError) firstError = newErrors.confirmPassword;
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+      if (!firstError) firstError = newErrors.confirmPassword;
+    }
+
+    setErrors(newErrors);
+    return { isValid: !firstError, firstError };
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response = signup(formData); 
-    console.log("Signup response: ", response);
+
+    const validation = validateForm();
+    if (!validation.isValid) {
+      toast({
+        title: "Validation Error",
+        description: validation.firstError,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await signup(formData);
+      toast({ title: "Account created", description: "Please sign in with your new account." });
+    } catch (err: unknown) {
+      const errMsg = (err as { message: string })?.message || "Signup failed";
+      toast({ title: "Signup failed", description: errMsg, variant: "destructive" });
+    }
+    // Handle signup logic here
+    console.log("Signup:", formData);
   };
 
   return (
@@ -49,11 +127,14 @@ const SignUp = () => {
                 id="username"
                 type="text"
                 value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                className="mt-1.5"
+                onChange={(e) => {
+                  setFormData({ ...formData, username: e.target.value });
+                  if (errors.username) setErrors({ ...errors, username: "" });
+                }}
+                className={`mt-1.5 ${errors.username ? "border-red-500" : ""}`}
                 placeholder="Choose a username"
-                required
               />
+              {errors.username && <p className="mt-1 text-sm text-red-500">{errors.username}</p>}
             </div>
 
             <div>
@@ -62,13 +143,16 @@ const SignUp = () => {
               </Label>
               <Input
                 id="email"
-                type="email"
+                type="text"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="mt-1.5"
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  if (errors.email) setErrors({ ...errors, email: "" });
+                }}
+                className={`mt-1.5 ${errors.email ? "border-red-500" : ""}`}
                 placeholder="your@email.com"
-                required
               />
+              {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
             </div>
 
             <div>
@@ -79,11 +163,14 @@ const SignUp = () => {
                 id="password"
                 type="password"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="mt-1.5"
+                onChange={(e) => {
+                  setFormData({ ...formData, password: e.target.value });
+                  if (errors.password) setErrors({ ...errors, password: "" });
+                }}
+                className={`mt-1.5 ${errors.password ? "border-red-500" : ""}`}
                 placeholder="Create a strong password"
-                required
               />
+              {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
             </div>
 
             <div>
@@ -94,11 +181,16 @@ const SignUp = () => {
                 id="confirmPassword"
                 type="password"
                 value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                className="mt-1.5"
+                onChange={(e) => {
+                  setFormData({ ...formData, confirmPassword: e.target.value });
+                  if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: "" });
+                }}
+                className={`mt-1.5 ${errors.confirmPassword ? "border-red-500" : ""}`}
                 placeholder="Re-enter your password"
-                required
               />
+              {errors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>
+              )}
             </div>
 
             <Button
