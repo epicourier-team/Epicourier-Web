@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabaseServer";
 
-// 取得推薦食譜
+// Get recommend receipt (simulation)
 export async function GET() {
   const { data, error } = await supabaseServer
     .from("Recipe")
@@ -13,7 +13,7 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // 隨機取樣 3 筆
+  // choose 3 randomly
   const shuffled = data.sort(() => 0.5 - Math.random());
   const sample = shuffled.slice(0, 3);
   return NextResponse.json(sample);

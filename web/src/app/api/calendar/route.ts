@@ -12,7 +12,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
     }
 
-    // 基本查詢：依 user 過濾
+    // Get user's calendar
     let query = supabaseServer
       .from("Calendar")
       .select(
@@ -37,7 +37,7 @@ export async function GET(req: Request) {
       .order("date", { ascending: true })
       .order("meal_type", { ascending: true });
 
-    // 可選日期區間
+    // Choose date
     if (start) query = query.gte("date", start);
     if (end) query = query.lte("date", end);
 
