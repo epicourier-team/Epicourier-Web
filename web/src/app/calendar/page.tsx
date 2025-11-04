@@ -6,6 +6,8 @@ import { EventClickArg } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 // ------------------------------
 // Type Definitions
@@ -51,11 +53,12 @@ interface CalendarApiResponse {
 }
 
 export default function CalendarPage() {
+  const router = useRouter();
   // ------------------------------
   // State management
   // ------------------------------
-  const [users, setUsers] = useState<{ id: number; fullname: string }[]>([]);
-  const [selectedUser, setSelectedUser] = useState<string>("");
+  // const [users, setUsers] = useState<{ id: number; fullname: string }[]>([]); // development
+  // const [selectedUser, setSelectedUser] = useState<string>(""); // for development
   const [recommendations, setRecommendations] = useState<Recipe[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
@@ -75,18 +78,39 @@ export default function CalendarPage() {
   // ------------------------------
   // load user info
   // ------------------------------
-  const loadUsers = async () => {
-    const res = await fetch("/api/users");
-    const data = await res.json();
-    if (Array.isArray(data)) setUsers(data);
-  };
+  // const loadUsers = async () => {
+  //   const res = await fetch("/api/users");
+  //   const data = await res.json();
+  //   if (Array.isArray(data)) setUsers(data);
+  // };
+  // 檢查登入狀態的 Effect (取代原本的 loadUsers)
+  // 載入時：
+  // 1. 檢查使用者是否登入
+  // 2. 如果登入，就載入他們的事件
+  useEffect(() => {
+    const checkUserAndLoadEvents = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser(); // 這是 client-side check
 
+      if (!user) {
+        // 雖然 middleware 會阻擋，但這是一個好的雙重保險
+        router.push("/signin");
+      } else {
+        // 使用者已登入，載入他們的事件
+        loadEvents();
+      }
+    };
+
+    checkUserAndLoadEvents();
+    // 我們只希望這個 effect 在頁面載入時執行一次。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // ------------------------------
   // load current user info
   // ------------------------------
-  const loadEvents = async (userId: string) => {
-    if (!userId) return setEvents([]);
-    const res = await fetch(`/api/calendar?user_id=${userId}`);
+  const loadEvents = async () => {
+    const res = await fetch(`/api/events`);
     const data: CalendarApiResponse[] = await res.json();
 
     // trans data into FullCalendar format
@@ -126,24 +150,22 @@ export default function CalendarPage() {
   const handleAddToCalendar = async () => {
     console.log("▶ handleAddToCalendar triggered");
 
-    if (!selectedUser || !selectedRecipe || !selectedDate) {
+    if (!selectedRecipe || !selectedDate) {
       alert("Please select a user, recipe, and date.");
-      console.warn("Missing fields:", { selectedUser, selectedRecipe, selectedDate });
+      console.warn("Missing fields:", { selectedRecipe, selectedDate });
       return;
     }
 
     console.log("Sending to API:", {
-      user_id: selectedUser,
       recipe_id: selectedRecipe.id,
       date: selectedDate,
       meal_type: mealType,
     });
 
-    const res = await fetch("/api/calendar", {
+    const res = await fetch("/api/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        user_id: selectedUser,
         recipe_id: selectedRecipe.id,
         date: selectedDate,
         meal_type: mealType,
@@ -156,7 +178,7 @@ export default function CalendarPage() {
     if (res.ok) {
       alert("✅ Added to Calendar!");
       setShowDateModal(false);
-      await loadEvents(selectedUser); // 重新載入事件
+      await loadEvents(); // 重新載入事件
     } else {
       const err: { error?: string } = await res.json();
       console.error("❌ Error from API:", err);
@@ -190,7 +212,7 @@ export default function CalendarPage() {
   const handleUpdateStatus = async (entryId: number, newStatus: boolean) => {
     console.log(`Updating entry ${entryId} to status: ${newStatus}`);
 
-    const res = await fetch(`/api/calendar/${entryId}`, {
+    const res = await fetch(`/api/events/${entryId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -201,7 +223,7 @@ export default function CalendarPage() {
     if (res.ok) {
       alert(newStatus ? "✅ Meal marked as completed!" : "👌 Meal status updated!");
       setIsDetailModalOpen(false); // 關閉 Modal
-      await loadEvents(selectedUser); // 重新載入事件 (FullCalendar 會自動更新顏色)
+      await loadEvents(); // 重新載入事件 (FullCalendar 會自動更新顏色)
     } else {
       const err: { error?: string } = await res.json();
       console.error("❌ Error updating status:", err);
@@ -212,16 +234,14 @@ export default function CalendarPage() {
   // ------------------------------
   // init load user
   // ------------------------------
-  useEffect(() => {
-    loadUsers();
-  }, []);
+  // useEffect(() => {
+  //   loadUsers();
+  // }, []);
 
-  // ------------------------------
-  // exchange user
-  // ------------------------------
+  /*   // Initial load for the logged-in user
   useEffect(() => {
-    if (selectedUser) loadEvents(selectedUser);
-  }, [selectedUser]);
+    loadEvents();
+  }, []); // */
 
   // ------------------------------
   // UI Rendering
@@ -232,7 +252,7 @@ export default function CalendarPage() {
       <div className="mb-6 flex items-center justify-between">
         {/* ... (既有的 Header 內容) ... */}
         <div className="flex items-center gap-4">
-          <div>
+          {/* <div>
             <label className="mb-1 block text-sm font-medium text-gray-600">Current User</label>
             <select
               value={selectedUser}
@@ -246,7 +266,7 @@ export default function CalendarPage() {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
         </div>
         <button
           onClick={loadRecommendations}
@@ -398,7 +418,7 @@ export default function CalendarPage() {
       {/* FullCalendar */}
       <div className="rounded-xl bg-white p-4 shadow">
         <FullCalendar
-          key={selectedUser}
+          // key={selectedUser}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           headerToolbar={{
