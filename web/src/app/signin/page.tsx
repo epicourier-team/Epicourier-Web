@@ -2,20 +2,70 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Utensils } from "lucide-react";
+import { Utensils, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { login } from './actions'
+import { useToast } from "@/hooks/use-toast";
 
 const SignIn = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState({ email: "", password: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signin logic here
-    console.log("Signin:", formData);
+
+    setError(null);
+
+    if (!formData.email.trim() || !formData.password.trim()) {
+      const message = !formData.email.trim()
+        ? "Email is required"
+        : "Password is required";
+
+      // set field-level errors so they appear under inputs
+      setErrors({
+        email: !formData.email.trim() ? "Email is required" : "",
+        password: !formData.password.trim() ? "Password is required" : "",
+      });
+
+      setError(message);
+      toast({
+        title: "Validation Error",
+        description: message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      const message = "Please enter a valid email address.";
+      setErrors({ ...errors, email: message });
+      setError(message);
+      toast({
+        title: "Validation Error",
+        description: message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // login is a server action; await it and rely on server-side redirects/errors
+      await login(formData);
+      toast({ title: "Signed in", description: "Welcome back!" });
+    } catch (err: any) {
+      const errMsg = err?.message || "Sign in failed";
+      setError(errMsg);
+      toast({ title: "Sign in failed", description: errMsg, variant: "destructive" });
+    }
   };
 
   return (
@@ -36,6 +86,13 @@ const SignIn = () => {
             <p className="text-gray-600">Sign in to continue your meal journey</p>
           </div>
 
+          {/* {error && (
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700 transition-opacity duration-300">
+              <XCircle className="h-5 w-5 flex-shrink-0 text-red-500" />
+              <p className="font-medium">{error}</p>
+            </div>
+          )} */}
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
@@ -44,13 +101,17 @@ const SignIn = () => {
               </Label>
               <Input
                 id="email"
-                type="email"
+                type="text"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="mt-1.5"
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  if (errors.email) setErrors({ ...errors, email: "" });
+                  if (error) setError(null);
+                }}
+                className={`mt-1.5 ${errors.email ? "border-red-500" : ""}`}
                 placeholder="your@email.com"
-                required
               />
+              {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
             </div>
 
             <div>
@@ -61,14 +122,18 @@ const SignIn = () => {
                 id="password"
                 type="password"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="mt-1.5"
+                onChange={(e) => {
+                  setFormData({ ...formData, password: e.target.value });
+                  if (errors.password) setErrors({ ...errors, password: "" });
+                  if (error) setError(null);
+                }}
+                className={`mt-1.5 ${errors.password ? "border-red-500" : ""}`}
                 placeholder="Enter your password"
-                required
               />
+              {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
             </div>
 
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 text-sm text-gray-600">
                 <input type="checkbox" className="rounded border-gray-300" />
                 Remember me
@@ -76,7 +141,7 @@ const SignIn = () => {
               <a href="#" className="text-sm text-emerald-600 hover:text-emerald-700">
                 Forgot password?
               </a>
-            </div>
+            </div> */}
 
             <Button
               type="submit"
