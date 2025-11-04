@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Utensils } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { signup } from './actions'
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -16,8 +17,8 @@ const SignUp = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signup logic here
-    console.log("Signup:", formData);
+    const response = signup(formData); 
+    console.log("Signup response: ", response);
   };
 
   return (
@@ -103,6 +104,7 @@ const SignUp = () => {
             <Button
               type="submit"
               className="h-11 w-full bg-emerald-600 text-base text-white hover:bg-emerald-700"
+              onSubmit={handleSubmit}
             >
               Create Account
             </Button>

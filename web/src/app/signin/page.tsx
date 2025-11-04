@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Utensils } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { login } from './actions'
 
 const SignIn = () => {
   const [formData, setFormData] = useState({
@@ -14,8 +15,8 @@ const SignIn = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signin logic here
-    console.log("Signin:", formData);
+    const response = login(formData);
+    console.log(response);
   };
 
   return (
