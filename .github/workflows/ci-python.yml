@@ -1,0 +1,34 @@
+name: 🧠 Python Syntax & Lint Check (on PR backend only)
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "backend/**"
+      - ".github/workflows/pr-lint.yml"  
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install ruff black
+
+      - name: Syntax Check
+        run: python -m py_compile $(find backend -name "*.py")
+
+      - name: Lint with Ruff
+        run: ruff check backend
+
+      - name: Format check with Black
+        run: black --check backend
