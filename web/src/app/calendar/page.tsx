@@ -6,11 +6,39 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
 
+// ------------------------------
+// Type Definitions
+// ------------------------------
+// Calendar Type
 interface CalendarEvent {
   id: string;
   title: string;
   start: string;
   allDay: boolean;
+}
+
+// Recipe Type
+interface Recipe {
+  id: number; // 假設 ID 是數字
+  name: string;
+  image_url?: string;
+  description?: string;
+  min_prep_time?: number;
+  green_score?: number | string;
+}
+
+// CalendarApiResponse Type
+interface CalendarApiResponse {
+  id: number;
+  date: string;
+  meal_type: string;
+  Recipe: {
+    id: number;
+    name: string;
+    image_url?: string;
+    min_prep_time?: number;
+    green_score?: number | string;
+  } | null;
 }
 
 export default function CalendarPage() {
@@ -19,11 +47,11 @@ export default function CalendarPage() {
   // ------------------------------
   const [users, setUsers] = useState<{ id: number; fullname: string }[]>([]);
   const [selectedUser, setSelectedUser] = useState<string>("");
-  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [recommendations, setRecommendations] = useState<Recipe[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   // add Modal status
-  const [selectedRecipe, setSelectedRecipe] = useState<any>(null);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [showDateModal, setShowDateModal] = useState(false);
   const [mealType, setMealType] = useState("breakfast");
@@ -43,10 +71,11 @@ export default function CalendarPage() {
   const loadEvents = async (userId: string) => {
     if (!userId) return setEvents([]);
     const res = await fetch(`/api/calendar?user_id=${userId}`);
-    const data = await res.json();
+    // <-- 變更點 5：指定 data 的型別
+    const data: CalendarApiResponse[] = await res.json();
 
     // trans data into FullCalendar format
-    const formatted = (data ?? []).map((c: any) => ({
+    const formatted = (data ?? []).map((c: CalendarApiResponse) => ({
       id: String(c.id),
       title: `${c.meal_type ? c.meal_type.charAt(0).toUpperCase() + c.meal_type.slice(1) : ""} - ${c.Recipe?.name ?? "Meal"}`,
       start: c.date,
@@ -60,8 +89,11 @@ export default function CalendarPage() {
   // ------------------------------
   const loadRecommendations = async () => {
     const res = await fetch("/api/recommendations");
-    const data = await res.json();
-    setRecommendations(data);
+    // <-- 變更點 7：指定 data 的型別
+    const data: Recipe[] = await res.json();
+    if (Array.isArray(data)) {
+      setRecommendations(data);
+    }
   };
 
   // ------------------------------
@@ -80,7 +112,7 @@ export default function CalendarPage() {
       user_id: selectedUser,
       recipe_id: selectedRecipe.id,
       date: selectedDate,
-      meal_type: mealType, // 如果有加餐別
+      meal_type: mealType,
     });
 
     const res = await fetch("/api/calendar", {
@@ -101,15 +133,15 @@ export default function CalendarPage() {
       setShowDateModal(false);
       await loadEvents(selectedUser);
     } else {
-      const err = await res.json();
+      const err: { error?: string } = await res.json();
       console.error("❌ Error from API:", err);
-      alert(`❌ Error: ${err.error}`);
+      alert(`❌ Error: ${err.error ?? "Unknown error"}`);
     }
   };
 
   // ------------------------------
   // create a new user
-  // ------------------------------
+  /*   // ------------------------------
   const handleCreateUser = async () => {
     const fullname = prompt("Enter user's full name:");
     const email = prompt("Enter user's email:");
@@ -125,10 +157,10 @@ export default function CalendarPage() {
       await loadUsers();
       alert("✅ User created!");
     } else {
-      const err = await res.json();
-      alert(`❌ Error: ${err.error}`);
+      const err: { error?: string } = await res.json();
+      alert(`❌ Error: ${err.error ?? "Unknown error"}`);
     }
-  };
+  }; */
 
   // ------------------------------
   // init load user
@@ -152,7 +184,7 @@ export default function CalendarPage() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          {/* 使用者選擇 */}
+          {/* choose user */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-600">Current User</label>
             <select
@@ -169,16 +201,16 @@ export default function CalendarPage() {
             </select>
           </div>
 
-          {/* 建立新使用者 */}
-          <button
+          {/* create new user */}
+          {/*<button
             onClick={handleCreateUser}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
           >
             + Create User
-          </button>
+          </button>*/}
         </div>
 
-        {/* 載入推薦食譜 */}
+        {/* load receipt recommendation */}
         <button
           onClick={loadRecommendations}
           className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
@@ -187,7 +219,7 @@ export default function CalendarPage() {
         </button>
       </div>
 
-      {/* 推薦食譜區塊 */}
+      {/* 'recommendations'*/}
       {recommendations.length > 0 && (
         <div className="mb-6 rounded-xl bg-white p-4 shadow">
           <h2 className="mb-3 text-lg font-semibold">Recommended Recipes</h2>
@@ -221,7 +253,8 @@ export default function CalendarPage() {
           </ul>
         </div>
       )}
-      {/* 日期選擇 Modal */}
+
+      {/* data choosing Modal */}
       {showDateModal && selectedRecipe && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
@@ -267,7 +300,7 @@ export default function CalendarPage() {
       {/* FullCalendar */}
       <div className="rounded-xl bg-white p-4 shadow">
         <FullCalendar
-          key={selectedUser} // 切換使用者時強制 re-render
+          key={selectedUser}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           headerToolbar={{

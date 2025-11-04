@@ -3,7 +3,7 @@ import { supabaseServer } from "@/lib/supabaseServer";
 
 /**
  * GET /api/users
- * 取得所有使用者清單
+ * get all user list
  */
 export async function GET() {
   try {
@@ -14,9 +14,14 @@ export async function GET() {
 
     if (error) throw error;
     return NextResponse.json(data ?? []);
-  } catch (err: any) {
-    console.error("GET /api/users error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    console.error("POST /api/calendar error:", err);
+
+    let errorMessage = "Unknown error";
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    }
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -25,25 +30,28 @@ export async function GET() {
  * 新增一位使用者
  * body: { fullname: string, email: string }
  */
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const { fullname, email } = body;
 
-    if (!fullname || !email) {
-      return NextResponse.json({ error: "Missing fullname or email" }, { status: 400 });
-    }
-
-    const { data, error } = await supabaseServer
-      .from("User")
-      .insert([{ fullname, email }])
-      .select("id, fullname, email")
-      .single();
-
-    if (error) throw error;
-    return NextResponse.json(data);
-  } catch (err: any) {
-    console.error("POST /api/users error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
+/**
+ * export async function POST(req: Request) {
+ *   try {
+ *     const body = await req.json();
+ *     const { fullname, email } = body;
+ *
+ *     if (!fullname || !email) {
+ *       return NextResponse.json({ error: "Missing fullname or email" }, { status: 400 });
+ *     }
+ *
+ *     const { data, error } = await supabaseServer
+ *       .from("User")
+ *       .insert([{ fullname, email }])
+ *       .select("id, fullname, email")
+ *       .single();
+ *
+ *     if (error) throw error;
+ *     return NextResponse.json(data);
+ *   } catch (err: any) {
+ *     console.error("POST /api/users error:", err);
+ *     return NextResponse.json({ error: err.message }, { status: 500 });
+ *   }
+ * }
+ */

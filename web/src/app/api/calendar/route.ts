@@ -1,6 +1,60 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabaseServer";
 
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("user_id");
+    const start = searchParams.get("start"); // YYYY-MM-DD
+    const end = searchParams.get("end"); // YYYY-MM-DD
+
+    if (!userId) {
+      return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
+    }
+
+    // 基本查詢：依 user 過濾
+    let query = supabaseServer
+      .from("Calendar")
+      .select(
+        `
+        id,
+        user_id,
+        recipe_id,
+        date,
+        meal_type,
+        status,
+        notes,
+        Recipe:recipe_id (
+          id,
+          name,
+          image_url,
+          min_prep_time,
+          green_score
+        )
+      `
+      )
+      .eq("user_id", userId)
+      .order("date", { ascending: true })
+      .order("meal_type", { ascending: true });
+
+    // 可選日期區間
+    if (start) query = query.gte("date", start);
+    if (end) query = query.lte("date", end);
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    return NextResponse.json(data ?? []);
+  } catch (err: unknown) {
+    console.error("GET /api/calendar error:", err);
+    let errorMessage = "Unknown error";
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    }
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -27,8 +81,13 @@ export async function POST(req: Request) {
 
     if (error) throw error;
     return NextResponse.json(data);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("POST /api/calendar error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+
+    let errorMessage = "Unknown error";
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    }
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
