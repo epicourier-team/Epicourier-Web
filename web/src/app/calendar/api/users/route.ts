@@ -1,25 +1,49 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "../../lib/supabaseServer";
 
-// 取得所有使用者
+/**
+ * GET /api/users
+ * 取得所有使用者清單
+ */
 export async function GET() {
-  const { data, error } = await supabaseServer.from("users").select("*");
+  try {
+    const { data, error } = await supabaseServer
+      .from("User")
+      .select("id, fullname, email")
+      .order("created_at", { ascending: true });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data ?? []);
+    if (error) throw error;
+    return NextResponse.json(data ?? []);
+  } catch (err: any) {
+    console.error("GET /api/users error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }
 
-// 新增使用者
+/**
+ * POST /api/users
+ * 新增一位使用者
+ * body: { fullname: string, email: string }
+ */
 export async function POST(req: Request) {
-  const body = await req.json();
-  const { name, email } = body;
+  try {
+    const body = await req.json();
+    const { fullname, email } = body;
 
-  const { data, error } = await supabaseServer
-    .from("users")
-    .insert([{ name, email }])
-    .select()
-    .single();
+    if (!fullname || !email) {
+      return NextResponse.json({ error: "Missing fullname or email" }, { status: 400 });
+    }
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
+    const { data, error } = await supabaseServer
+      .from("User")
+      .insert([{ fullname, email }])
+      .select("id, fullname, email")
+      .single();
+
+    if (error) throw error;
+    return NextResponse.json(data);
+  } catch (err: any) {
+    console.error("POST /api/users error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }

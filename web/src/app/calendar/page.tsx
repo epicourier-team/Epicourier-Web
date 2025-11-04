@@ -3,155 +3,220 @@
 import { useState, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import AddMealModal from "./components/AddMealModal";
+import timeGridPlugin from "@fullcalendar/timegrid";
+
+interface CalendarEvent {
+  id: string;
+  title: string;
+  start: string;
+  allDay: boolean;
+}
 
 export default function CalendarPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
+  // ------------------------------
+  // State management
+  // ------------------------------
+  const [users, setUsers] = useState<{ id: number; fullname: string }[]>([]);
   const [selectedUser, setSelectedUser] = useState<string>("");
-  const [showCreateUser, setShowCreateUser] = useState(false);
-  const [newUser, setNewUser] = useState({ name: "", email: "" });
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-  // ✅ 載入使用者清單
+  // ------------------------------
+  // load user info
+  // ------------------------------
   const loadUsers = async () => {
     const res = await fetch("calendar/api/users");
     const data = await res.json();
-    console.log("Fetch users: ", data);
-    setUsers(data);
+    if (Array.isArray(data)) setUsers(data);
   };
 
+  // ------------------------------
+  // load current user info
+  // ------------------------------
+  const loadEvents = async (userId: string) => {
+    if (!userId) return setEvents([]);
+    const res = await fetch(`calendar/api/calendar?user_id=${userId}`);
+    const data = await res.json();
+
+    // trans data into FullCalendar format
+    const formatted = (data ?? []).map((c: any) => ({
+      id: String(c.id),
+      title: c.Recipe?.name ?? "Meal",
+      start: c.date,
+      allDay: true,
+    }));
+    setEvents(formatted);
+  };
+
+  // ------------------------------
+  // load recommendate receipts
+  // ------------------------------
+  const loadRecommendations = async () => {
+    const res = await fetch("calendar/api/recommendations");
+    const data = await res.json();
+    setRecommendations(data);
+  };
+
+  // ------------------------------
+  // add to calendar
+  // ------------------------------
+  const handleAddToCalendar = async (recipeId: number) => {
+    if (!selectedUser) {
+      alert("Please select a user first.");
+      return;
+    }
+
+    const date = new Date().toISOString().split("T")[0]; // 預設今天
+
+    const res = await fetch("calendar/api/calendar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: selectedUser,
+        recipe_id: recipeId,
+        date,
+      }),
+    });
+
+    if (res.ok) {
+      alert("✅ Added to Calendar!");
+      await loadEvents(selectedUser);
+    } else {
+      const err = await res.json();
+      alert(`❌ Error: ${err.error}`);
+    }
+  };
+
+  // ------------------------------
+  // create a new user
+  // ------------------------------
+  const handleCreateUser = async () => {
+    const fullname = prompt("Enter user's full name:");
+    const email = prompt("Enter user's email:");
+    if (!fullname || !email) return;
+
+    const res = await fetch("/api/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fullname, email }),
+    });
+
+    if (res.ok) {
+      await loadUsers();
+      alert("✅ User created!");
+    } else {
+      const err = await res.json();
+      alert(`❌ Error: ${err.error}`);
+    }
+  };
+
+  // ------------------------------
+  // init load user
+  // ------------------------------
   useEffect(() => {
     loadUsers();
   }, []);
 
-  // ✅ create a new user
-  const handleCreateUser = async () => {
-    if (!newUser.name || !newUser.email) {
-      alert("Please fill in name and email.");
-      return;
-    }
-    const res = await fetch("calendar/api/users", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newUser),
-    });
-    if (res.ok) {
-      setNewUser({ name: "", email: "" });
-      setShowCreateUser(false);
-      await loadUsers();
-    }
-  };
+  // ------------------------------
+  // exchange user
+  // ------------------------------
+  useEffect(() => {
+    if (selectedUser) loadEvents(selectedUser);
+  }, [selectedUser]);
 
+  // ------------------------------
+  // UI Rendering
+  // ------------------------------
   return (
     <main className="min-h-screen bg-gray-50 p-6">
-      {/* 頂部功能區 */}
+      {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          {/* Select User */}
+          {/* 使用者選擇 */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-600">Current User</label>
             <select
-              className="rounded-lg border px-3 py-2"
               value={selectedUser}
               onChange={(e) => setSelectedUser(e.target.value)}
+              className="rounded-lg border px-3 py-2"
             >
               <option value="">Select user</option>
-              {Array.isArray(users) &&
-                users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.fullname}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* Create User Button */}
+          {/* 建立新使用者 */}
           <button
-            onClick={() => setShowCreateUser(true)}
+            onClick={handleCreateUser}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
           >
             + Create User
           </button>
         </div>
 
+        {/* 載入推薦食譜 */}
         <button
-          onClick={() => setIsModalOpen(true)}
-          disabled={!selectedUser}
-          className={`rounded-lg px-4 py-2 ${
-            selectedUser
-              ? "bg-green-600 text-white hover:bg-green-700"
-              : "cursor-not-allowed bg-gray-300 text-gray-600"
-          }`}
+          onClick={loadRecommendations}
+          className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
         >
-          + Add Meal
+          🍽️ Get Recommendations
         </button>
       </div>
 
-      {/* Calendar */}
-      <div className="rounded-xl bg-white p-4 text-black shadow">
+      {/* 推薦食譜區塊 */}
+      {recommendations.length > 0 && (
+        <div className="mb-6 rounded-xl bg-white p-4 shadow">
+          <h2 className="mb-3 text-lg font-semibold">Recommended Recipes</h2>
+          <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {recommendations.map((r) => (
+              <li
+                key={r.id}
+                className="overflow-hidden rounded-lg border shadow transition hover:shadow-md"
+              >
+                {r.image_url && (
+                  <img src={r.image_url} alt={r.name} className="h-40 w-full object-cover" />
+                )}
+                <div className="p-3">
+                  <h3 className="font-semibold">{r.name}</h3>
+                  <p className="text-sm text-gray-500">{r.description}</p>
+                  <p className="mt-1 text-xs text-gray-400">
+                    ⏱ {r.min_prep_time ?? 0} mins • 🌿 Score {r.green_score ?? "?"}
+                  </p>
+                  <button
+                    onClick={() => handleAddToCalendar(r.id)}
+                    className="mt-2 w-full rounded bg-blue-600 py-1 text-white hover:bg-blue-700"
+                  >
+                    + Add to Calendar
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* FullCalendar */}
+      <div className="rounded-xl bg-white p-4 shadow">
         <FullCalendar
+          key={selectedUser} // 切換使用者時強制 re-render
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
-          timeZone="local"
           headerToolbar={{
             left: "prev,next today",
             center: "title",
             right: "dayGridMonth,timeGridWeek,timeGridDay",
           }}
           height="80vh"
+          events={events}
+          displayEventTime={false}
+          timeZone="local"
         />
       </div>
-
-      {/* Create User Modal */}
-      {showCreateUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-lg font-semibold">Create New User</h2>
-            <input
-              type="text"
-              placeholder="Name"
-              value={newUser.name}
-              onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-              className="mb-3 w-full rounded-lg border px-3 py-2"
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={newUser.email}
-              onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-              className="mb-4 w-full rounded-lg border px-3 py-2"
-            />
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowCreateUser(false)}
-                className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateUser}
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-              >
-                Create
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Meal Modal */}
-      <AddMealModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSaved={() => {
-          setIsModalOpen(false);
-          // reload events
-        }}
-        userId={selectedUser}
-      />
     </main>
   );
 }
