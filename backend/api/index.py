@@ -5,9 +5,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from recommender import create_meal_plan
 from supabase import Client, create_client
+from dotenv import load_dotenv
 
-url: str = os.getenv("SUPABASE_URL")
-key: str = os.getenv("SUPABASE_KEY")
+load_dotenv()
+
+url: str = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+
 supabase: Client = create_client(url, key)
 
 app = FastAPI()
@@ -25,7 +29,12 @@ class RecommendRequest(BaseModel):
     goal: str
     numMeals: int
 
+@app.get("/test")
+def test_endpoint():
+    data = supabase.table("Recipe").select("*").limit(5).execute()
+    return { "message": data.data }
+
 @app.post("/recommend")
 def recommend_meals(req: RecommendRequest):
     plan = create_meal_plan(req.goal, n_meals=req.numMeals)
-    return {"recipes": plan}   
+    return { "recipes": plan }
