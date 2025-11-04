@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "../../lib/supabaseServer";
+import { supabaseServer } from "@/lib/supabaseServer";
 
 // 取得推薦食譜
 export async function GET() {

@@ -26,7 +26,7 @@ export default function CalendarPage() {
   // load user info
   // ------------------------------
   const loadUsers = async () => {
-    const res = await fetch("calendar/api/users");
+    const res = await fetch("api/users");
     const data = await res.json();
     if (Array.isArray(data)) setUsers(data);
   };
@@ -36,7 +36,7 @@ export default function CalendarPage() {
   // ------------------------------
   const loadEvents = async (userId: string) => {
     if (!userId) return setEvents([]);
-    const res = await fetch(`calendar/api/calendar?user_id=${userId}`);
+    const res = await fetch(`api/calendar?user_id=${userId}`);
     const data = await res.json();
 
     // trans data into FullCalendar format
@@ -53,7 +53,7 @@ export default function CalendarPage() {
   // load recommendate receipts
   // ------------------------------
   const loadRecommendations = async () => {
-    const res = await fetch("calendar/api/recommendations");
+    const res = await fetch("api/recommendations");
     const data = await res.json();
     setRecommendations(data);
   };
@@ -69,7 +69,7 @@ export default function CalendarPage() {
 
     const date = new Date().toISOString().split("T")[0]; // 預設今天
 
-    const res = await fetch("calendar/api/calendar", {
+    const res = await fetch("api/calendar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
