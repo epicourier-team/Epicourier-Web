@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - "backend/**"
-      - ".github/workflows/pr-lint.yml"  
+      - ".github/workflows/ci-pytest.yml"  
 
 jobs:
   lint:
