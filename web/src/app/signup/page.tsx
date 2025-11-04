@@ -190,6 +190,7 @@ const SignUp = () => {
             <Button
               type="submit"
               className="h-11 w-full bg-emerald-600 text-base text-white hover:bg-emerald-700"
+              onSubmit={handleSubmit}
             >
               Create Account
             </Button>
