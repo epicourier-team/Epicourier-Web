@@ -2,12 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { validatePassword } from "@/lib/utils";
 import { Utensils } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { signup } from './actions'
-import { useToast } from "@/hooks/use-toast";
-import { validatePassword } from "@/lib/utils";
+import { signup } from "./actions";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -80,15 +80,19 @@ const SignUp = () => {
 
     const validation = validateForm();
     if (!validation.isValid) {
-      toast({ title: "Validation Error", description: validation.firstError, variant: "destructive" });
+      toast({
+        title: "Validation Error",
+        description: validation.firstError,
+        variant: "destructive",
+      });
       return;
     }
 
     try {
       await signup(formData);
       toast({ title: "Account created", description: "Please sign in with your new account." });
-    } catch (err: any) {
-      const errMsg = err?.message || "Signup failed";
+    } catch (err: unknown) {
+      const errMsg = (err as { message: string })?.message || "Signup failed";
       toast({ title: "Signup failed", description: errMsg, variant: "destructive" });
     }
     // Handle signup logic here
@@ -130,7 +134,7 @@ const SignUp = () => {
                 className={`mt-1.5 ${errors.username ? "border-red-500" : ""}`}
                 placeholder="Choose a username"
               />
-              {errors.username && <p className="text-sm text-red-500 mt-1">{errors.username}</p>}
+              {errors.username && <p className="mt-1 text-sm text-red-500">{errors.username}</p>}
             </div>
 
             <div>
@@ -148,7 +152,7 @@ const SignUp = () => {
                 className={`mt-1.5 ${errors.email ? "border-red-500" : ""}`}
                 placeholder="your@email.com"
               />
-              {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
+              {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
             </div>
 
             <div>
@@ -166,7 +170,7 @@ const SignUp = () => {
                 className={`mt-1.5 ${errors.password ? "border-red-500" : ""}`}
                 placeholder="Create a strong password"
               />
-              {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
+              {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
             </div>
 
             <div>
@@ -184,7 +188,9 @@ const SignUp = () => {
                 className={`mt-1.5 ${errors.confirmPassword ? "border-red-500" : ""}`}
                 placeholder="Re-enter your password"
               />
-              {errors.confirmPassword && <p className="text-sm text-red-500 mt-1">{errors.confirmPassword}</p>}
+              {errors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>
+              )}
             </div>
 
             <Button

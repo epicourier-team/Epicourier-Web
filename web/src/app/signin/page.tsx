@@ -2,11 +2,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Utensils, XCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Utensils } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { login } from './actions'
-import { useToast } from "@/hooks/use-toast";
+import { login } from "./actions";
 
 const SignIn = () => {
   const [formData, setFormData] = useState({
@@ -24,9 +24,7 @@ const SignIn = () => {
     setError(null);
 
     if (!formData.email.trim() || !formData.password.trim()) {
-      const message = !formData.email.trim()
-        ? "Email is required"
-        : "Password is required";
+      const message = !formData.email.trim() ? "Email is required" : "Password is required";
 
       // set field-level errors so they appear under inputs
       setErrors({
@@ -61,8 +59,8 @@ const SignIn = () => {
       // login is a server action; await it and rely on server-side redirects/errors
       await login(formData);
       toast({ title: "Signed in", description: "Welcome back!" });
-    } catch (err: any) {
-      const errMsg = err?.message || "Sign in failed";
+    } catch (err: unknown) {
+      const errMsg = (err as { message: string })?.message || "Sign in failed";
       setError(errMsg);
       toast({ title: "Sign in failed", description: errMsg, variant: "destructive" });
     }
@@ -111,7 +109,7 @@ const SignIn = () => {
                 className={`mt-1.5 ${errors.email ? "border-red-500" : ""}`}
                 placeholder="your@email.com"
               />
-              {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
+              {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
             </div>
 
             <div>
@@ -130,7 +128,7 @@ const SignIn = () => {
                 className={`mt-1.5 ${errors.password ? "border-red-500" : ""}`}
                 placeholder="Enter your password"
               />
-              {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
+              {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
             </div>
 
             {/* <div className="flex items-center justify-between">
