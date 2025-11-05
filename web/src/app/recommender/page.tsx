@@ -6,33 +6,65 @@ import { Loader2, UtensilsCrossed } from "lucide-react";
 
 interface Recipe {
   name: string;
-  ingredients: string[];
-  directions: string;
+  key_ingredients: string[];
+  recipe: string;
+  tags: string[];
+  reason: string;
 }
 
+
+
+
 export default function RecommendPage() {
-  const [goal, setGoal] = useState("");
-  const [numMeals, setNumMeals] = useState(3);
-  const [loading, setLoading] = useState(false);
+  const [goal, setGoal] = useState<string>("");
+  const [numMeals, setNumMeals] = useState<number>(3);
+  const [loading, setLoading] = useState<boolean>(false);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [error, setError] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
+    // Validate input
+    if (!goal.trim()) {
+      setError("Please enter your goal.");
+      return;
+    }
+    if (![3, 5, 7].includes(numMeals)) {
+      setError("Number of meals must be 3, 5, or 7.");
+      return;
+    }
+
     setLoading(true);
     setRecipes([]);
 
     try {
-      const res = await fetch("/api/recommend", {
+      console.log("Submitting:", { goal, numMeals });
+
+      const res = await fetch("/api/recommender", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ goal, numMeals }),
+        body: JSON.stringify({ goal, numMeals }), // must match FastAPI alias
       });
 
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Server responded with ${res.status}: ${text}`);
+      }
+
       const data = await res.json();
+
+      if (data.error) {
+        setError(data.error);
+        setRecipes([]);
+        return;
+      }
+
       setRecipes(data.recipes || []);
-    } catch (err) {
-      console.error("Error:", err);
-      alert("Failed to get recommendations.");
+    } catch (err: any) {
+      console.error("Error fetching recommendations:", err);
+      setError(err.message || "Unknown error occurred");
     } finally {
       setLoading(false);
     }
@@ -44,19 +76,18 @@ export default function RecommendPage() {
         <h1 className="text-4xl md:text-5xl font-bold text-center text-gray-900 mb-8">
           Personalized Meal Recommendations
         </h1>
-        <p className="text-center text-gray-600 mb-12">
+        <p className="text-center text-gray-600 mb-4">
           Describe your goal (e.g. “Lose 5 kg in 2 months” or “High-protein vegetarian diet”)
-          and choose how many meals you want for your day plan.
+          and choose how many meals you want for your daily plan.
         </p>
+        {error && <p className="text-red-600 text-center mb-4">{error}</p>}
 
         <form
           onSubmit={handleSubmit}
           className="bg-white rounded-2xl shadow-md p-8 space-y-6 border border-gray-100"
         >
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Your Goal
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Your Goal</label>
             <textarea
               value={goal}
               onChange={(e) => setGoal(e.target.value)}
@@ -67,9 +98,7 @@ export default function RecommendPage() {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Number of Meals
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Number of Meals</label>
             <select
               value={numMeals}
               onChange={(e) => setNumMeals(Number(e.target.value))}
@@ -102,7 +131,6 @@ export default function RecommendPage() {
           </Button>
         </form>
 
-        {/* Results */}
         {recipes.length > 0 && (
           <div className="mt-16 space-y-8">
             <h2 className="text-3xl font-bold text-gray-900 text-center">
@@ -115,11 +143,15 @@ export default function RecommendPage() {
                   className="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-all"
                 >
                   <h3 className="text-2xl font-semibold text-emerald-700 mb-3">{r.name}</h3>
+
                   <p className="text-gray-700 mb-2">
-                    <strong>Ingredients:</strong> {r.ingredients.join(", ")}
+                    <strong>Key Ingredients:</strong>{" "}
+                    {r.key_ingredients.join(", ")}
                   </p>
-                  <p className="text-gray-700 whitespace-pre-line">
-                    <strong>Directions:</strong> {r.directions}
+
+                  <p className="text-gray-700 whitespace-pre-line mb-2">
+                    <strong>Recipe:</strong>{" "}
+                    {r.recipe}
                   </p>
                 </div>
               ))}
