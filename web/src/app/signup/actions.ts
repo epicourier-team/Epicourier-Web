@@ -13,15 +13,6 @@ export async function signup(formData: { email?: string; password?: string; user
     password: formData?.password as string,
   }
 
-  // const {data, error} = await supabase.from('User').select('*').eq('email', form_data.email).maybeSingle();
-  // if (data) {
-  //   console.log("data: ", data);
-  //   return { error: new Error('User with this email already exists') }
-  // }
-  // if (error){
-  //   console.log("error: ", error);
-  //   return { error }
-  // }
 
   const { error: signupError } = await supabase.auth.signUp(form_data)
   if (signupError) {
