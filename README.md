@@ -60,3 +60,13 @@ If you use this repository or dataset in your work, please cite it as:
 
 ## 📎 License
 This project is released under the [MIT License](LICENSE).
+
+---
+
+## Commands
+
+### Generate list of third-party dependencies for NextJS project
+```bash
+node scripts/generate-third-party-list.js
+```
+You can check the output in [THIRD_PARTY_LIBRARIES.md](/THIRD_PARTY_LIBRARIES.md)
