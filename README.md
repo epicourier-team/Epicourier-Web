@@ -22,7 +22,6 @@ Code Style Checker
 <!-- Dataset
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17419485.svg)](https://doi.org/10.5281/zenodo.17419485) -->
 
-
 ---
 ### FastAPI for serving model
 
@@ -35,3 +34,5 @@ Server  [![FastAPI](https://img.shields.io/badge/FastAPI-009485.svg?logo=fastapi
 Testing [![Pytest](https://img.shields.io/badge/Pytest-fff?logo=pytest&logoColor=000)](#)
 
 Linting [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
+For dataset construction: refer here: [data/README.md](data/README.md)
