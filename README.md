@@ -1,38 +1,62 @@
-Epicourier
+# Epicourier-Web
 
-## Coverage
+A full-stack meal planning and grocery management web app powered by **Next.js**, **FastAPI**, and **Supabase**.  
+This repository hosts the **frontend** (Next.js + TypeScript + Tailwind CSS) and connects seamlessly to the backend API for AI-powered recommendations.
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17537732.svg)](https://doi.org/10.5281/zenodo.17537732)
 [![codecov](https://codecov.io/github/epicourier-team/Epicourier-Web/graph/badge.svg?token=TTLT1APZ44)](https://codecov.io/github/epicourier-team/Epicourier-Web)
 
-## Badges
+---
 
-### Web APP
-[![Next.js](https://img.shields.io/badge/Next.js-black?logo=next.js&logoColor=white)](#)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-%2338B2AC.svg?logo=tailwind-css&logoColor=white)](#)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff)](#)
+## 🧩 Tech Stack
 
-Syntax Checker
-[![ESLint](https://img.shields.io/badge/ESLint-3A33D1?logo=eslint)](#)
+### 🌐 Web App (Frontend)
+Built with a modern TypeScript-based stack for reliability, scalability, and developer productivity.
 
-Test
-[![Jest](https://img.shields.io/badge/Jest-C21325?logo=jest&logoColor=fff)](#)
-
-Code Style Checker
-[![Prettier](https://img.shields.io/badge/prettier-1A2C34?logo=prettier&logoColor=F7BA3E)](#)
-
-<!-- Dataset
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17419485.svg)](https://doi.org/10.5281/zenodo.17419485) -->
+| Category | Tools |
+|-----------|-------|
+| Framework | [![Next.js](https://img.shields.io/badge/Next.js-black?logo=next.js&logoColor=white)](#) |
+| Styling | [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-%2338B2AC.svg?logo=tailwind-css&logoColor=white)](#) |
+| Language | [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff)](#) |
+| Linting | [![ESLint](https://img.shields.io/badge/ESLint-3A33D1?logo=eslint&logoColor=fff)](#) |
+| Code Style | [![Prettier](https://img.shields.io/badge/Prettier-1A2C34?logo=prettier&logoColor=F7BA3E)](#) |
+| Testing | [![Jest](https://img.shields.io/badge/Jest-C21325?logo=jest&logoColor=fff)](#) |
 
 ---
-### FastAPI for serving model
 
-Language [![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff)](#)
+### ⚙️ Backend (FastAPI Service)
+Serves model inference, powered by FastAPI and Gemini.
 
-Model   [![Hugging Face](https://img.shields.io/badge/Hugging%20Face-FFD21E?logo=huggingface&logoColor=000)](#)
+| Category | Tools |
+|-----------|-------|
+| Language | [![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff)](#) |
+| Framework | [![FastAPI](https://img.shields.io/badge/FastAPI-009485.svg?logo=fastapi&logoColor=white)](#) |
+| Model | ![Google Gemini](https://img.shields.io/badge/google%20gemini-8E75B2?style=for-the-badge&logo=google%20gemini&logoColor=white) |
+| Testing | [![Pytest](https://img.shields.io/badge/Pytest-fff?logo=pytest&logoColor=000)](#) |
+| Linting | [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) |
 
-Server  [![FastAPI](https://img.shields.io/badge/FastAPI-009485.svg?logo=fastapi&logoColor=white)](#)
+---
 
-Testing [![Pytest](https://img.shields.io/badge/Pytest-fff?logo=pytest&logoColor=000)](#)
+## 🧪 Coverage
+Code coverage is automatically tracked via **Codecov**:
 
-Linting [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![codecov](https://codecov.io/github/epicourier-team/Epicourier-Web/graph/badge.svg?token=TTLT1APZ44)](https://codecov.io/github/epicourier-team/Epicourier-Web)
 
-For dataset construction: refer here: [data/README.md](data/README.md)
+---
+
+## 📊 Dataset
+For details about dataset construction and preprocessing, please refer to:
+👉 [data/README.md](data/README.md)
+
+---
+
+## 📜 Citation
+If you use this repository or dataset in your work, please cite it as:
+
+> Epicourier Team. (2025). *Epicourier-Web* [Computer software]. Zenodo.  
+> [https://doi.org/10.5281/zenodo.17537732](https://doi.org/10.5281/zenodo.17537732)
+
+---
+
+## 📎 License
+This project is released under the [MIT License](LICENSE).
