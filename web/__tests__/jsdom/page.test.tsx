@@ -6,7 +6,7 @@ describe("Page", () => {
   it("renders a title", async () => {
     render(<Page />);
 
-    const title = await screen.findByText(/EpiCourier/i);
+    const title = await screen.findByText(/Watch Demo/i);
 
     expect(title).toBeInTheDocument();
   });

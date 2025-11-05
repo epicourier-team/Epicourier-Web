@@ -1,8 +1,8 @@
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { NUTRIENT_NAME } from "../../../lib/constants";
-import { getRecipeDetail } from "../../../lib/utils";
+import { NUTRIENT_NAME } from "../../../../lib/constants";
+import { getRecipeDetail } from "../../../../lib/utils";
 
 export async function generateStaticParams() {
   const { data: recipes } = await supabase.from("Recipe").select("id");
