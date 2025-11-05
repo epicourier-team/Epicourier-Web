@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from recommender import create_meal_plan
+from api.recommender import create_meal_plan
 # import recommender
 from supabase import Client, create_client
 from dotenv import load_dotenv
@@ -44,5 +44,5 @@ class RecommendRequest(BaseModel):
 @app.post("/recommender")
 def recommend_meals(req: RecommendRequest):
     # create_meal_plan already returns a list of dicts
-    plan = create_meal_plan(req.goal, n_meals=req.num_meals)
-    return {"recipes": plan}
+    plan, expanded_goal = create_meal_plan(req.goal, n_meals=req.num_meals)
+    return {"recipes": plan, "goal_expanded": expanded_goal}
