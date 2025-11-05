@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import FullCalendar from "@fullcalendar/react";
+import { createClient } from "@/utils/supabase/client";
 import { EventClickArg } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 // ------------------------------
 // Type Definitions
@@ -215,7 +215,7 @@ export default function CalendarPage() {
   // UI Rendering
   // ------------------------------
   return (
-    <main className="min-h-screen bg-gray-50 p-6">
+    <main className="min-h-screen bg-gray-50 p-6 pl-20">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         {/* ⭐ 已移除 "Current User" 下拉選單，因為不再需要 */}

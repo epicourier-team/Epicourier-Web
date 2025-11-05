@@ -35,6 +35,6 @@ describe("login server action", () => {
     await login({ email: "a@test.com", password: "pw" });
 
     expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
-    expect(redirect).toHaveBeenCalledWith("/recipes");
+    expect(redirect).toHaveBeenCalledWith("/dashboard/recipes");
   });
 });

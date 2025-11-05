@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
@@ -88,7 +86,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-12 border-t border-white/10 pt-8 text-center text-white/60">
-          <p>&copy; {currentYear} Epicourier. All rights reserved.</p>
+          <p>&copy; {currentYear} EpiCourier. All rights reserved.</p>
         </div>
       </div>
     </footer>

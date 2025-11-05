@@ -113,7 +113,7 @@ const SignUp = () => {
           <div className="mb-6 flex justify-center">
             <div className="flex items-center gap-2">
               <Utensils className="h-8 w-8 text-emerald-600" />
-              <span className="text-2xl font-bold text-gray-900">Epicourier</span>
+              <span className="text-2xl font-bold text-gray-900">EpiCourier</span>
             </div>
           </div>
 
