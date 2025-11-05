@@ -32,15 +32,13 @@ export async function signup(formData: { email?: string; password?: string; user
     if (dbGetError  || !dbGetData) {
       return { error: dbGetError? dbGetError : new Error('Failed to get user data') }
     }
-    console.log("dbGetData: ", dbGetData);
     const { error: updateUserError } = await supabase.from('User').update({username: formData?.username as string}).eq('id', dbGetData.id)
     if (updateUserError) {
-      console.log("insertError: ", updateUserError);
       return { error: updateUserError }
     }
   }
-  return {success: true}
+  // return {success: true}
 
-  // revalidatePath('/', 'layout')
-  // redirect('/signin')
+  revalidatePath('/', 'layout')
+  redirect('/signin')
 }
