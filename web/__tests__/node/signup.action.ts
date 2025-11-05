@@ -1,9 +1,8 @@
-
 /**
  * @jest-environment node
  */
 import { signup } from "@/app/signup/actions";
-import { TextEncoder, TextDecoder } from "util";
+import { TextDecoder, TextEncoder } from "util";
 
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder as typeof global.TextDecoder;
@@ -19,7 +18,6 @@ jest.mock("next/cache", () => ({
 }));
 
 import { createClient } from "@/utils/supabase/server";
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 describe("signup server action", () => {
@@ -58,9 +56,8 @@ describe("signup server action", () => {
       }),
     });
 
-    await signup({ email: "a@test.com", password: "pw", username: "user" });
+    const result = await signup({ email: "a@test.com", password: "pw", username: "user" });
 
-    expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
-    expect(redirect).toHaveBeenCalledWith("/signin");
+    expect(result).toEqual({ success: true });
   });
 });
