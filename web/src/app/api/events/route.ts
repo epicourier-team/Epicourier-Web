@@ -1,14 +1,12 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 
-// 匯入 Supabase 相關類型以確保類型安全
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 
 /**
  * 輔助函數：
- * 1. 獲取當前的 Supabase Auth 使用者 (帶有 UUID)。
- * 2. 使用該使用者的 email 去您的 public."User" 表中查找對應的數字 ID (bigint)。
+ * 獲取 public."User" 表中的數字 ID (bigint)。
  */
 async function getPublicUserId(supabase: SupabaseClient<Database>): Promise<number> {
   const {
@@ -16,34 +14,36 @@ async function getPublicUserId(supabase: SupabaseClient<Database>): Promise<numb
     error: authError,
   } = await supabase.auth.getUser();
 
-  // 檢查 1: 使用者物件是否存在
   if (authError || !authUser) {
     throw new Error("User not authenticated");
   }
 
-  // 檢查 2: 【修正】確保 email 欄位存在
   if (!authUser.email) {
     throw new Error("Authenticated user does not have an email.");
   }
 
-  // 經過檢查，authUser.email 在這裡必定是 string
-  const { data: publicUser, error: profileError } = await supabase
+  // 【修正】: 不使用 .single()，改用 .limit(1)
+  const { data: publicUsers, error: profileError } = await supabase
     .from("User")
     .select("id")
-    .eq("email", authUser.email) // <--- 現在這裡是類型安全的
-    .single();
+    .eq("email", authUser.email)
+    .limit(1);
 
-  if (profileError || !publicUser) {
-    console.error("Error fetching public user profile:", profileError?.message);
+  if (profileError) {
+    console.error("Error fetching public user profile:", profileError.message);
+    throw new Error("Error fetching user profile.");
+  }
+
+  if (!publicUsers || publicUsers.length === 0) {
     throw new Error("Public user profile not found.");
   }
 
+  const publicUser = publicUsers[0];
   return publicUser.id;
 }
 
 /**
  * GET /api/events
- * 獲取當前登入使用者的所有日曆事件
  */
 export async function GET() {
   const supabase = await createClient();
@@ -60,7 +60,6 @@ export async function GET() {
     return NextResponse.json({ error: errorMessage }, { status: 401 });
   }
 
-  // ... (此處的 GET 邏輯與之前相同，是正確的)
   const { data, error } = await supabase
     .from("Calendar")
     .select(
@@ -84,7 +83,6 @@ export async function GET() {
 
 /**
  * POST /api/events
- * 為當前登入的使用者建立一個新的日曆事件
  */
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -111,7 +109,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // ... (此處的 POST 邏輯與之前相同，是正確的)
   const { data, error } = await supabase
     .from("Calendar")
     .insert([
