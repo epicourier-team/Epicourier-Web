@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               Log Out
             </Button>
           </header>
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 pl-12">{children}</main>
         </div>
       </div>
     </SidebarProvider>

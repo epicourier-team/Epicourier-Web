@@ -9,14 +9,14 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { createClient } from "@/utils/supabase/client";
 import { Calendar, ChefHat, Lightbulb, PieChart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { createClient } from "../../utils/supabase/client";
 
 const menuItems = [
   { title: "Recipes", url: "/dashboard/recipes", icon: ChefHat },
-  { title: "Calendar", url: "/calendar", icon: Calendar },
+  { title: "Calendar", url: "/dashboard/calendar", icon: Calendar },
   { title: "Recommendations", url: "/recommendations", icon: Lightbulb },
   { title: "Nutrient Summary", url: "/nutrient-summary", icon: PieChart },
 ];
@@ -25,7 +25,6 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const supabase = createClient();
-  const [userName, setUserName] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
   useEffect(() => {
     const fetchUserName = async () => {
@@ -33,21 +32,7 @@ export function AppSidebar() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-
-      if (user && user.email) {
-        // 2. 根據 email 查詢 public.User 表
-        const { data: profile } = await supabase
-          .from("User")
-          .select("fullname, username") // 抓取 fullname 或 username
-          .eq("email", user.email)
-          .single();
-
-        if (profile) {
-          // 3. 設定 state
-          setUserName(profile.fullname || profile.username || "Welcome!");
-          setUserEmail(user.email);
-        }
-      }
+      if (user && user.email) setUserEmail(user?.email);
     };
 
     fetchUserName();
@@ -83,7 +68,6 @@ export function AppSidebar() {
             </div>
             {!collapsed && (
               <div className="flex flex-col">
-                <span className="text-sm font-medium">{userName}</span>
                 <span className="text-muted-foreground text-xs">{userEmail}</span>
               </div>
             )}
