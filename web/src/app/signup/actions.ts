@@ -28,7 +28,7 @@ export async function signup(formData: { email?: string; password?: string; user
     return { error: signupError }
   } 
   else {
-    const {data:dbGetData, error: dbGetError} = await supabase.from('User').select('*').eq('email', form_data.email).maybeSingle();
+    const {data:dbGetData, error: dbGetError} = await supabase.from('User').select().eq('email', form_data.email).maybeSingle();
     if (dbGetError  || !dbGetData) {
       return { error: dbGetError? dbGetError : new Error('Failed to get user data') }
     }
