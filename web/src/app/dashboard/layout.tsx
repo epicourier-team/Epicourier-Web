@@ -14,7 +14,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-white px-4">
             <SidebarTrigger />
             <Link href="/">
-              <span className="font-bold">Epicourier</span>
+              <span className="font-bold">EpiCourier</span>
             </Link>
             <Button
               size="sm"

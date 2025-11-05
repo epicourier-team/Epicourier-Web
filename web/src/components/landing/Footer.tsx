@@ -14,7 +14,7 @@ const Footer = () => {
             </h2>
             <p className="mb-8 text-xl text-white/80">
               Join thousands of users who are eating smarter, healthier, and more sustainably with
-              Epicourier.
+              EpiCourier.
             </p>
             <Link
               href="/signup"
@@ -109,7 +109,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-12 border-t border-white/10 pt-8 text-center text-white/60">
-          <p>&copy; {currentYear} Epicourier. All rights reserved.</p>
+          <p>&copy; {currentYear} EpiCourier. All rights reserved.</p>
         </div>
       </div>
     </footer>

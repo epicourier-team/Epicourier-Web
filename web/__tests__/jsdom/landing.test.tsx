@@ -13,7 +13,7 @@ describe("AppDemo Section", () => {
 
     expect(screen.getByText(/personalized recipe recommendations/i)).toBeInTheDocument();
 
-    expect(screen.getByAltText(/epicourier app interface/i)).toBeInTheDocument();
+    expect(screen.getByAltText(/EpiCourier app interface/i)).toBeInTheDocument();
   });
 });
 

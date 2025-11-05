@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Epicourier",
+  title: "EpiCourier",
   description: "Smart meal plan generator & grocery list maker & feedback app",
 };
 
