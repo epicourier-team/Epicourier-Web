@@ -92,6 +92,7 @@ const SignUp = () => {
 
     try {
       const result = await signup(formData);
+      console.log(result);
       if (result.success) {
         toast({ title: "Account created", description: "Please sign in with your new account." });
         router.push("/signin");

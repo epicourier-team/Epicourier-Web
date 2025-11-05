@@ -6,7 +6,7 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
   return (
     <Link
       className="flex flex-col rounded-lg border p-4 shadow-sm transition hover:shadow-lg"
-      href={`/recipes/${recipe.id}`}
+      href={`/dashboard/recipes/${recipe.id}`}
     >
       {recipe.image_url && (
         <Image
