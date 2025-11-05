@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { validatePassword } from "@/lib/utils";
 import { Utensils } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { signup } from "./actions";
 
@@ -18,6 +19,7 @@ const SignUp = () => {
   });
 
   const { toast } = useToast();
+  const router = useRouter();
 
   const [errors, setErrors] = useState({
     username: "",
@@ -89,8 +91,14 @@ const SignUp = () => {
     }
 
     try {
-      await signup(formData);
-      toast({ title: "Account created", description: "Please sign in with your new account." });
+      const result = await signup(formData);
+      if (result.success) {
+        toast({ title: "Account created", description: "Please sign in with your new account." });
+        router.push("/signin");
+      }
+      if (result.error) {
+        toast({ title: result.error.message });
+      }
     } catch (err: unknown) {
       const errMsg = (err as { message: string })?.message || "Signup failed";
       toast({ title: "Signup failed", description: errMsg, variant: "destructive" });

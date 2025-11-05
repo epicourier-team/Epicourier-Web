@@ -1,7 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
-
 import { createClient } from "@/utils/supabase/server";
 
 export async function signup(formData: { email?: string; password?: string; username?: string }) {
@@ -36,6 +34,5 @@ export async function signup(formData: { email?: string; password?: string; user
     }
   }
 
-  //revalidatePath('/', 'layout')
-  redirect("/signin");
+  return { success: true };
 }

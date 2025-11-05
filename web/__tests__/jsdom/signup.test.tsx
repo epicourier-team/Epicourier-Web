@@ -1,9 +1,3 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import SignUp from "@/app/signup/page";
-import { signup } from "@/app/signup/actions";
-import { useToast } from "@/hooks/use-toast";
-import { validatePassword } from "@/lib/utils";
-
 // 🧩 Mock external dependencies
 jest.mock("@/hooks/use-toast", () => ({
   useToast: jest.fn(),
@@ -18,13 +12,31 @@ jest.mock("@/lib/utils", () => ({
 }));
 
 jest.mock("@/lib/utils", () => {
-    const actual = jest.requireActual("@/lib/utils");
-    return {
-        ...actual,
-        validatePassword: jest.fn(),
-    };
+  const actual = jest.requireActual("@/lib/utils");
+  return {
+    ...actual,
+    validatePassword: jest.fn(),
+  };
+});
 
-})
+jest.mock("next/navigation", () => ({
+  __esModule: true,
+  useRouter: () => ({
+    push: jest.fn(),
+    prefetch: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+    forward: jest.fn(),
+  }),
+  usePathname: () => "",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+import { signup } from "@/app/signup/actions";
+import SignUp from "@/app/signup/page";
+import { useToast } from "@/hooks/use-toast";
+import { validatePassword } from "@/lib/utils";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 describe("SignUp Page", () => {
   const mockToast = jest.fn();
@@ -123,7 +135,7 @@ describe("SignUp Page", () => {
   });
 
   it("calls signup and shows success toast when valid form is submitted", async () => {
-    (signup as jest.Mock).mockResolvedValueOnce(undefined);
+    (signup as jest.Mock).mockResolvedValueOnce({ success: true });
 
     render(<SignUp />);
     fireEvent.change(screen.getByLabelText(/username/i), {
