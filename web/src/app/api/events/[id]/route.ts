@@ -2,8 +2,8 @@ import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 
 // 匯入 Supabase 相關類型
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * 輔助函數：(與 route.ts 中的版本相同)
@@ -41,9 +41,10 @@ async function getPublicUserId(supabase: SupabaseClient<Database>): Promise<numb
  * PATCH /api/events/[id]
  * 更新指定 ID 的日曆事件狀態
  */
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
-  const entryId = params.id;
+  const { id } = await context.params;
+  const entryId = id;
   let publicUserId: number;
 
   try {
