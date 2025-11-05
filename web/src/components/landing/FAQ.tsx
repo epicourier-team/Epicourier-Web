@@ -26,10 +26,10 @@ const faqs = [
     question: "Can I track my nutritional progress over time?",
     answer: "Yes! Epicourier provides monthly nutrient summaries with easy-to-read charts and insights. Track macros, vitamins, minerals, and see how your eating patterns align with your health goals."
   },
-  {
-    question: "Is there a free trial available?",
-    answer: "Yes, we offer a 14-day free trial with full access to all features. No credit card required to start. Experience the power of AI-driven meal planning risk-free."
-  }
+  // {
+  //   question: "Is there a free trial available?",
+  //   answer: "Yes, we offer a 14-day free trial with full access to all features. No credit card required to start. Experience the power of AI-driven meal planning risk-free."
+  // }
 ];
 
 const FAQ = () => {
