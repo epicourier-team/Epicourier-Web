@@ -6,7 +6,6 @@ import { EventClickArg } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
-// ⭐ 步驟 1: 匯入正確的 client
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
@@ -52,7 +51,7 @@ interface CalendarApiResponse {
 export default function CalendarPage() {
   const router = useRouter();
 
-  // ⭐ 步驟 2: 在 component 內部建立 client 實例
+  // create client instance in component
   const supabase = createClient();
 
   // ------------------------------
@@ -73,7 +72,7 @@ export default function CalendarPage() {
   );
 
   // ------------------------------
-  // 載入日曆事件 (使用 useCallback)
+  // load calendar event (use useCallback)
   // ------------------------------
   const loadEvents = useCallback(async () => {
     const res = await fetch(`/api/events`);
@@ -103,10 +102,10 @@ export default function CalendarPage() {
       };
     });
     setEvents(formatted);
-  }, [router]); // loadEvents 依賴 router
+  }, [router]);
 
   // ------------------------------
-  // 載入推薦
+  // load recommendation
   // ------------------------------
   const loadRecommendations = async () => {
     const res = await fetch("/api/recommendations");
@@ -117,7 +116,7 @@ export default function CalendarPage() {
   };
 
   // ------------------------------
-  // 新增到日曆 (POST)
+  // add to calendar (POST)
   // ------------------------------
   const handleAddToCalendar = async () => {
     if (!selectedRecipe || !selectedDate) {
@@ -148,7 +147,7 @@ export default function CalendarPage() {
   };
 
   // ------------------------------
-  // 處理點擊
+  // click handle
   // ------------------------------
   const handleEventClick = (clickInfo: EventClickArg) => {
     const eventData = clickInfo.event.extendedProps.calendarData as CalendarApiResponse;
@@ -157,7 +156,7 @@ export default function CalendarPage() {
   };
 
   // ------------------------------
-  // 處理更新狀態 (PATCH)
+  // update status handle (PATCH)
   // ------------------------------
   const handleUpdateStatus = async (entryId: number, newStatus: boolean) => {
     const res = await fetch(`/api/events/${entryId}`, {
@@ -209,7 +208,8 @@ export default function CalendarPage() {
     };
 
     fetchUserName();
-  }, [supabase]); // 依賴 supabase client
+    loadEvents();
+  }, [supabase, loadEvents]); // 依賴 supabase client
 
   // ------------------------------
   // UI Rendering
@@ -308,27 +308,46 @@ export default function CalendarPage() {
       )}
 
       {/* "Meal Detail" Modal*/}
-      {isDetailModalOpen && selectedCalendarEntry && selectedCalendarEntry.Recipe && (
+      {isDetailModalOpen && selectedCalendarEntry && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg">
-            {selectedCalendarEntry.Recipe.image_url && (
-              <img
-                src={selectedCalendarEntry.Recipe.image_url}
-                alt={selectedCalendarEntry.Recipe.name}
-                className="mb-4 h-48 w-full rounded-lg object-cover"
-              />
-            )}
-            <h2 className="mb-2 text-2xl font-bold">{selectedCalendarEntry.Recipe.name}</h2>
-            <p className="mb-4 text-gray-500">
-              {selectedCalendarEntry.meal_type.charAt(0).toUpperCase() +
-                selectedCalendarEntry.meal_type.slice(1)}{" "}
-              on {selectedCalendarEntry.date}
-            </p>
-
-            {selectedCalendarEntry.Recipe.description && (
-              <p className="mb-6 max-h-40 overflow-y-auto whitespace-pre-line text-gray-700">
-                {selectedCalendarEntry.Recipe.description}
-              </p>
+            {/* ⭐ 步驟 2: 在 Modal *內部* 檢查 'Recipe' 物件是否存在
+             */}
+            {selectedCalendarEntry.Recipe ? (
+              <>
+                {/* --- A: 如果有食譜，顯示食譜詳情 --- */}
+                {selectedCalendarEntry.Recipe.image_url && (
+                  <img
+                    src={selectedCalendarEntry.Recipe.image_url}
+                    alt={selectedCalendarEntry.Recipe.name}
+                    className="mb-4 h-48 w-full rounded-lg object-cover"
+                  />
+                )}
+                <h2 className="mb-2 text-2xl font-bold">{selectedCalendarEntry.Recipe.name}</h2>
+                <p className="mb-4 text-gray-500">
+                  {selectedCalendarEntry.meal_type.charAt(0).toUpperCase() +
+                    selectedCalendarEntry.meal_type.slice(1)}{" "}
+                  on {selectedCalendarEntry.date}
+                </p>
+                {selectedCalendarEntry.Recipe.description && (
+                  <p className="mb-6 max-h-40 overflow-y-auto whitespace-pre-line text-gray-700">
+                    {selectedCalendarEntry.Recipe.description}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                {/* --- B: 如果沒有食譜 (Recipe is null)，顯示備用資訊 --- */}
+                <h2 className="mb-2 text-2xl font-bold">Meal Entry</h2>
+                <p className="mb-4 text-gray-500">
+                  {selectedCalendarEntry.meal_type.charAt(0).toUpperCase() +
+                    selectedCalendarEntry.meal_type.slice(1)}{" "}
+                  on {selectedCalendarEntry.date}
+                </p>
+                <p className="mb-6 text-gray-700">
+                  (No recipe details associated with this entry.)
+                </p>
+              </>
             )}
 
             <div className="flex items-center justify-between gap-3">

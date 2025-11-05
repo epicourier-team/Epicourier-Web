@@ -1,7 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 
-// 匯入 Supabase 相關類型
 import type { Database } from "@/types/supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -18,33 +17,37 @@ async function getPublicUserId(supabase: SupabaseClient<Database>): Promise<numb
     throw new Error("User not authenticated");
   }
 
-  // 檢查 2: 【修正】確保 email 欄位存在
   if (!authUser.email) {
     throw new Error("Authenticated user does not have an email.");
   }
 
-  const { data: publicUser, error: profileError } = await supabase
+  // 【修正】: 不使用 .single()，改用 .limit(1)
+  const { data: publicUsers, error: profileError } = await supabase
     .from("User")
     .select("id")
-    .eq("email", authUser.email) // <--- 現在這裡是類型安全的
-    .single();
+    .eq("email", authUser.email)
+    .limit(1);
 
-  if (profileError || !publicUser) {
-    console.error("Error fetching public user profile:", profileError?.message);
+  if (profileError) {
+    console.error("Error fetching public user profile:", profileError.message);
+    throw new Error("Error fetching user profile.");
+  }
+
+  if (!publicUsers || publicUsers.length === 0) {
     throw new Error("Public user profile not found.");
   }
 
+  const publicUser = publicUsers[0];
   return publicUser.id;
 }
 
 /**
  * PATCH /api/events/[id]
- * 更新指定 ID 的日曆事件狀態
  */
-export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
-  const { id } = await context.params;
-  const entryId = id;
+  const _params = await params;
+  const entryId = _params.id;
   let publicUserId: number;
 
   try {
@@ -66,7 +69,6 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     );
   }
 
-  // ... (此處的 PATCH 邏輯與之前相同，是正確的)
   const { data, error } = await supabase
     .from("Calendar")
     .update({ status: status })
