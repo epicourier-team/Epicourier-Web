@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import AddMealModal from "../AddMealModal";
+import AddMealModal from "../../../../../components/ui/AddMealModal";
 
 // Mock fetch /api/foods
 global.fetch = jest.fn(() =>
