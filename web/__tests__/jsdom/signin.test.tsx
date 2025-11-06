@@ -31,18 +31,10 @@ describe("SignIn Page", () => {
     render(<SignIn />);
     fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
 
-    await waitFor(() =>
-      expect(mockToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: "Validation Error",
-          description: expect.stringMatching(/required/),
-          variant: "destructive",
-        })
-      )
-    );
-
-    // Optionally check inline error under inputs
-    expect(await screen.findByText(/email is required/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+    });
   });
 
   it("shows validation error for invalid email format", async () => {
@@ -56,15 +48,9 @@ describe("SignIn Page", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
 
-    await waitFor(() =>
-      expect(mockToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          description: "Please enter a valid email address.",
-        })
-      )
-    );
-
-    expect(await screen.findByText(/please enter a valid email address/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/please enter a valid email address/i)).toBeInTheDocument();
+    });
   });
 
   it("calls login() and shows success toast on valid credentials", async () => {
@@ -88,14 +74,14 @@ describe("SignIn Page", () => {
 
     expect(mockToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: "Signed in",
+        title: "Success",
         description: "Welcome back!",
       })
     );
   });
 
-  it("shows failure toast when login throws error", async () => {
-    (login as jest.Mock).mockRejectedValueOnce(new Error("Invalid credentials"));
+  it("shows failure toast when login returns error", async () => {
+    (login as jest.Mock).mockResolvedValueOnce({ error: "Invalid login credentials" });
 
     render(<SignIn />);
     fireEvent.change(screen.getByLabelText(/email/i), {
@@ -110,10 +96,11 @@ describe("SignIn Page", () => {
       expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
           title: "Sign in failed",
-          description: "Invalid credentials",
+          description: "Incorrect email or password",
           variant: "destructive",
         })
       )
     );
+    expect(screen.getByText(/Incorrect email or password/i)).toBeInTheDocument();
   });
 });

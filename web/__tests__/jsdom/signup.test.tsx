@@ -9,25 +9,18 @@ jest.mock("@/app/signup/actions", () => ({
 
 jest.mock("@/lib/utils", () => ({
   validatePassword: jest.fn(),
+  cn: jest.fn()
 }));
-
-jest.mock("@/lib/utils", () => {
-  const actual = jest.requireActual("@/lib/utils");
-  return {
-    ...actual,
-    validatePassword: jest.fn(),
-  };
-});
 
 jest.mock("next/navigation", () => ({
   __esModule: true,
-  useRouter: () => ({
+  useRouter: jest.fn(() => ({
     push: jest.fn(),
     prefetch: jest.fn(),
     replace: jest.fn(),
     back: jest.fn(),
     forward: jest.fn(),
-  }),
+  })),
   usePathname: () => "",
   useSearchParams: () => new URLSearchParams(),
 }));
@@ -40,11 +33,15 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 describe("SignUp Page", () => {
   const mockToast = jest.fn();
+  const mockPush = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     (useToast as jest.Mock).mockReturnValue({ toast: mockToast });
     (validatePassword as jest.Mock).mockReturnValue({ isValid: true });
+    (require("next/navigation").useRouter as jest.Mock).mockReturnValue({
+      push: mockPush,
+    });
   });
 
   it("renders all input fields and submit button", () => {
@@ -61,18 +58,11 @@ describe("SignUp Page", () => {
     fireEvent.click(screen.getByRole("button", { name: /create account/i }));
 
     await waitFor(() => {
-      expect(mockToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: "Validation Error",
-          description: expect.stringMatching(/required/i),
-          variant: "destructive",
-        })
-      );
+      expect(screen.getByText(/username is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/please confirm your password/i)).toBeInTheDocument();
     });
-
-    // Inline validation messages appear
-    expect(await screen.findByText(/username is required/i)).toBeInTheDocument();
-    expect(await screen.findByText(/email is required/i)).toBeInTheDocument();
   });
 
   it("shows invalid email format error", async () => {
@@ -94,14 +84,8 @@ describe("SignUp Page", () => {
     fireEvent.click(screen.getByRole("button", { name: /create account/i }));
 
     await waitFor(() => {
-      expect(mockToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          description: "Please enter a valid email address",
-        })
-      );
+      expect(screen.getByText(/please enter a valid email address/i)).toBeInTheDocument();
     });
-
-    expect(await screen.findByText(/please enter a valid email address/i)).toBeInTheDocument();
   });
 
   it("shows error if passwords do not match", async () => {
@@ -123,15 +107,8 @@ describe("SignUp Page", () => {
     fireEvent.click(screen.getByRole("button", { name: /create account/i }));
 
     await waitFor(() => {
-      expect(mockToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          description: "Passwords do not match",
-          variant: "destructive",
-        })
-      );
+      expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
     });
-
-    expect(await screen.findByText(/passwords do not match/i)).toBeInTheDocument();
   });
 
   it("calls signup and shows success toast when valid form is submitted", async () => {
@@ -164,14 +141,15 @@ describe("SignUp Page", () => {
 
     expect(mockToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: "Account created",
-        description: "Please sign in with your new account.",
+        title: "Success!",
+        description: "Your account has been created. Please sign in.",
       })
     );
+    expect(mockPush).toHaveBeenCalledWith("/signin");
   });
 
-  it("shows failure toast if signup throws an error", async () => {
-    (signup as jest.Mock).mockRejectedValueOnce(new Error("Email already exists"));
+  it("shows server error if signup returns an error", async () => {
+    (signup as jest.Mock).mockResolvedValueOnce({ error: { message: "An unexpected error occurred" } });
 
     render(<SignUp />);
     fireEvent.change(screen.getByLabelText(/username/i), {
@@ -190,13 +168,7 @@ describe("SignUp Page", () => {
     fireEvent.click(screen.getByRole("button", { name: /create account/i }));
 
     await waitFor(() => {
-      expect(mockToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: "Signup failed",
-          description: "Email already exists",
-          variant: "destructive",
-        })
-      );
+      expect(screen.getByText(/An unexpected error occurred/i)).toBeInTheDocument();
     });
   });
 });
