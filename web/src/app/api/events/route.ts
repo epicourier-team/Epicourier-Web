@@ -60,6 +60,7 @@ export async function GET() {
     return NextResponse.json({ error: errorMessage }, { status: 401 });
   }
 
+  // ✅ 加入 Recipe join，讓前端能顯示餐點細節
   const { data, error } = await supabase
     .from("Calendar")
     .select(
@@ -68,16 +69,24 @@ export async function GET() {
       date,
       meal_type,
       status,
-      Recipe ( id, name, image_url, description, min_prep_time, green_score )
+      recipe_id,
+      Recipe: recipe_id(
+        id,
+        name,
+        image_url,
+        description,
+        min_prep_time,
+        green_score
+      )
     `
     )
-    .eq("user_id", publicUserId);
+    .eq("user_id", publicUserId)
+    .order("date", { ascending: true });
 
   if (error) {
     console.error("Error fetching events:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-
   return NextResponse.json(data);
 }
 
@@ -109,6 +118,7 @@ export async function POST(request: Request) {
     );
   }
 
+  // ✅ 插入後立即 select Recipe join，讓回傳值也包含食譜資訊
   const { data, error } = await supabase
     .from("Calendar")
     .insert([
@@ -120,7 +130,23 @@ export async function POST(request: Request) {
         user_id: publicUserId,
       },
     ])
-    .select();
+    .select(
+      `
+      id,
+      date,
+      meal_type,
+      status,
+      Recipe:recipe_id (
+        id,
+        name,
+        image_url,
+        description,
+        min_prep_time,
+        green_score
+      )
+    `
+    )
+    .single();
 
   if (error) {
     console.error("Error inserting event:", error.message);

@@ -9,6 +9,10 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
+import AddMealModal from "@/components/ui/AddMealModal";
+import { SidebarInset } from "@/components/ui/sidebar";
+import MealDetailModal from "@/components/ui/MealDetailModal";
+
 // ------------------------------
 // Type Definitions
 // ------------------------------
@@ -18,7 +22,8 @@ interface CalendarEvent {
   start: string;
   allDay: boolean;
   extendedProps: {
-    calendarData: CalendarApiResponse;
+    calendarData: CalendarApiResponse | CalendarApiResponse[];
+    isPast: boolean;
   };
   backgroundColor: string;
   borderColor: string;
@@ -50,8 +55,6 @@ interface CalendarApiResponse {
 
 export default function CalendarPage() {
   const router = useRouter();
-
-  // create client instance in component
   const supabase = createClient();
 
   // ------------------------------
@@ -62,17 +65,15 @@ export default function CalendarPage() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>("");
   const [showDateModal, setShowDateModal] = useState(false);
-  const [mealType, setMealType] = useState("breakfast");
 
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [selectedCalendarEntry, setSelectedCalendarEntry] = useState<CalendarApiResponse | null>(
+  const [selectedCalendarEntry, setSelectedCalendarEntry] = useState<CalendarApiResponse[] | null>(
     null
   );
 
   // ------------------------------
-  // load calendar event (use useCallback)
+  // load calendar event
   // ------------------------------
   const loadEvents = useCallback(async () => {
     const res = await fetch(`/api/events`);
@@ -87,20 +88,45 @@ export default function CalendarPage() {
 
     const data: CalendarApiResponse[] = await res.json();
 
-    const formatted = (data ?? []).map((c: CalendarApiResponse) => {
-      const isCompleted = c.status === true;
+    const grouped: Record<string, CalendarApiResponse[]> = {};
+    for (const item of data) {
+      const key = `${item.date}_${item.meal_type}`;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(item);
+    }
+
+    const todayStr = new Date().toLocaleDateString("en-CA");
+    const formatted: CalendarEvent[] = Object.entries(grouped).map(([key, items]) => {
+      const first = items[0];
+      const isCompleted = items.every((x) => x.status === true);
+      const isPast = first.date < todayStr;
+
+      const recipeNames = items.map((x) => x.Recipe?.name ?? "Meal").join(", ");
+
+      let bgColor = "#3b82f6";
+      let borderColor = "#2563eb";
+      if (isCompleted) {
+        bgColor = "#22c55e";
+        borderColor = "#16a34a";
+      } else if (isPast) {
+        bgColor = "#9ca3af";
+        borderColor = "#6b7280";
+      }
+
       return {
-        id: String(c.id),
-        title: `${c.meal_type ? c.meal_type.charAt(0).toUpperCase() + c.meal_type.slice(1) : ""} - ${c.Recipe?.name ?? "Meal"}`,
-        start: c.date,
+        id: key,
+        title: `${first.meal_type.charAt(0).toUpperCase() + first.meal_type.slice(1)} - ${recipeNames}`,
+        start: first.date,
         allDay: true,
+        backgroundColor: bgColor,
+        borderColor,
         extendedProps: {
-          calendarData: c,
+          calendarData: items,
+          isPast,
         },
-        backgroundColor: isCompleted ? "#22c55e" : "#3b82f6",
-        borderColor: isCompleted ? "#16a34a" : "#2563eb",
       };
     });
+
     setEvents(formatted);
   }, [router]);
 
@@ -116,42 +142,23 @@ export default function CalendarPage() {
   };
 
   // ------------------------------
-  // add to calendar (POST)
-  // ------------------------------
-  const handleAddToCalendar = async () => {
-    if (!selectedRecipe || !selectedDate) {
-      alert("Please select a user, recipe, and date.");
-      return;
-    }
-
-    const res = await fetch("/api/events", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        recipe_id: selectedRecipe.id,
-        date: selectedDate,
-        meal_type: mealType,
-        status: false,
-      }),
-    });
-
-    if (res.ok) {
-      alert("✅ Added to Calendar!");
-      setShowDateModal(false);
-      await loadEvents();
-    } else {
-      const err: { error?: string } = await res.json();
-      console.error("❌ Error from API:", err);
-      alert(`❌ Error: ${err.error ?? "Unknown error"}`);
-    }
-  };
-
-  // ------------------------------
   // click handle
   // ------------------------------
   const handleEventClick = (clickInfo: EventClickArg) => {
-    const eventData = clickInfo.event.extendedProps.calendarData as CalendarApiResponse;
-    setSelectedCalendarEntry(eventData);
+    const { calendarData, isPast } = clickInfo.event.extendedProps as {
+      calendarData: CalendarApiResponse | CalendarApiResponse[];
+      isPast: boolean;
+    };
+    const entries: CalendarApiResponse[] = Array.isArray(calendarData)
+      ? calendarData
+      : [calendarData];
+
+    if (isPast && entries.every((x) => x.status === false)) {
+      alert("This meal is expired and cannot be modified.");
+      return;
+    }
+
+    setSelectedCalendarEntry(entries);
     setIsDetailModalOpen(true);
   };
 
@@ -162,14 +169,11 @@ export default function CalendarPage() {
     const res = await fetch(`/api/events/${entryId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        status: newStatus,
-      }),
+      body: JSON.stringify({ status: newStatus }),
     });
 
     if (res.ok) {
       alert(newStatus ? "✅ Meal marked as completed!" : "👌 Meal status updated!");
-      setIsDetailModalOpen(false);
       await loadEvents();
     } else {
       const err: { error?: string } = await res.json();
@@ -179,7 +183,7 @@ export default function CalendarPage() {
   };
 
   // ------------------------------
-  // ⭐ 步驟 3: 簡化初始載入
+  // init
   // ------------------------------
   useEffect(() => {
     loadEvents();
@@ -187,21 +191,18 @@ export default function CalendarPage() {
 
   useEffect(() => {
     const fetchUserName = async () => {
-      // 1. 獲取 auth 使用者
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
       if (user && user.email) {
-        // 2. 根據 email 查詢 public.User 表
         const { data: profile } = await supabase
           .from("User")
-          .select("fullname, username") // 抓取 fullname 或 username
+          .select("fullname, username")
           .eq("email", user.email)
           .single();
 
         if (profile) {
-          // 3. 設定 state
           setUserName(profile.fullname || profile.username || "Welcome!");
         }
       }
@@ -209,16 +210,15 @@ export default function CalendarPage() {
 
     fetchUserName();
     loadEvents();
-  }, [supabase, loadEvents]); // 依賴 supabase client
+  }, [supabase, loadEvents]);
 
   // ------------------------------
-  // UI Rendering
+  // Render
   // ------------------------------
   return (
-    <main className="min-h-screen bg-gray-50 p-6 pl-20">
+    <SidebarInset className="bg-gray-50 p-6 pl-12">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        {/* ⭐ 已移除 "Current User" 下拉選單，因為不再需要 */}
         <h1 className="text-2xl font-semibold text-gray-800">
           {userName ? `${userName}'s Calendar` : "Loading Calendar..."}
         </h1>
@@ -230,7 +230,7 @@ export default function CalendarPage() {
         </button>
       </div>
 
-      {/* 'recommendations'*/}
+      {/* Recommendations */}
       {recommendations.length > 0 && (
         <div className="mb-6 rounded-xl bg-white p-4 shadow">
           <h2 className="mb-3 text-lg font-semibold">Recommended Recipes</h2>
@@ -265,120 +265,26 @@ export default function CalendarPage() {
         </div>
       )}
 
-      {/* "Add Meal" Modal */}
+      {/* Add Meal Modal */}
       {showDateModal && selectedRecipe && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-lg font-semibold">Select Date for {selectedRecipe.name}</h2>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Choose a date:</label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="mb-4 w-full rounded-lg border px-3 py-2"
-            />
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Choose meal type:
-            </label>
-            <select
-              value={mealType}
-              onChange={(e) => setMealType(e.target.value)}
-              className="mb-4 w-full rounded-lg border px-3 py-2"
-            >
-              <option value="breakfast">🍳 Breakfast</option>
-              <option value="lunch">🍱 Lunch</option>
-              <option value="dinner">🍲 Dinner</option>
-            </select>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDateModal(false)}
-                className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddToCalendar}
-                className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
+        <AddMealModal
+          recipe={{ id: selectedRecipe.id, name: selectedRecipe.name }}
+          isOpen={true}
+          onClose={() => setShowDateModal(false)}
+          onSuccess={loadEvents}
+        />
       )}
 
-      {/* "Meal Detail" Modal*/}
-      {isDetailModalOpen && selectedCalendarEntry && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg">
-            {/* ⭐ 步驟 2: 在 Modal *內部* 檢查 'Recipe' 物件是否存在
-             */}
-            {selectedCalendarEntry.Recipe ? (
-              <>
-                {/* --- A: 如果有食譜，顯示食譜詳情 --- */}
-                {selectedCalendarEntry.Recipe.image_url && (
-                  <img
-                    src={selectedCalendarEntry.Recipe.image_url}
-                    alt={selectedCalendarEntry.Recipe.name}
-                    className="mb-4 h-48 w-full rounded-lg object-cover"
-                  />
-                )}
-                <h2 className="mb-2 text-2xl font-bold">{selectedCalendarEntry.Recipe.name}</h2>
-                <p className="mb-4 text-gray-500">
-                  {selectedCalendarEntry.meal_type.charAt(0).toUpperCase() +
-                    selectedCalendarEntry.meal_type.slice(1)}{" "}
-                  on {selectedCalendarEntry.date}
-                </p>
-                {selectedCalendarEntry.Recipe.description && (
-                  <p className="mb-6 max-h-40 overflow-y-auto whitespace-pre-line text-gray-700">
-                    {selectedCalendarEntry.Recipe.description}
-                  </p>
-                )}
-              </>
-            ) : (
-              <>
-                {/* --- B: 如果沒有食譜 (Recipe is null)，顯示備用資訊 --- */}
-                <h2 className="mb-2 text-2xl font-bold">Meal Entry</h2>
-                <p className="mb-4 text-gray-500">
-                  {selectedCalendarEntry.meal_type.charAt(0).toUpperCase() +
-                    selectedCalendarEntry.meal_type.slice(1)}{" "}
-                  on {selectedCalendarEntry.date}
-                </p>
-                <p className="mb-6 text-gray-700">
-                  (No recipe details associated with this entry.)
-                </p>
-              </>
-            )}
+      {/* Meal Detail Modal */}
+      <MealDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        entries={selectedCalendarEntry}
+        onUpdateStatus={handleUpdateStatus}
+        reloadEvents={loadEvents}
+      />
 
-            <div className="flex items-center justify-between gap-3">
-              {selectedCalendarEntry.status === true ? (
-                <button
-                  onClick={() => handleUpdateStatus(selectedCalendarEntry.id, false)}
-                  className="w-full rounded-lg bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
-                >
-                  Mark as Incomplete
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleUpdateStatus(selectedCalendarEntry.id, true)}
-                  className="w-full rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-                >
-                  ✅ Mark as Completed
-                </button>
-              )}
-
-              <button
-                onClick={() => setIsDetailModalOpen(false)}
-                className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* FullCalendar */}
+      {/* Calendar */}
       <div className="rounded-xl bg-white p-4 shadow">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -395,6 +301,6 @@ export default function CalendarPage() {
           eventClick={handleEventClick}
         />
       </div>
-    </main>
+    </SidebarInset>
   );
 }
