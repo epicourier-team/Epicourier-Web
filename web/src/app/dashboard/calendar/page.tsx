@@ -9,6 +9,8 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
+import AddMealModal from "@/components/ui/AddMealModal";
+
 // ------------------------------
 // Type Definitions
 // ------------------------------
@@ -150,6 +152,7 @@ export default function CalendarPage() {
   // click handle
   // ------------------------------
   const handleEventClick = (clickInfo: EventClickArg) => {
+    console.log("clicked event:", clickInfo.event.extendedProps);
     const eventData = clickInfo.event.extendedProps.calendarData as CalendarApiResponse;
     setSelectedCalendarEntry(eventData);
     setIsDetailModalOpen(true);
@@ -229,7 +232,6 @@ export default function CalendarPage() {
           🍽️ Get Recommendations
         </button>
       </div>
-
       {/* 'recommendations'*/}
       {recommendations.length > 0 && (
         <div className="mb-6 rounded-xl bg-white p-4 shadow">
@@ -264,7 +266,6 @@ export default function CalendarPage() {
           </ul>
         </div>
       )}
-
       {/* "Add Meal" Modal */}
       {showDateModal && selectedRecipe && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
@@ -306,78 +307,95 @@ export default function CalendarPage() {
           </div>
         </div>
       )}
-
       {/* "Meal Detail" Modal*/}
+      {/* "Meal Detail" Modal*/}{" "}
       {isDetailModalOpen && selectedCalendarEntry && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          {" "}
           <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg">
-            {/* ⭐ 步驟 2: 在 Modal *內部* 檢查 'Recipe' 物件是否存在
-             */}
+            {" "}
+            {/* ⭐ 步驟 2: 在 Modal *內部* 檢查 'Recipe' 物件是否存在 */}{" "}
             {selectedCalendarEntry.Recipe ? (
               <>
-                {/* --- A: 如果有食譜，顯示食譜詳情 --- */}
+                {" "}
+                {/* --- A: 如果有食譜，顯示食譜詳情 --- */}{" "}
                 {selectedCalendarEntry.Recipe.image_url && (
                   <img
                     src={selectedCalendarEntry.Recipe.image_url}
                     alt={selectedCalendarEntry.Recipe.name}
                     className="mb-4 h-48 w-full rounded-lg object-cover"
                   />
-                )}
-                <h2 className="mb-2 text-2xl font-bold">{selectedCalendarEntry.Recipe.name}</h2>
+                )}{" "}
+                <h2 className="mb-2 text-2xl font-bold">{selectedCalendarEntry.Recipe.name}</h2>{" "}
                 <p className="mb-4 text-gray-500">
+                  {" "}
                   {selectedCalendarEntry.meal_type.charAt(0).toUpperCase() +
                     selectedCalendarEntry.meal_type.slice(1)}{" "}
-                  on {selectedCalendarEntry.date}
-                </p>
+                  on {selectedCalendarEntry.date}{" "}
+                </p>{" "}
                 {selectedCalendarEntry.Recipe.description && (
                   <p className="mb-6 max-h-40 overflow-y-auto whitespace-pre-line text-gray-700">
-                    {selectedCalendarEntry.Recipe.description}
+                    {" "}
+                    {selectedCalendarEntry.Recipe.description}{" "}
                   </p>
-                )}
+                )}{" "}
               </>
             ) : (
               <>
-                {/* --- B: 如果沒有食譜 (Recipe is null)，顯示備用資訊 --- */}
-                <h2 className="mb-2 text-2xl font-bold">Meal Entry</h2>
+                {" "}
+                {/* --- B: 如果沒有食譜 (Recipe is null)，顯示備用資訊 --- */}{" "}
+                <h2 className="mb-2 text-2xl font-bold">Meal Entry</h2>{" "}
                 <p className="mb-4 text-gray-500">
+                  {" "}
                   {selectedCalendarEntry.meal_type.charAt(0).toUpperCase() +
                     selectedCalendarEntry.meal_type.slice(1)}{" "}
-                  on {selectedCalendarEntry.date}
-                </p>
+                  on {selectedCalendarEntry.date}{" "}
+                </p>{" "}
                 <p className="mb-6 text-gray-700">
-                  (No recipe details associated with this entry.)
-                </p>
+                  {" "}
+                  (No recipe details associated with this entry.){" "}
+                </p>{" "}
               </>
-            )}
-
+            )}{" "}
             <div className="flex items-center justify-between gap-3">
+              {" "}
               {selectedCalendarEntry.status === true ? (
                 <button
                   onClick={() => handleUpdateStatus(selectedCalendarEntry.id, false)}
                   className="w-full rounded-lg bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
                 >
-                  Mark as Incomplete
+                  {" "}
+                  Mark as Incomplete{" "}
                 </button>
               ) : (
                 <button
                   onClick={() => handleUpdateStatus(selectedCalendarEntry.id, true)}
                   className="w-full rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
                 >
-                  ✅ Mark as Completed
+                  {" "}
+                  ✅ Mark as Completed{" "}
                 </button>
-              )}
-
+              )}{" "}
               <button
                 onClick={() => setIsDetailModalOpen(false)}
                 className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300"
               >
-                Close
-              </button>
-            </div>
-          </div>
+                {" "}
+                Close{" "}
+              </button>{" "}
+            </div>{" "}
+          </div>{" "}
         </div>
       )}
-
+      {/* "Add Meal" Modal*/}
+      {showDateModal && selectedRecipe && (
+        <AddMealModal
+          recipe={{ id: selectedRecipe.id, name: selectedRecipe.name }} // 明確只傳需要的欄位
+          isOpen={true}
+          onClose={() => setShowDateModal(false)}
+          onSuccess={loadEvents}
+        />
+      )}
       {/* FullCalendar */}
       <div className="rounded-xl bg-white p-4 shadow">
         <FullCalendar

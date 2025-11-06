@@ -64,6 +64,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    // 插入資料並同時 select Recipe join
     const { data, error } = await supabaseServer
       .from("Calendar")
       .insert([
@@ -71,19 +72,35 @@ export async function POST(req: Request) {
           user_id,
           recipe_id,
           date,
-          status: false, // 未完成
+          status: false,
           notes: notes || null,
           meal_type,
         },
       ])
-      .select()
+      .select(
+        `
+        id,
+        user_id,
+        recipe_id,
+        date,
+        meal_type,
+        status,
+        notes,
+        Recipe:recipe_id (
+          id,
+          name,
+          image_url,
+          min_prep_time,
+          green_score
+        )
+        `
+      )
       .single();
 
     if (error) throw error;
     return NextResponse.json(data);
   } catch (err: unknown) {
     console.error("POST /api/calendar error:", err);
-
     let errorMessage = "Unknown error";
     if (err instanceof Error) {
       errorMessage = err.message;
