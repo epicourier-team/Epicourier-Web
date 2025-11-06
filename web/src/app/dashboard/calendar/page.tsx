@@ -183,7 +183,7 @@ export default function CalendarPage() {
   };
 
   // ------------------------------
-  // 初始化
+  // init
   // ------------------------------
   useEffect(() => {
     loadEvents();

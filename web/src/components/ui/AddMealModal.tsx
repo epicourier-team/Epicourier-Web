@@ -9,7 +9,7 @@ interface AddMealModalProps {
   };
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void; // 可選 callback（例如刷新日曆）
+  onSuccess?: () => void;
 }
 
 export default function AddMealModal({ recipe, isOpen, onClose, onSuccess }: AddMealModalProps) {

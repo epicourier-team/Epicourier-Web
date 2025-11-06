@@ -33,25 +33,21 @@ export default function MealDetailModal({
   onUpdateStatus,
   reloadEvents,
 }: MealDetailModalProps) {
-  // ✅ 所有 Hook 永遠在最上面（不要放在任何 return/if 之前）
   const [busy, setBusy] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const len = entries?.length ?? 0;
 
-  // 當 entries 改變時，重設索引到 0（如果有資料）
   useEffect(() => {
     if (len > 0) setSelectedIndex(0);
   }, [len]);
 
-  // 目前選中的餐點（len==0 時為 null，避免存取 undefined）
   const selected = useMemo<CalendarApiResponse | null>(() => {
     if (!entries || len === 0) return null;
     const safeIndex = ((selectedIndex % len) + len) % len;
     return entries[safeIndex];
   }, [entries, len, selectedIndex]);
 
-  // 安全日期比較
   const isPast = useMemo(() => {
     if (!selected) return false;
     const todayStr = new Date().toLocaleDateString("en-CA");
@@ -67,7 +63,6 @@ export default function MealDetailModal({
     [entries]
   );
 
-  // 左右切換（用 useCallback 穩定參考，避免 effect 反覆綁定）
   const handlePrev = useCallback(() => {
     if (len <= 0) return;
     setSelectedIndex((prev) => (prev > 0 ? prev - 1 : len - 1));
@@ -78,7 +73,6 @@ export default function MealDetailModal({
     setSelectedIndex((prev) => (prev + 1) % len);
   }, [len]);
 
-  // 鍵盤 ← → 支援（Hook 仍然每次呼叫；內部再檢查 isOpen）
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -89,7 +83,7 @@ export default function MealDetailModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen, handlePrev, handleNext]);
 
-  // 單筆更新
+  // update one
   const handleSingleUpdate = useCallback(
     async (entryId: number, newStatus: boolean) => {
       if (busy) return;
@@ -104,7 +98,7 @@ export default function MealDetailModal({
     [busy, onUpdateStatus, reloadEvents]
   );
 
-  // 全部更新
+  // update all
   const handleBulkUpdate = useCallback(
     async (newStatus: boolean) => {
       if (busy || !entries || len === 0) return;
@@ -120,7 +114,6 @@ export default function MealDetailModal({
     [busy, entries, len, onUpdateStatus, reloadEvents, onClose]
   );
 
-  // ✅ 到這裡才做條件 return（Hook 都已固定呼叫過）
   if (!isOpen || len === 0 || !selected) return null;
 
   return (
@@ -135,7 +128,7 @@ export default function MealDetailModal({
             />
           )}
 
-          {/* 標題列 + 左右箭頭（與名稱同一高度） */}
+          {/* title and arrow */}
           <div className="mb-2 flex w-full items-center justify-between">
             <button
               onClick={handlePrev}
@@ -169,7 +162,7 @@ export default function MealDetailModal({
             </p>
           )}
 
-          {/* 單筆狀態按鈕 */}
+          {/* one data  */}
           {isPast && !selected.status ? (
             <button
               disabled
@@ -196,7 +189,7 @@ export default function MealDetailModal({
           )}
         </div>
 
-        {/* 底部按鈕 */}
+        {/* bottom button  */}
         <div className="mt-4 flex justify-between gap-3">
           <button
             onClick={() => handleBulkUpdate(!allCompleted)}
