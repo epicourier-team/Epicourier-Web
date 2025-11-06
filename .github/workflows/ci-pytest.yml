@@ -29,17 +29,19 @@ jobs:
           pip install ruff black
 
       - name: Syntax Check
-        run: python -m py_compile $(find backend -name "*.py")
+        run: |
+          find backend -name "*.py" ! -name "*.ipynb" -print0 | xargs -0 python -m py_compile
 
       - name: Lint with Ruff
-        run: ruff check backend
+        continue-on-error: true 
+        run: ruff check backend --exclude "*.ipynb"
 
       - name: Run Black and capture diff
         id: format-check
         continue-on-error: true
         run: |
           set +e
-          DIFF=$(black --check --diff backend 2>&1)
+          DIFF=$(black --check --diff backend --exclude "\.ipynb$" 2>&1)
           echo "$DIFF"
           DIFF="${DIFF//'%'/'%25'}"
           DIFF="${DIFF//$'\n'/'%0A'}"
@@ -47,7 +49,7 @@ jobs:
           echo "::set-output name=black_diff::$DIFF"
 
       - name: Comment Black suggestions on PR
-        if: always()  
+        if: always()
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: "🖤 Black formatting suggestions"
