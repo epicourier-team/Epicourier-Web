@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { validatePassword } from "@/lib/utils";
-import { Utensils } from "lucide-react";
+import { Utensils, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -77,31 +77,53 @@ const SignUp = () => {
     return { isValid: !firstError, firstError };
   };
 
+  const [serverError, setServerError] = useState<string | null>(null);
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Reset any existing errors
+    setErrors({
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    });
+    setServerError(null);
+
     const validation = validateForm();
     if (!validation.isValid) {
-      toast({
-        title: "Validation Error",
-        description: validation.firstError,
-        variant: "destructive",
-      });
+      // Don't show toast for client-side validations, just set the field errors
       return;
     }
 
     try {
       const result = await signup(formData);
-      if (result) {
-        toast({ title: "Account created", description: "Please sign in with your new account." });
+      
+      if (result?.error) {
+        // Handle specific error cases
+        const errorMessage = result.error.message;
+        if (errorMessage.includes('email already exists')) {
+          setErrors(prev => ({ ...prev, email: errorMessage }));
+        } else if (errorMessage.includes('Password')) {
+          setErrors(prev => ({ ...prev, password: errorMessage }));
+        } else {
+          // Show server errors in the red box
+          setServerError(errorMessage);
+        }
+        return;
+      }
+
+      if (result?.success) {
+        toast({
+          title: "Success!",
+          description: "Your account has been created. Please sign in.",
+        });
         router.push("/signin");
       }
-      if (result.error) {
-        toast({ title: result.error.message });
-      }
     } catch (err: unknown) {
-      const errMsg = (err as { message: string })?.message || "Signup failed";
-      toast({ title: "Signup failed", description: errMsg, variant: "destructive" });
+      const errorMessage = "An unexpected error occurred. Please try again.";
+      setServerError(errorMessage);
     }
   };
 
@@ -122,6 +144,13 @@ const SignUp = () => {
             <h1 className="mb-2 text-3xl font-bold text-gray-900">Create Account</h1>
             <p className="text-gray-600">Start your smart meal journey today</p>
           </div>
+
+          {serverError && (
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+              <XCircle className="h-5 w-5 flex-shrink-0 text-red-500" />
+              <p className="font-medium">{serverError}</p>
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">

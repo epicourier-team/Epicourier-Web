@@ -17,17 +17,19 @@ import { redirect } from "next/navigation";
 describe("login server action", () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it("redirects to /error when signIn fails", async () => {
+  it("returns error when signIn fails", async () => {
     (createClient as jest.Mock).mockResolvedValue({
-      auth: { signInWithPassword: jest.fn().mockResolvedValue({ error: true }) },
+      auth: { signInWithPassword: jest.fn().mockResolvedValue({ error: { message: "Invalid credentials" } }) },
     });
 
-    await login({ email: "a@test.com", password: "pw" });
+    const result = await login({ email: "a@test.com", password: "pw" });
 
-    expect(redirect).toHaveBeenCalledWith("/error");
+    expect(result).toEqual({ error: "Invalid credentials" });
+    expect(revalidatePath).not.toHaveBeenCalled();
+    expect(redirect).not.toHaveBeenCalled();
   });
 
-  it("redirects to /recipes when signIn succeeds", async () => {
+  it("revalidates and redirects to /recipes when signIn succeeds", async () => {
     (createClient as jest.Mock).mockResolvedValue({
       auth: { signInWithPassword: jest.fn().mockResolvedValue({ error: null }) },
     });
@@ -35,6 +37,6 @@ describe("login server action", () => {
     await login({ email: "a@test.com", password: "pw" });
 
     expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
-    expect(redirect).toHaveBeenCalledWith("/dashboard/recipes");
+    expect(redirect).toHaveBeenCalledWith("/recipes");
   });
 });

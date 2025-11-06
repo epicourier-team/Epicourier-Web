@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Utensils } from "lucide-react";
+import { Utensils, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { login } from "./actions";
@@ -21,48 +21,68 @@ const SignIn = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Reset all errors
     setError(null);
+    setErrors({ email: "", password: "" });
 
-    if (!formData.email.trim() || !formData.password.trim()) {
-      const message = !formData.email.trim() ? "Email is required" : "Password is required";
-
-      // set field-level errors so they appear under inputs
-      setErrors({
-        email: !formData.email.trim() ? "Email is required" : "",
-        password: !formData.password.trim() ? "Password is required" : "",
-      });
-
-      setError(message);
-      toast({
-        title: "Validation Error",
-        description: message,
-        variant: "destructive",
-      });
-      return;
+    // Client-side validation
+    const validationErrors: { email?: string; password?: string } = {};
+    
+    if (!formData.email.trim()) {
+      validationErrors.email = "Email is required";
+    } else {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        validationErrors.email = "Please enter a valid email address";
+      }
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      const message = "Please enter a valid email address.";
-      setErrors({ ...errors, email: message });
-      setError(message);
-      toast({
-        title: "Validation Error",
-        description: message,
-        variant: "destructive",
+    if (!formData.password.trim()) {
+      validationErrors.password = "Password is required";
+    }
+
+    // If there are validation errors, show them and return
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors({
+        email: validationErrors.email || "",
+        password: validationErrors.password || "",
       });
+      // Don't set the error state or show toast for client-side validations
       return;
     }
 
     try {
-      // login is a server action; await it and rely on server-side redirects/errors
-      await login(formData);
-      toast({ title: "Signed in", description: "Welcome back!" });
+      const result = await login(formData);
+      
+      if (result?.error) {
+        // Handle specific Supabase error messages
+        let errorMessage = result.error;
+        if (result.error.includes("Invalid login credentials")) {
+          errorMessage = "Incorrect email or password";
+        }
+        setError(errorMessage);
+        toast({
+          title: "Sign in failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // If we get here, sign in was successful
+      toast({
+        title: "Success",
+        description: "Welcome back!",
+      });
     } catch (err: unknown) {
-      const errMsg = (err as { message: string })?.message || "Sign in failed";
-      setError(errMsg);
-      toast({ title: "Sign in failed", description: errMsg, variant: "destructive" });
+      const errorMessage = "An unexpected error occurred. Please try again.";
+      setError(errorMessage);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
   };
 
@@ -74,7 +94,7 @@ const SignIn = () => {
           <div className="mb-6 flex justify-center">
             <div className="flex items-center gap-2">
               <Utensils className="h-8 w-8 text-emerald-600" />
-              <span className="text-2xl font-bold text-gray-900">EpiCourier</span>
+              <span className="text-2xl font-bold text-gray-900">Epicourier</span>
             </div>
           </div>
 
@@ -84,12 +104,12 @@ const SignIn = () => {
             <p className="text-gray-600">Sign in to continue your meal journey</p>
           </div>
 
-          {/* {error && (
+          {error && (
             <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700 transition-opacity duration-300">
               <XCircle className="h-5 w-5 flex-shrink-0 text-red-500" />
               <p className="font-medium">{error}</p>
             </div>
-          )} */}
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
