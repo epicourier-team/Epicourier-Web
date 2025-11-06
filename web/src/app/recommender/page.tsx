@@ -131,8 +131,11 @@ export default function RecommendPage() {
         {expandedGoal && (
           <div className="mt-12 text-center">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Expanded Goal</h2>
-            <div className="prose prose-emerald mx-auto text-left max-w-2xl">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{expandedGoal}</ReactMarkdown>
+            {/* <div className="prose prose-emerald mx-auto text-left max-w-2xl"> */}
+            {/* <ReactMarkdown remarkPlugins={[remarkGfm]}>{expandedGoal}</ReactMarkdown> */}
+            {/* </div> */}
+            <div className="prose prose-emerald max-w-none mx-auto text-left">
+              <ReactMarkdown>{expandedGoal}</ReactMarkdown>
             </div>
           </div>
         )}
