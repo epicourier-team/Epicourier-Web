@@ -91,6 +91,23 @@ export default function CalendarPage() {
 
     const formatted = (data ?? []).map((c: CalendarApiResponse) => {
       const isCompleted = c.status === true;
+      // 取得「今天」的本地日期字串，格式 YYYY-MM-DD
+      const todayStr = new Date().toLocaleDateString("en-CA"); // e.g. "2025-11-06"
+
+      // 僅比較字串，不含時間；今天不算過期，嚴格小於才算
+      const isPast = c.date < todayStr;
+
+      let bgColor = "#3b82f6"; // 預設：藍色（進行中）
+      let borderColor = "#2563eb";
+
+      if (isCompleted) {
+        bgColor = "#22c55e"; // 綠色：已完成
+        borderColor = "#16a34a";
+      } else if (isPast) {
+        bgColor = "#9ca3af"; // 灰色：已過期未完成
+        borderColor = "#6b7280";
+      }
+
       return {
         id: String(c.id),
         title: `${c.meal_type ? c.meal_type.charAt(0).toUpperCase() + c.meal_type.slice(1) : ""} - ${c.Recipe?.name ?? "Meal"}`,
@@ -98,11 +115,13 @@ export default function CalendarPage() {
         allDay: true,
         extendedProps: {
           calendarData: c,
+          isPast,
         },
-        backgroundColor: isCompleted ? "#22c55e" : "#3b82f6",
-        borderColor: isCompleted ? "#16a34a" : "#2563eb",
+        backgroundColor: bgColor,
+        borderColor: borderColor,
       };
     });
+
     setEvents(formatted);
   }, [router]);
 
@@ -152,9 +171,17 @@ export default function CalendarPage() {
   // click handle
   // ------------------------------
   const handleEventClick = (clickInfo: EventClickArg) => {
-    console.log("clicked event:", clickInfo.event.extendedProps);
-    const eventData = clickInfo.event.extendedProps.calendarData as CalendarApiResponse;
-    setSelectedCalendarEntry(eventData);
+    const { calendarData, isPast } = clickInfo.event.extendedProps as {
+      calendarData: CalendarApiResponse;
+      isPast: boolean;
+    };
+
+    if (isPast && calendarData.status === false) {
+      alert("This meal is expired and cannot be modified.");
+      return;
+    }
+
+    setSelectedCalendarEntry(calendarData);
     setIsDetailModalOpen(true);
   };
 
@@ -358,31 +385,47 @@ export default function CalendarPage() {
               </>
             )}{" "}
             <div className="flex items-center justify-between gap-3">
-              {" "}
-              {selectedCalendarEntry.status === true ? (
-                <button
-                  onClick={() => handleUpdateStatus(selectedCalendarEntry.id, false)}
-                  className="w-full rounded-lg bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
-                >
-                  {" "}
-                  Mark as Incomplete{" "}
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleUpdateStatus(selectedCalendarEntry.id, true)}
-                  className="w-full rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-                >
-                  {" "}
-                  ✅ Mark as Completed{" "}
-                </button>
-              )}{" "}
+              {(() => {
+                const isPast =
+                  new Date(selectedCalendarEntry.date) < new Date(new Date().toDateString());
+                if (isPast && !selectedCalendarEntry.status) {
+                  return (
+                    <button
+                      disabled
+                      className="w-full cursor-not-allowed rounded-lg bg-gray-400 px-4 py-2 text-white"
+                    >
+                      ❌ Expired Meal
+                    </button>
+                  );
+                }
+
+                if (selectedCalendarEntry.status === true) {
+                  return (
+                    <button
+                      onClick={() => handleUpdateStatus(selectedCalendarEntry.id, false)}
+                      className="w-full rounded-lg bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
+                    >
+                      Mark as Incomplete
+                    </button>
+                  );
+                } else {
+                  return (
+                    <button
+                      onClick={() => handleUpdateStatus(selectedCalendarEntry.id, true)}
+                      className="w-full rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+                    >
+                      ✅ Mark as Completed
+                    </button>
+                  );
+                }
+              })()}
+
               <button
                 onClick={() => setIsDetailModalOpen(false)}
                 className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300"
               >
-                {" "}
-                Close{" "}
-              </button>{" "}
+                Close
+              </button>
             </div>{" "}
           </div>{" "}
         </div>
