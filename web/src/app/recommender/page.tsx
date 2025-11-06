@@ -58,9 +58,9 @@ export default function RecommendPage() {
       // backend sends expanded goal once, not per recipe
       setExpandedGoal(data.goal_expanded || "");
       setRecipes(data.recipes || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching recommendations:", err);
-      setError(err.message || "Unknown error occurred");
+      setError((err as { message: string }).message || "Unknown error occurred");
     } finally {
       setLoading(false);
     }
@@ -131,9 +131,6 @@ export default function RecommendPage() {
         {expandedGoal && (
           <div className="mt-12 text-center">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Expanded Goal</h2>
-            {/* <div className="prose prose-emerald mx-auto text-left max-w-2xl"> */}
-            {/* <ReactMarkdown remarkPlugins={[remarkGfm]}>{expandedGoal}</ReactMarkdown> */}
-            {/* </div> */}
             <div className="prose prose-emerald max-w-none mx-auto text-left">
               <ReactMarkdown>{expandedGoal}</ReactMarkdown>
             </div>
