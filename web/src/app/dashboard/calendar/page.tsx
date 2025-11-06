@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import AddMealModal from "@/components/ui/AddMealModal";
+import { SidebarInset } from "@/components/ui/sidebar";
 
 // ------------------------------
 // Type Definitions
@@ -245,217 +246,219 @@ export default function CalendarPage() {
   // UI Rendering
   // ------------------------------
   return (
-    <main className="min-h-screen bg-gray-50 p-6 pl-20">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        {/* ⭐ 已移除 "Current User" 下拉選單，因為不再需要 */}
-        <h1 className="text-2xl font-semibold text-gray-800">
-          {userName ? `${userName}'s Calendar` : "Loading Calendar..."}
-        </h1>
-        <button
-          onClick={loadRecommendations}
-          className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-        >
-          🍽️ Get Recommendations
-        </button>
-      </div>
-      {/* 'recommendations'*/}
-      {recommendations.length > 0 && (
-        <div className="mb-6 rounded-xl bg-white p-4 shadow">
-          <h2 className="mb-3 text-lg font-semibold">Recommended Recipes</h2>
-          <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {recommendations.map((r) => (
-              <li
-                key={r.id}
-                className="overflow-hidden rounded-lg border shadow transition hover:shadow-md"
-              >
-                {r.image_url && (
-                  <img src={r.image_url} alt={r.name} className="h-40 w-full object-cover" />
-                )}
-                <div className="p-3">
-                  <h3 className="font-semibold">{r.name}</h3>
-                  <p className="text-sm text-gray-500">{r.description}</p>
-                  <p className="mt-1 text-xs text-gray-400">
-                    ⏱ {r.min_prep_time ?? 0} mins • 🌿 Score {r.green_score ?? "?"}
-                  </p>
-                  <button
-                    onClick={() => {
-                      setSelectedRecipe(r);
-                      setShowDateModal(true);
-                    }}
-                    className="mt-2 w-full rounded bg-blue-600 py-1 text-white hover:bg-blue-700"
-                  >
-                    + Add to Calendar
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+    <SidebarInset className="bg-gray-50 p-6 md:pl-[7rem]">
+      <main className="min-h-screen bg-gray-50 p-6 pl-20">
+        {/* Header */}
+        <div className="mb-6 flex items-center justify-between">
+          {/* ⭐ 已移除 "Current User" 下拉選單，因為不再需要 */}
+          <h1 className="text-2xl font-semibold text-gray-800">
+            {userName ? `${userName}'s Calendar` : "Loading Calendar..."}
+          </h1>
+          <button
+            onClick={loadRecommendations}
+            className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+          >
+            🍽️ Get Recommendations
+          </button>
         </div>
-      )}
-      {/* "Add Meal" Modal */}
-      {showDateModal && selectedRecipe && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-lg font-semibold">Select Date for {selectedRecipe.name}</h2>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Choose a date:</label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="mb-4 w-full rounded-lg border px-3 py-2"
-            />
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Choose meal type:
-            </label>
-            <select
-              value={mealType}
-              onChange={(e) => setMealType(e.target.value)}
-              className="mb-4 w-full rounded-lg border px-3 py-2"
-            >
-              <option value="breakfast">🍳 Breakfast</option>
-              <option value="lunch">🍱 Lunch</option>
-              <option value="dinner">🍲 Dinner</option>
-            </select>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDateModal(false)}
-                className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300"
+        {/* 'recommendations'*/}
+        {recommendations.length > 0 && (
+          <div className="mb-6 rounded-xl bg-white p-4 shadow">
+            <h2 className="mb-3 text-lg font-semibold">Recommended Recipes</h2>
+            <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              {recommendations.map((r) => (
+                <li
+                  key={r.id}
+                  className="overflow-hidden rounded-lg border shadow transition hover:shadow-md"
+                >
+                  {r.image_url && (
+                    <img src={r.image_url} alt={r.name} className="h-40 w-full object-cover" />
+                  )}
+                  <div className="p-3">
+                    <h3 className="font-semibold">{r.name}</h3>
+                    <p className="text-sm text-gray-500">{r.description}</p>
+                    <p className="mt-1 text-xs text-gray-400">
+                      ⏱ {r.min_prep_time ?? 0} mins • 🌿 Score {r.green_score ?? "?"}
+                    </p>
+                    <button
+                      onClick={() => {
+                        setSelectedRecipe(r);
+                        setShowDateModal(true);
+                      }}
+                      className="mt-2 w-full rounded bg-blue-600 py-1 text-white hover:bg-blue-700"
+                    >
+                      + Add to Calendar
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {/* "Add Meal" Modal */}
+        {showDateModal && selectedRecipe && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
+              <h2 className="mb-4 text-lg font-semibold">Select Date for {selectedRecipe.name}</h2>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Choose a date:</label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="mb-4 w-full rounded-lg border px-3 py-2"
+              />
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Choose meal type:
+              </label>
+              <select
+                value={mealType}
+                onChange={(e) => setMealType(e.target.value)}
+                className="mb-4 w-full rounded-lg border px-3 py-2"
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddToCalendar}
-                className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-              >
-                Confirm
-              </button>
+                <option value="breakfast">🍳 Breakfast</option>
+                <option value="lunch">🍱 Lunch</option>
+                <option value="dinner">🍲 Dinner</option>
+              </select>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDateModal(false)}
+                  className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddToCalendar}
+                  className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+                >
+                  Confirm
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-      {/* "Meal Detail" Modal*/}
-      {/* "Meal Detail" Modal*/}{" "}
-      {isDetailModalOpen && selectedCalendarEntry && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          {" "}
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg">
+        )}
+        {/* "Meal Detail" Modal*/}
+        {/* "Meal Detail" Modal*/}{" "}
+        {isDetailModalOpen && selectedCalendarEntry && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
             {" "}
-            {/* ⭐ 步驟 2: 在 Modal *內部* 檢查 'Recipe' 物件是否存在 */}{" "}
-            {selectedCalendarEntry.Recipe ? (
-              <>
-                {" "}
-                {/* --- A: 如果有食譜，顯示食譜詳情 --- */}{" "}
-                {selectedCalendarEntry.Recipe.image_url && (
-                  <img
-                    src={selectedCalendarEntry.Recipe.image_url}
-                    alt={selectedCalendarEntry.Recipe.name}
-                    className="mb-4 h-48 w-full rounded-lg object-cover"
-                  />
-                )}{" "}
-                <h2 className="mb-2 text-2xl font-bold">{selectedCalendarEntry.Recipe.name}</h2>{" "}
-                <p className="mb-4 text-gray-500">
+            <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg">
+              {" "}
+              {/* ⭐ 步驟 2: 在 Modal *內部* 檢查 'Recipe' 物件是否存在 */}{" "}
+              {selectedCalendarEntry.Recipe ? (
+                <>
                   {" "}
-                  {selectedCalendarEntry.meal_type.charAt(0).toUpperCase() +
-                    selectedCalendarEntry.meal_type.slice(1)}{" "}
-                  on {selectedCalendarEntry.date}{" "}
-                </p>{" "}
-                {selectedCalendarEntry.Recipe.description && (
-                  <p className="mb-6 max-h-40 overflow-y-auto whitespace-pre-line text-gray-700">
+                  {/* --- A: 如果有食譜，顯示食譜詳情 --- */}{" "}
+                  {selectedCalendarEntry.Recipe.image_url && (
+                    <img
+                      src={selectedCalendarEntry.Recipe.image_url}
+                      alt={selectedCalendarEntry.Recipe.name}
+                      className="mb-4 h-48 w-full rounded-lg object-cover"
+                    />
+                  )}{" "}
+                  <h2 className="mb-2 text-2xl font-bold">{selectedCalendarEntry.Recipe.name}</h2>{" "}
+                  <p className="mb-4 text-gray-500">
                     {" "}
-                    {selectedCalendarEntry.Recipe.description}{" "}
-                  </p>
-                )}{" "}
-              </>
-            ) : (
-              <>
-                {" "}
-                {/* --- B: 如果沒有食譜 (Recipe is null)，顯示備用資訊 --- */}{" "}
-                <h2 className="mb-2 text-2xl font-bold">Meal Entry</h2>{" "}
-                <p className="mb-4 text-gray-500">
+                    {selectedCalendarEntry.meal_type.charAt(0).toUpperCase() +
+                      selectedCalendarEntry.meal_type.slice(1)}{" "}
+                    on {selectedCalendarEntry.date}{" "}
+                  </p>{" "}
+                  {selectedCalendarEntry.Recipe.description && (
+                    <p className="mb-6 max-h-40 overflow-y-auto whitespace-pre-line text-gray-700">
+                      {" "}
+                      {selectedCalendarEntry.Recipe.description}{" "}
+                    </p>
+                  )}{" "}
+                </>
+              ) : (
+                <>
                   {" "}
-                  {selectedCalendarEntry.meal_type.charAt(0).toUpperCase() +
-                    selectedCalendarEntry.meal_type.slice(1)}{" "}
-                  on {selectedCalendarEntry.date}{" "}
-                </p>{" "}
-                <p className="mb-6 text-gray-700">
-                  {" "}
-                  (No recipe details associated with this entry.){" "}
-                </p>{" "}
-              </>
-            )}{" "}
-            <div className="flex items-center justify-between gap-3">
-              {(() => {
-                const isPast =
-                  new Date(selectedCalendarEntry.date) < new Date(new Date().toDateString());
-                if (isPast && !selectedCalendarEntry.status) {
-                  return (
-                    <button
-                      disabled
-                      className="w-full cursor-not-allowed rounded-lg bg-gray-400 px-4 py-2 text-white"
-                    >
-                      ❌ Expired Meal
-                    </button>
-                  );
-                }
+                  {/* --- B: 如果沒有食譜 (Recipe is null)，顯示備用資訊 --- */}{" "}
+                  <h2 className="mb-2 text-2xl font-bold">Meal Entry</h2>{" "}
+                  <p className="mb-4 text-gray-500">
+                    {" "}
+                    {selectedCalendarEntry.meal_type.charAt(0).toUpperCase() +
+                      selectedCalendarEntry.meal_type.slice(1)}{" "}
+                    on {selectedCalendarEntry.date}{" "}
+                  </p>{" "}
+                  <p className="mb-6 text-gray-700">
+                    {" "}
+                    (No recipe details associated with this entry.){" "}
+                  </p>{" "}
+                </>
+              )}{" "}
+              <div className="flex items-center justify-between gap-3">
+                {(() => {
+                  const isPast =
+                    new Date(selectedCalendarEntry.date) < new Date(new Date().toDateString());
+                  if (isPast && !selectedCalendarEntry.status) {
+                    return (
+                      <button
+                        disabled
+                        className="w-full cursor-not-allowed rounded-lg bg-gray-400 px-4 py-2 text-white"
+                      >
+                        ❌ Expired Meal
+                      </button>
+                    );
+                  }
 
-                if (selectedCalendarEntry.status === true) {
-                  return (
-                    <button
-                      onClick={() => handleUpdateStatus(selectedCalendarEntry.id, false)}
-                      className="w-full rounded-lg bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
-                    >
-                      Mark as Incomplete
-                    </button>
-                  );
-                } else {
-                  return (
-                    <button
-                      onClick={() => handleUpdateStatus(selectedCalendarEntry.id, true)}
-                      className="w-full rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-                    >
-                      ✅ Mark as Completed
-                    </button>
-                  );
-                }
-              })()}
+                  if (selectedCalendarEntry.status === true) {
+                    return (
+                      <button
+                        onClick={() => handleUpdateStatus(selectedCalendarEntry.id, false)}
+                        className="w-full rounded-lg bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
+                      >
+                        Mark as Incomplete
+                      </button>
+                    );
+                  } else {
+                    return (
+                      <button
+                        onClick={() => handleUpdateStatus(selectedCalendarEntry.id, true)}
+                        className="w-full rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+                      >
+                        ✅ Mark as Completed
+                      </button>
+                    );
+                  }
+                })()}
 
-              <button
-                onClick={() => setIsDetailModalOpen(false)}
-                className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300"
-              >
-                Close
-              </button>
+                <button
+                  onClick={() => setIsDetailModalOpen(false)}
+                  className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300"
+                >
+                  Close
+                </button>
+              </div>{" "}
             </div>{" "}
-          </div>{" "}
+          </div>
+        )}
+        {/* "Add Meal" Modal*/}
+        {showDateModal && selectedRecipe && (
+          <AddMealModal
+            recipe={{ id: selectedRecipe.id, name: selectedRecipe.name }} // 明確只傳需要的欄位
+            isOpen={true}
+            onClose={() => setShowDateModal(false)}
+            onSuccess={loadEvents}
+          />
+        )}
+        {/* FullCalendar */}
+        <div className="rounded-xl bg-white p-4 shadow">
+          <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            headerToolbar={{
+              left: "prev,next today",
+              center: "title",
+              right: "dayGridMonth,timeGridWeek,timeGridDay",
+            }}
+            height="80vh"
+            events={events}
+            displayEventTime={false}
+            timeZone="local"
+            eventClick={handleEventClick}
+          />
         </div>
-      )}
-      {/* "Add Meal" Modal*/}
-      {showDateModal && selectedRecipe && (
-        <AddMealModal
-          recipe={{ id: selectedRecipe.id, name: selectedRecipe.name }} // 明確只傳需要的欄位
-          isOpen={true}
-          onClose={() => setShowDateModal(false)}
-          onSuccess={loadEvents}
-        />
-      )}
-      {/* FullCalendar */}
-      <div className="rounded-xl bg-white p-4 shadow">
-        <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          headerToolbar={{
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek,timeGridDay",
-          }}
-          height="80vh"
-          events={events}
-          displayEventTime={false}
-          timeZone="local"
-          eventClick={handleEventClick}
-        />
-      </div>
-    </main>
+      </main>
+    </SidebarInset>
   );
 }

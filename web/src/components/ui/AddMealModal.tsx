@@ -55,13 +55,13 @@ export default function AddMealModal({ recipe, isOpen, onClose, onSuccess }: Add
           type="date"
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
-          className="mb-4 w-full rounded-lg border px-3 py-2"
+          className="mb-4 block w-106 rounded-lg border px-3 py-2"
         />
         <label className="mb-2 block text-sm font-medium text-gray-700">Choose meal type:</label>
         <select
           value={mealType}
           onChange={(e) => setMealType(e.target.value)}
-          className="mb-4 w-full rounded-lg border px-3 py-2"
+          className="mb-4 block w-113 rounded-lg border px-3 py-2"
         >
           <option value="breakfast">🍳 Breakfast</option>
           <option value="lunch">🍱 Lunch</option>
