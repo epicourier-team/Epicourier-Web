@@ -94,7 +94,7 @@ def get_recipe_embeddings(recipe_data):
     embeddings = embedder.encode(recipe_data["recipe_text"].tolist(), convert_to_tensor=True)
     return embeddings
 
-
+client = load_gemini_client()
 # --------------------------------------------------
 # 4. Gemini-based goal expansion
 # --------------------------------------------------
@@ -110,10 +110,25 @@ def nutrition_goal(goal_text):
     cholesterol_mg, total_minerals_mg, vit_a_microg, total_vit_b_mg,
     vit_c_mg, vit_d_microg, vit_e_mg, vit_k_microg
     """
-    client = load_gemini_client()
     response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
     return response.text.strip()
 
+def expand_goal(goal_text):
+    """Translate a user's goal into nutrition information using Gemini."""
+
+    prompt = f"""
+    Your task is to translate a user's specific diet goal into precise, target nutritional values for a daily meal plan.
+
+    **GOAL:** {goal_text}
+
+    You may include: calories_kcal, protein_g, carbs_g, sugars_g, total_fats_g, cholesterol_mg, total_minerals_mg, vit_a_microg, total_vit_b_mg, vit_c_mg, vit_d_microg, vit_e_mg, vit_k_microg
+    """
+
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt
+    )
+    return response.text.strip()
 
 # --------------------------------------------------
 # 5. Recommendation pipeline
@@ -152,23 +167,23 @@ def select_diverse_recipes(ranked_df, n_meals=3):
     return ranked_df.loc[selected_indices].sort_values("similarity", ascending=False)
 
 
+# CREATE MEAL PLAN
 def create_meal_plan(goal_text, n_meals=3):
-    """Main public function."""
     ranked, nutri_goal = rank_recipes_by_goal(goal_text)
     diverse = select_diverse_recipes(ranked, n_meals)
-    exp_goal = nutrition_goal(goal_text)
+    exp_goal = expand_goal(goal_text)
 
     meal_plan = []
     for i, row in enumerate(diverse.itertuples(), 1):
-        meal_plan.append(
-            {
-                "meal_number": i,
-                "name": row.name,
-                "tags": row.tags,
-                "key_ingredients": row.ingredients[:10],
-                "reason": f"Selected because it aligns with goal '{goal_text}' and differs from other meals.",
-                "similarity_score": round(float(row.similarity), 3),
-                "recipe": row.recipe_text,
-            }
-        )
+        meal_plan.append({
+            "meal_number": i,
+            "name": row.name,
+            "tags": row.tags,
+            "key_ingredients": row.ingredients[:10],  # limit to first few
+            "reason": f"Selected because it aligns with goal '{goal_text}' and differs from other meals.",
+            "similarity_score": round(float(row.similarity), 3),
+            "recipe": row.recipe_text
+        })
+
+    # print(f"Expanded goal: {exp_goal}\n")
     return meal_plan, exp_goal
