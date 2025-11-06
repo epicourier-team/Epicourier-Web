@@ -10,15 +10,15 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { createClient } from "@/utils/supabase/client";
-import { Calendar, ChefHat, Lightbulb, PieChart } from "lucide-react";
+import { Calendar, ChefHat, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const menuItems = [
   { title: "Recipes", url: "/dashboard/recipes", icon: ChefHat },
   { title: "Calendar", url: "/dashboard/calendar", icon: Calendar },
-  { title: "Recommendations", url: "/recommendations", icon: Lightbulb },
-  { title: "Nutrient Summary", url: "/nutrient-summary", icon: PieChart },
+  { title: "Recommender", url: "/dashboard/recommender", icon: Lightbulb },
+  // { title: "Nutrient Summary", url: "/nutrient-summary", icon: PieChart },
 ];
 
 export function AppSidebar() {

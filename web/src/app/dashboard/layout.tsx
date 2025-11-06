@@ -1,11 +1,11 @@
 "use client";
 
+import { AppSidebar } from "@/components/sidebar/AppSideBar";
+import { Button } from "@/components/ui/button";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AppSidebar } from "../../components/sidebar/AppSideBar";
-import { Button } from "../../components/ui/button";
-import { SidebarProvider, SidebarTrigger } from "../../components/ui/sidebar";
-import { useToast } from "@/hooks/use-toast";
 import { logout } from "./action";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
