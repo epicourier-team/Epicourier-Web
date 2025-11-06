@@ -15,12 +15,12 @@ export async function login(formData: { email?: string; password?: string }) {
     password: formData?.password as string,
   };
 
-  const { error } = await supabase.auth.signInWithPassword(data);
+  const { error, data: authData } = await supabase.auth.signInWithPassword(data);
 
   if (error) {
-    redirect("/error");
+    return { error: error.message }
   }
 
   revalidatePath("/", "layout");
-  redirect("/dashboard/recipes");
+  redirect("/recipes");
 }

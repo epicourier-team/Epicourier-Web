@@ -13,32 +13,71 @@ export async function signup(formData: { email?: string; password?: string; user
     password: formData?.password as string,
   }
 
-  // const {data, error} = await supabase.from('User').select('*').eq('email', form_data.email).maybeSingle();
-  // if (data) {
-  //   console.log("data: ", data);
-  //   return { error: new Error('User with this email already exists') }
-  // }
-  // if (error){
-  //   console.log("error: ", error);
-  //   return { error }
-  // }
+  // First check if user already exists
+  const { data: existingUser } = await supabase
+    .from('User')
+    .select('*')
+    .eq('email', form_data.email)
+    .maybeSingle();
 
-  const { error: signupError } = await supabase.auth.signUp(form_data)
-  if (signupError) {
-    return { error: signupError }
-  } 
-  else {
-    const {data:dbGetData, error: dbGetError} = await supabase.from('User').select().eq('email', form_data.email).maybeSingle();
-    if (dbGetError  || !dbGetData) {
-      return { error: dbGetError? dbGetError : new Error('Failed to get user data') }
-    }
-    const { error: updateUserError } = await supabase.from('User').update({username: formData?.username as string}).eq('id', dbGetData.id)
-    if (updateUserError) {
-      return { error: updateUserError }
-    }
+  if (existingUser) {
+    return { error: { message: 'An account with this email already exists' } };
   }
-  // return {success: true}
 
-  revalidatePath('/', 'layout')
-  redirect('/signin')
+  // Attempt to sign up
+  const { error: signupError, data: signupData } = await supabase.auth.signUp(form_data)
+  if (signupError) {
+    // Format the error message to be more user-friendly
+    let errorMessage = signupError.message;
+    if (errorMessage.includes('Password should be')) {
+      errorMessage = 'Password must be at least 6 characters long';
+    } else if (errorMessage.includes('Invalid email')) {
+      errorMessage = 'Please enter a valid email address';
+    }
+    return { error: { message: errorMessage } };
+  }
+
+  if (!signupData.user) {
+    return { error: { message: 'Failed to create account' } };
+  }
+
+  try {
+    // Get the newly created user
+    const { data: dbGetData, error: dbGetError } = await supabase
+      .from('User')
+      .select()
+      .eq('email', form_data.email)
+      .maybeSingle();
+
+    if (dbGetError || !dbGetData) {
+      return { 
+        error: { 
+          message: 'Account created but failed to set username. Please try signing in and updating your profile.' 
+        } 
+      };
+    }
+
+    // Update the username
+    const { error: updateUserError } = await supabase
+      .from('User')
+      .update({ username: formData?.username as string })
+      .eq('id', dbGetData.id);
+
+    if (updateUserError) {
+      return { 
+        error: { 
+          message: 'Account created but failed to set username. Please try signing in and updating your profile.'
+        } 
+      };
+    }
+
+    revalidatePath('/', 'layout')
+    return { success: true };
+  } catch (error) {
+    return { 
+      error: { 
+        message: 'An unexpected error occurred. Please try again.'
+      } 
+    };
+  }
 }
