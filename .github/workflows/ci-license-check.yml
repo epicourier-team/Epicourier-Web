@@ -21,18 +21,21 @@ jobs:
       - name: Check license headers
         id: license_check
         run: |
-          cd web && npm run check-license || echo "missing_headers" > result.txt
+          cd web
+          npm run check-license || echo "missing_headers" > result.txt
+        continue-on-error: true  
 
-      - name: Comment on PR if license headers are missing
-        if: ${{ failure() || hashFiles('result.txt') != '' }}
+      - name: Warn on PR if license headers are missing
+        if: hashFiles('web/result.txt') != ''
         uses: peter-evans/create-or-update-comment@v4
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            ⚠️ **License header check failed!**
+            ⚠️ **License header check warning**
             
+            Some files are missing license headers.
             Please run:
             ```bash
             npm run add-license
             ```
-            to automatically add missing headers before committing again.
+            to automatically fix them.

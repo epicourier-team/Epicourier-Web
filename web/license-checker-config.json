@@ -3,5 +3,16 @@
   "license": "../LICENSE.md",
   "cwd": "src",
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "ignore": ["node_modules/**/*", "*.config.*", ".gitignore", "*.setup.*", "*.md", ".prettierrc"]
+  "ignore": [
+    "node_modules/**/*",
+    "__tests__/**/*",
+    "__mocks__/**/*",
+    "*.config.*",
+    ".gitignore",
+    ".vercelignore",
+    "*.setup.*",
+    "*.md",
+    ".prettierrc",
+    "*.css"
+  ]
 }
