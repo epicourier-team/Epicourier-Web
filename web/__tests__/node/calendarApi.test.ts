@@ -17,6 +17,27 @@ const createRequest = (url: string, options?: RequestInit): Request => {
 };
 
 // ------------------------------
+// 型別定義
+// ------------------------------
+interface CalendarEntry {
+  id: number;
+  date: string;
+  meal_type: string;
+  Recipe?: { name: string };
+}
+
+// ------------------------------
+// Mock 物件定義
+// ------------------------------
+type SupabaseSelectReturn = {
+  eq: jest.MockedFunction<() => SupabaseSelectReturn>;
+  order: jest.MockedFunction<() => SupabaseSelectReturn>;
+  gte: jest.MockedFunction<() => SupabaseSelectReturn>;
+  lte: jest.MockedFunction<() => SupabaseSelectReturn>;
+  then: (resolve: (val: { data: CalendarEntry[] | null; error: Error | null }) => void) => void;
+};
+
+// ------------------------------
 // Mock Supabase chainable behavior
 // ------------------------------
 const mockSelect = jest.fn();
@@ -44,7 +65,7 @@ beforeEach(() => {
 
 describe("GET /api/calendar", () => {
   it("returns 400 if user_id is missing", async () => {
-    const req = createRequest("http://localhost/api/calendar");
+    const req = new Request("http://localhost/api/calendar");
     const res = await GET(req);
     const json = await res.json();
 
@@ -53,18 +74,20 @@ describe("GET /api/calendar", () => {
   });
 
   it("returns 200 with data when user_id provided", async () => {
-    const mockData = [{ id: 1, date: "2025-11-06", meal_type: "lunch", Recipe: { name: "Pasta" } }];
+    const mockData: CalendarEntry[] = [
+      { id: 1, date: "2025-11-06", meal_type: "lunch", Recipe: { name: "Pasta" } },
+    ];
 
+    // ✅ 模擬 supabase 鏈式查詢回傳 data
     mockSelect.mockReturnValueOnce({
       eq: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnThis(),
       gte: jest.fn().mockReturnThis(),
       lte: jest.fn().mockReturnThis(),
-      then: undefined,
-    });
-    mockSelect.mockResolvedValue({ data: mockData, error: null });
+      then: async (resolve) => resolve({ data: mockData, error: null }),
+    } as SupabaseSelectReturn);
 
-    const req = createRequest("http://localhost/api/calendar?user_id=123");
+    const req = new Request("http://localhost/api/calendar?user_id=123");
     const res = await GET(req);
     const json = await res.json();
 
@@ -80,11 +103,10 @@ describe("GET /api/calendar", () => {
       order: jest.fn().mockReturnThis(),
       gte: jest.fn().mockReturnThis(),
       lte: jest.fn().mockReturnThis(),
-      then: undefined,
-    });
-    mockSelect.mockResolvedValue({ data: null, error: supabaseError });
+      then: async (resolve) => resolve({ data: null, error: supabaseError }),
+    } as SupabaseSelectReturn);
 
-    const req = createRequest("http://localhost/api/calendar?user_id=456");
+    const req = new Request("http://localhost/api/calendar?user_id=456");
     const res = await GET(req);
     const json = await res.json();
 

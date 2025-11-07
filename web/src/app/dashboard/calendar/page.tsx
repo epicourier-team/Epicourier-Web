@@ -10,8 +10,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import AddMealModal from "@/components/ui/AddMealModal";
-import { SidebarInset } from "@/components/ui/sidebar";
 import MealDetailModal from "@/components/ui/MealDetailModal";
+import { SidebarInset } from "@/components/ui/sidebar";
 
 // ------------------------------
 // Type Definitions
@@ -133,6 +133,8 @@ export default function CalendarPage() {
   // ------------------------------
   // load recommendation
   // ------------------------------
+  {
+    /*}
   const loadRecommendations = async () => {
     const res = await fetch("/api/recommendations");
     const data: Recipe[] = await res.json();
@@ -140,6 +142,8 @@ export default function CalendarPage() {
       setRecommendations(data);
     }
   };
+  */
+  }
 
   // ------------------------------
   // click handle
@@ -218,16 +222,19 @@ export default function CalendarPage() {
   return (
     <SidebarInset className="bg-gray-50 p-6 pl-12">
       {/* Header */}
+
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-800">
           {userName ? `${userName}'s Calendar` : "Loading Calendar..."}
         </h1>
+        {/*
         <button
           onClick={loadRecommendations}
           className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
         >
           🍽️ Get Recommendations
         </button>
+        */}
       </div>
 
       {/* Recommendations */}

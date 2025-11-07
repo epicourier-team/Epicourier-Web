@@ -9,12 +9,28 @@ jest.mock("@/utils/supabase/server", () => ({
   createClient: jest.fn(),
 }));
 
-// 建立一個工具函式來創建假 Request
-const makeRequest = (url = "http://localhost/api/events", init?: RequestInit): Request =>
-  new Request(url, init);
+// ------------------------------
+// 型別定義
+// ------------------------------
+interface Recipe {
+  id: number;
+  name: string;
+  image_url?: string;
+  description?: string;
+  min_prep_time?: number;
+  green_score?: number;
+}
+
+interface CalendarEntry {
+  id: number;
+  date: string;
+  meal_type: string;
+  status: boolean;
+  Recipe?: Recipe;
+}
 
 // ------------------------------
-// 全域 Mock Supabase client
+// Mock 定義
 // ------------------------------
 const mockAuthGetUser = jest.fn();
 const mockFrom = jest.fn();
@@ -22,32 +38,66 @@ const mockSelect = jest.fn();
 const mockEq = jest.fn();
 const mockOrder = jest.fn();
 const mockInsert = jest.fn();
-const mockSingle = jest.fn();
 
+// 工具：建立 Request
+const makeRequest = (body?: Record<string, unknown>): Request =>
+  new Request("http://localhost/api/events", {
+    method: "POST",
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+// ------------------------------
+// beforeEach：設定雙 from mock
+// ------------------------------
 beforeEach(() => {
   jest.clearAllMocks();
 
-  // 預設 mock Supabase client
+  // ✅ createClient mock
   (createClient as jest.Mock).mockResolvedValue({
     auth: { getUser: mockAuthGetUser },
     from: mockFrom,
   });
 
-  mockFrom.mockReturnValue({
-    select: mockSelect.mockReturnThis(),
-    eq: mockEq.mockReturnThis(),
-    order: mockOrder.mockReturnThis(),
-    insert: mockInsert.mockReturnThis(),
-    single: mockSingle.mockReturnThis(),
+  // ✅ 預設使用者登入成功
+  mockAuthGetUser.mockResolvedValue({
+    data: { user: { email: "test@example.com" } },
+    error: null,
+  });
+
+  // ✅ 區分 from("User") vs from("Calendar")
+  (mockFrom as jest.Mock).mockImplementation((table: string) => {
+    if (table === "User") {
+      return {
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            limit: jest.fn().mockResolvedValue({
+              data: [{ id: 99 }],
+              error: null,
+            }),
+          }),
+        }),
+      };
+    }
+
+    if (table === "Calendar") {
+      return {
+        select: mockSelect.mockReturnThis(),
+        eq: mockEq.mockReturnThis(),
+        order: mockOrder.mockReturnThis(),
+        insert: mockInsert.mockReturnThis(),
+      };
+    }
+
+    throw new Error(`Unexpected table name: ${table}`);
   });
 });
 
 // ------------------------------
-// GET /api/events
+// 測試開始
 // ------------------------------
 describe("GET /api/events", () => {
   it("returns 401 if user not authenticated", async () => {
-    mockAuthGetUser.mockResolvedValue({
+    mockAuthGetUser.mockResolvedValueOnce({
       data: { user: null },
       error: { message: "no user" },
     });
@@ -60,35 +110,31 @@ describe("GET /api/events", () => {
   });
 
   it("returns 200 with event data when authenticated", async () => {
-    mockAuthGetUser.mockResolvedValue({
-      data: { user: { email: "test@example.com" } },
-      error: null,
-    });
+    const mockData: CalendarEntry[] = [
+      { id: 1, date: "2025-11-07", meal_type: "lunch", status: false },
+    ];
 
-    // 模擬查詢 public user id
-    mockSelect
-      .mockResolvedValueOnce({ data: [{ id: 99 }], error: null }) // getPublicUserId
-      .mockResolvedValueOnce({
-        data: [{ id: 1, date: "2025-11-07", meal_type: "lunch" }],
-        error: null,
-      }); // main events query
+    mockSelect.mockReturnValueOnce({
+      eq: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      then: async (resolve: (v: { data: CalendarEntry[]; error: null }) => void) =>
+        resolve({ data: mockData, error: null }),
+    });
 
     const res = await GET();
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json).toEqual([{ id: 1, date: "2025-11-07", meal_type: "lunch" }]);
+    expect(json).toEqual(mockData);
   });
 
   it("returns 500 if Supabase query fails", async () => {
-    mockAuthGetUser.mockResolvedValue({
-      data: { user: { email: "test@example.com" } },
-      error: null,
+    mockSelect.mockReturnValueOnce({
+      eq: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      then: async (resolve: (v: { data: null; error: Error }) => void) =>
+        resolve({ data: null, error: new Error("DB failed") }),
     });
-
-    mockSelect
-      .mockResolvedValueOnce({ data: [{ id: 99 }], error: null })
-      .mockResolvedValueOnce({ data: null, error: { message: "DB failed" } });
 
     const res = await GET();
     const json = await res.json();
@@ -103,17 +149,12 @@ describe("GET /api/events", () => {
 // ------------------------------
 describe("POST /api/events", () => {
   it("returns 401 if user not authenticated", async () => {
-    mockAuthGetUser.mockResolvedValue({
+    mockAuthGetUser.mockResolvedValueOnce({
       data: { user: null },
       error: { message: "no user" },
     });
 
-    const req = makeRequest("http://localhost/api/events", {
-      method: "POST",
-      body: JSON.stringify({ recipe_id: 5, date: "2025-11-08", meal_type: "lunch" }),
-    });
-
-    const res = await POST(req);
+    const res = await POST(makeRequest({ recipe_id: 5, date: "2025-11-08", meal_type: "lunch" }));
     const json = await res.json();
 
     expect(res.status).toBe(401);
@@ -121,19 +162,7 @@ describe("POST /api/events", () => {
   });
 
   it("returns 400 if missing required fields", async () => {
-    mockAuthGetUser.mockResolvedValue({
-      data: { user: { email: "test@example.com" } },
-      error: null,
-    });
-
-    mockSelect.mockResolvedValueOnce({ data: [{ id: 123 }], error: null });
-
-    const req = makeRequest("http://localhost/api/events", {
-      method: "POST",
-      body: JSON.stringify({ recipe_id: 1 }),
-    });
-
-    const res = await POST(req);
+    const res = await POST(makeRequest({ recipe_id: 1 }));
     const json = await res.json();
 
     expect(res.status).toBe(400);
@@ -141,76 +170,35 @@ describe("POST /api/events", () => {
   });
 
   it("returns 200 when insert succeeds", async () => {
-    mockAuthGetUser.mockResolvedValue({
-      data: { user: { email: "test@example.com" } },
-      error: null,
-    });
+    const newEvent: CalendarEntry = {
+      id: 50,
+      date: "2025-11-07",
+      meal_type: "lunch",
+      status: false,
+      Recipe: { id: 10, name: "Salad" },
+    };
 
-    mockSelect.mockResolvedValueOnce({ data: [{ id: 123 }], error: null }); // getPublicUserId
-
-    mockInsert.mockReturnValue({
+    mockInsert.mockReturnValueOnce({
       select: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({
-        data: {
-          id: 50,
-          date: "2025-11-07",
-          meal_type: "lunch",
-          status: false,
-          Recipe: { id: 99, name: "Salad" },
-        },
-        error: null,
-      }),
+      single: jest.fn().mockResolvedValue({ data: newEvent, error: null }),
     });
 
-    const req = makeRequest("http://localhost/api/events", {
-      method: "POST",
-      body: JSON.stringify({
-        recipe_id: 99,
-        date: "2025-11-07",
-        meal_type: "lunch",
-        status: false,
-      }),
-    });
-
-    const res = await POST(req);
+    const res = await POST(
+      makeRequest({ recipe_id: 10, date: "2025-11-07", meal_type: "lunch", status: false })
+    );
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json).toEqual(
-      expect.objectContaining({
-        id: 50,
-        meal_type: "lunch",
-        Recipe: expect.objectContaining({ name: "Salad" }),
-      })
-    );
+    expect(json).toEqual(expect.objectContaining({ id: 50, meal_type: "lunch" }));
   });
 
   it("returns 500 when insert fails", async () => {
-    mockAuthGetUser.mockResolvedValue({
-      data: { user: { email: "test@example.com" } },
-      error: null,
-    });
-
-    mockSelect.mockResolvedValueOnce({ data: [{ id: 123 }], error: null }); // getPublicUserId
-
-    mockInsert.mockReturnValue({
+    mockInsert.mockReturnValueOnce({
       select: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({
-        data: null,
-        error: { message: "Insert failed" },
-      }),
+      single: jest.fn().mockResolvedValue({ data: null, error: { message: "Insert failed" } }),
     });
 
-    const req = makeRequest("http://localhost/api/events", {
-      method: "POST",
-      body: JSON.stringify({
-        recipe_id: 1,
-        date: "2025-11-07",
-        meal_type: "dinner",
-      }),
-    });
-
-    const res = await POST(req);
+    const res = await POST(makeRequest({ recipe_id: 1, date: "2025-11-07", meal_type: "dinner" }));
     const json = await res.json();
 
     expect(res.status).toBe(500);

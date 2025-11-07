@@ -1,19 +1,30 @@
 import nextJest from "next/jest.js";
 
-const createJestConfig = nextJest({
-  dir: "./", // path to your Next app
-});
+const createJestConfig = nextJest({ dir: "./" });
 
-/**  Custom overrides for the test env  */
 const customJestConfig = {
   testEnvironment: "jsdom",
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
+    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
   },
-  transformIgnorePatterns: ["node_modules/(?!(next|react|react-dom)/)"],
+
+  // ✅ 明確指定 transform
+  transform: {
+    "^.+\\.(t|j)sx?$": "babel-jest",
+  },
+
+  // ✅ 讓特定 node_modules 內的 ESM 模組也被 Babel 處理
+  transformIgnorePatterns: [
+    "node_modules/(?!(lodash-es|@fullcalendar|lucide-react|@radix-ui|shadcn|react-icons|@supabase|next|@next|react|react-dom)/)",
+  ],
+
+  // ✅ 匹配 jsdom 測試目錄
   testMatch: ["**/__tests__/jsdom/**/*.[jt]s?(x)"],
+
+  // ✅ 關閉自動 watch plugin（部分環境沒安裝會報錯）
+  watchPlugins: [],
 };
 
-/**  Export an async config that Next transforms for Jest  */
 export default createJestConfig(customJestConfig);

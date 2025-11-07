@@ -10,32 +10,24 @@ jest.mock("@/utils/supabase/server", () => ({
 }));
 
 // ------------------------------
-// Mock Supabase chain
+// 型別定義
+// ------------------------------
+interface CalendarEntry {
+  id: number;
+  date: string;
+  meal_type: string;
+  status: boolean;
+}
+
+// ------------------------------
+// Mock Supabase 結構
 // ------------------------------
 const mockAuthGetUser = jest.fn();
 const mockFrom = jest.fn();
-const mockSelect = jest.fn();
 const mockEq = jest.fn();
 const mockUpdate = jest.fn();
 
-beforeEach(() => {
-  jest.clearAllMocks();
-
-  (createClient as jest.Mock).mockResolvedValue({
-    auth: { getUser: mockAuthGetUser },
-    from: mockFrom,
-  });
-
-  mockFrom.mockReturnValue({
-    select: mockSelect.mockReturnThis(),
-    eq: mockEq.mockReturnThis(),
-    update: mockUpdate.mockReturnThis(),
-  });
-});
-
-// ------------------------------
-// 工具函式：建立 Request
-// ------------------------------
+// 工具：建立 Request
 const makeRequest = (body: Record<string, unknown>): Request =>
   new Request("http://localhost/api/events/1", {
     method: "PATCH",
@@ -43,11 +35,56 @@ const makeRequest = (body: Record<string, unknown>): Request =>
   });
 
 // ------------------------------
-// 測試
+// beforeEach：設定雙 from mock
+// ------------------------------
+beforeEach(() => {
+  jest.clearAllMocks();
+
+  // 模擬 createClient()
+  (createClient as jest.Mock).mockResolvedValue({
+    auth: { getUser: mockAuthGetUser },
+    from: mockFrom,
+  });
+
+  // 預設授權成功
+  mockAuthGetUser.mockResolvedValue({
+    data: { user: { email: "test@example.com" } },
+    error: null,
+  });
+
+  // ✅ 分別模擬 from("User") 及 from("Calendar")
+  (mockFrom as jest.Mock).mockImplementation((table: string) => {
+    if (table === "User") {
+      return {
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            limit: jest.fn().mockResolvedValue({
+              data: [{ id: 99 }], // public user id
+              error: null,
+            }),
+          }),
+        }),
+      };
+    }
+
+    if (table === "Calendar") {
+      return {
+        update: mockUpdate.mockReturnThis(),
+        eq: mockEq.mockReturnThis(),
+        select: jest.fn(),
+      };
+    }
+
+    throw new Error(`Unexpected table name: ${table}`);
+  });
+});
+
+// ------------------------------
+// 測試案例
 // ------------------------------
 describe("PATCH /api/events/[id]", () => {
-  it("returns 401 if user is not authenticated", async () => {
-    mockAuthGetUser.mockResolvedValue({
+  it("returns 401 if user not authenticated", async () => {
+    mockAuthGetUser.mockResolvedValueOnce({
       data: { user: null },
       error: { message: "no user" },
     });
@@ -62,13 +99,6 @@ describe("PATCH /api/events/[id]", () => {
   });
 
   it("returns 400 if status is not boolean", async () => {
-    mockAuthGetUser.mockResolvedValue({
-      data: { user: { email: "test@example.com" } },
-      error: null,
-    });
-
-    mockSelect.mockResolvedValueOnce({ data: [{ id: 1 }], error: null }); // getPublicUserId
-
     const res = await PATCH(makeRequest({ status: "invalid" }), {
       params: Promise.resolve({ id: "1" }),
     });
@@ -79,24 +109,14 @@ describe("PATCH /api/events/[id]", () => {
   });
 
   it("returns 200 when update succeeds", async () => {
-    mockAuthGetUser.mockResolvedValue({
-      data: { user: { email: "test@example.com" } },
-      error: null,
-    });
-
-    mockSelect.mockResolvedValueOnce({ data: [{ id: 88 }], error: null }); // getPublicUserId
+    const updatedData: CalendarEntry[] = [
+      { id: 1, date: "2025-11-06", meal_type: "dinner", status: true },
+    ];
 
     mockUpdate.mockReturnValueOnce({
       eq: jest.fn().mockReturnThis(),
       select: jest.fn().mockResolvedValue({
-        data: [
-          {
-            id: 1,
-            status: true,
-            date: "2025-11-06",
-            meal_type: "dinner",
-          },
-        ],
+        data: updatedData,
         error: null,
       }),
     });
@@ -107,22 +127,10 @@ describe("PATCH /api/events/[id]", () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json[0]).toEqual(
-      expect.objectContaining({
-        id: 1,
-        status: true,
-      })
-    );
+    expect(json[0]).toEqual(expect.objectContaining({ id: 1, status: true }));
   });
 
-  it("returns 500 when supabase returns error", async () => {
-    mockAuthGetUser.mockResolvedValue({
-      data: { user: { email: "test@example.com" } },
-      error: null,
-    });
-
-    mockSelect.mockResolvedValueOnce({ data: [{ id: 88 }], error: null });
-
+  it("returns 500 when supabase update fails", async () => {
     mockUpdate.mockReturnValueOnce({
       eq: jest.fn().mockReturnThis(),
       select: jest.fn().mockResolvedValue({
@@ -141,13 +149,6 @@ describe("PATCH /api/events/[id]", () => {
   });
 
   it("returns 404 when no data is returned", async () => {
-    mockAuthGetUser.mockResolvedValue({
-      data: { user: { email: "test@example.com" } },
-      error: null,
-    });
-
-    mockSelect.mockResolvedValueOnce({ data: [{ id: 88 }], error: null });
-
     mockUpdate.mockReturnValueOnce({
       eq: jest.fn().mockReturnThis(),
       select: jest.fn().mockResolvedValue({ data: [], error: null }),
