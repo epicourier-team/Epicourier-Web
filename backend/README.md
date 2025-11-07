@@ -1,52 +1,56 @@
----
-title: Epicourier Backend
-emoji: 🍱
-colorFrom: purple
-colorTo: pink
-sdk: docker
-sdk_version: "4.38.1"
-app_file: app.py
-pinned: false
----
-
 ## 📁 Project Structure
 
 ```
+
 project/
 ├─ api/
-│  └─ index.py          # FastAPI entrypoint (used by both local & Vercel)
-├─ .env                 # Supabase credentials (local only, ignored by git)
-├─ vercel.json          # Vercel deployment config
+│  └─ index.py          # FastAPI entrypoint
+├─ .env                 # Supabase + Backend config (ignored by git)
 ├─ requirements.txt     # Python dependencies
 └─ Makefile             # Local dev shortcuts (optional)
+
 ```
 
+---
 
 ## ⚙️ Environment Variables
 
 Create a `.env` file in the project root:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+
+NEXT_PUBLIC_SUPABASE_URL=[https://YOUR_PROJECT.supabase.co](https://YOUR_PROJECT.supabase.co)
 NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+
+# Backend API base URL
+
+BACKEND_URL=[http://localhost:8000](http://localhost:8000)
+
 ```
 
 > ⚠️ Do **not** commit `.env` to GitHub.
-> Add it to `.gitignore`.
+> Make sure `.env` is listed in `.gitignore`.
 
-For deployment, add the same variables in your **Vercel Project Settings → Environment Variables**.
+When you want to **expose your local backend for external or production-like testing**,  
+replace the `BACKEND_URL` value with your temporary **ngrok** URL.
+
+```
+
+BACKEND_URL=[https://xxxx-1234-56-78.ngrok-free.app](https://xxxx-1234-56-78.ngrok-free.app)
+
+````
 
 ---
 
 ## 💻 Local Development
 
-### 1. Install dependencies
+### 1️⃣ Install dependencies
 
 ```bash
 pip install -r requirements.txt
-```
+````
 
-### 2. Run the app
+### 2️⃣ Run the backend
 
 Option A — using Makefile (recommended):
 
@@ -54,51 +58,51 @@ Option A — using Makefile (recommended):
 make dev
 ```
 
-Option B — manually:
+Option B — manual run:
 
 ```bash
 python -m uvicorn api.index:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 3. Test the API
+### 3️⃣ Access the API
 
-Visit:
-👉 [http://localhost:8000](http://localhost:8000)
-or the auto-generated docs at
-👉 [http://localhost:8000/docs](http://localhost:8000/docs)
+* Local: [http://localhost:8000](http://localhost:8000)
+* Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 
+---
 
-## ☁️ Deployment (Vercel)
+## 🌐 Temporary Public Access (ngrok)
 
-### 1. Install the Vercel CLI
+When you need to test the backend from a deployed frontend or share your API:
 
-```bash
-npm i -g vercel
-```
+1. Start ngrok:
 
-### 2. Log in and link the project
+   ```bash
+   ngrok http 8000
+   ```
 
-```bash
-vercel login
-vercel link
-```
+2. Copy the forwarding URL, e.g.
 
-### 3. Deploy
+   ```
+   https://f3a2-98-115-12-44.ngrok-free.app
+   ```
 
-```bash
-vercel deploy
-```
+3. Update `.env`:
 
-Vercel will:
+   ```
+   BACKEND_URL=https://f3a2-98-115-12-44.ngrok-free.app
+   ```
 
-* Detect the Python runtime
-* Install dependencies from `requirements.txt`
-* Use `api/index.py` as the entrypoint
-* Inject environment variables automatically
+4. Your frontend or external services can now access the backend through that URL.
 
+> 🕓 ngrok free sessions expire after several hours.
+> When restarted, you’ll get a new URL — update `.env` again if needed.
+
+---
 
 ## 🧠 Useful Commands
 
-| Command         | Description                                               |
-| --------------- | --------------------------------------------------------- |
-| `make dev`      | Run FastAPI locally with Uvicorn                          |
+| Command           | Description                             |
+| ----------------- | --------------------------------------- |
+| `make dev`        | Run FastAPI locally with Uvicorn        |
+| `ngrok http 8000` | Expose local backend publicly via ngrok |
