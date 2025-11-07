@@ -1,9 +1,3 @@
-export function getBaseUrl() {
-  if (typeof window !== "undefined") return window.location.origin;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return "http://localhost:3000";
-}
-
 export const NUTRIENT_NAME: Record<
   | "agg_fats_g"
   | "agg_minerals_mg"

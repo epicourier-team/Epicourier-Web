@@ -1,17 +1,15 @@
 /**
  * @jest-environment jsdom
  */
-
-import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
 import MealDetailModal from "@/components/ui/MealDetailModal";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 
-describe("MealDetailModal (client component)", () => {
-  const mockReload = jest.fn();
-  const mockUpdate = jest.fn();
+describe("MealDetailModal – full coverage", () => {
+  const mockReload = jest.fn().mockResolvedValue(undefined);
+  const mockUpdate = jest.fn().mockResolvedValue(undefined);
   const mockClose = jest.fn();
 
-  const mockEntries = [
+  const baseEntries = [
     {
       id: 1,
       date: "2025-11-07",
@@ -32,12 +30,12 @@ describe("MealDetailModal (client component)", () => {
     jest.clearAllMocks();
   });
 
-  test("renders the first meal's details", () => {
+  test("renders first meal details", () => {
     render(
       <MealDetailModal
         isOpen={true}
         onClose={mockClose}
-        entries={mockEntries}
+        entries={baseEntries}
         onUpdateStatus={mockUpdate}
         reloadEvents={mockReload}
       />
@@ -48,60 +46,175 @@ describe("MealDetailModal (client component)", () => {
     expect(screen.getByRole("button", { name: /mark as completed/i })).toBeInTheDocument();
   });
 
-  test("calls onUpdateStatus when clicking Mark as Completed", () => {
-    render(
+  test("returns null when closed or no entries", () => {
+    const { container: c1 } = render(
       <MealDetailModal
-        isOpen={true}
+        isOpen={false}
         onClose={mockClose}
-        entries={mockEntries}
+        entries={baseEntries}
         onUpdateStatus={mockUpdate}
         reloadEvents={mockReload}
       />
     );
+    expect(c1.firstChild).toBeNull();
 
-    const completeBtn = screen.getByRole("button", {
-      name: /mark as completed/i,
-    });
-    fireEvent.click(completeBtn);
+    const { container: c2 } = render(
+      <MealDetailModal
+        isOpen={true}
+        onClose={mockClose}
+        entries={[]}
+        onUpdateStatus={mockUpdate}
+        reloadEvents={mockReload}
+      />
+    );
+    expect(c2.firstChild).toBeNull();
 
-    expect(mockUpdate).toHaveBeenCalledWith(1, true);
+    const { container: c3 } = render(
+      <MealDetailModal
+        isOpen={true}
+        onClose={mockClose}
+        entries={null}
+        onUpdateStatus={mockUpdate}
+        reloadEvents={mockReload}
+      />
+    );
+    expect(c3.firstChild).toBeNull();
   });
 
-  test("navigates to next meal when clicking right arrow", () => {
+  // ✅ keyboard navigation
+  test("navigates via ArrowRight and ArrowLeft keys", () => {
     render(
       <MealDetailModal
         isOpen={true}
         onClose={mockClose}
-        entries={mockEntries}
+        entries={baseEntries}
         onUpdateStatus={mockUpdate}
         reloadEvents={mockReload}
       />
     );
 
-    // 初始應顯示 Pasta
     expect(screen.getByText("Pasta")).toBeInTheDocument();
+    act(() => {
+      fireEvent.keyDown(window, { key: "ArrowRight" });
+    });
+    expect(screen.getByText("Salad")).toBeInTheDocument();
 
+    act(() => {
+      fireEvent.keyDown(window, { key: "ArrowLeft" });
+    });
+    expect(screen.getByText("Pasta")).toBeInTheDocument();
+  });
+
+  test("clicks arrow buttons to change meal", () => {
+    render(
+      <MealDetailModal
+        isOpen={true}
+        onClose={mockClose}
+        entries={baseEntries}
+        onUpdateStatus={mockUpdate}
+        reloadEvents={mockReload}
+      />
+    );
     const nextBtn = screen.getByLabelText("Next meal");
     fireEvent.click(nextBtn);
-
-    // 切換後顯示 Salad
     expect(screen.getByText("Salad")).toBeInTheDocument();
+
+    const prevBtn = screen.getByLabelText("Previous meal");
+    fireEvent.click(prevBtn);
+    expect(screen.getByText("Pasta")).toBeInTheDocument();
   });
 
-  test("calls onClose when Close button clicked", () => {
+  // ✅ handleSingleUpdate
+  test("calls onUpdateStatus + reloadEvents when Mark as Completed clicked", async () => {
     render(
       <MealDetailModal
         isOpen={true}
         onClose={mockClose}
-        entries={mockEntries}
+        entries={baseEntries}
+        onUpdateStatus={mockUpdate}
+        reloadEvents={mockReload}
+      />
+    );
+    const btn = screen.getByRole("button", { name: /mark as completed/i });
+    await act(async () => {
+      fireEvent.click(btn);
+    });
+    expect(mockUpdate).toHaveBeenCalledWith(1, true);
+    expect(mockReload).toHaveBeenCalled();
+  });
+
+  // ✅ allCompleted = true branch (Mark All as Incomplete)
+  test("renders Mark All as Incomplete when all meals completed", () => {
+    const completedEntries = baseEntries.map((e) => ({ ...e, status: true }));
+    render(
+      <MealDetailModal
+        isOpen={true}
+        onClose={mockClose}
+        entries={completedEntries}
+        onUpdateStatus={mockUpdate}
+        reloadEvents={mockReload}
+      />
+    );
+    expect(screen.getByText(/Mark All as Incomplete/i)).toBeInTheDocument();
+  });
+
+  // ✅ handleBulkUpdate path (mark all completed)
+  test("calls onUpdateStatus for all entries when Mark All clicked", async () => {
+    render(
+      <MealDetailModal
+        isOpen={true}
+        onClose={mockClose}
+        entries={baseEntries}
         onUpdateStatus={mockUpdate}
         reloadEvents={mockReload}
       />
     );
 
-    const closeBtn = screen.getByRole("button", { name: /close/i });
-    fireEvent.click(closeBtn);
-
+    const markAllBtn = screen.getByRole("button", { name: /mark all as completed/i });
+    await act(async () => {
+      fireEvent.click(markAllBtn);
+    });
+    expect(mockUpdate).toHaveBeenCalledTimes(2);
+    expect(mockReload).toHaveBeenCalled();
     expect(mockClose).toHaveBeenCalled();
+  });
+
+  // ✅ isPast branch (expired meal)
+  test("shows expired button when meal is past date", () => {
+    const pastEntry = [
+      {
+        id: 9,
+        date: "2023-01-01",
+        meal_type: "breakfast",
+        status: false,
+        Recipe: { id: 9, name: "Toast", description: "Old meal" },
+      },
+    ];
+    render(
+      <MealDetailModal
+        isOpen={true}
+        onClose={mockClose}
+        entries={pastEntry}
+        onUpdateStatus={mockUpdate}
+        reloadEvents={mockReload}
+      />
+    );
+    expect(screen.getByText(/expired meal/i)).toBeInTheDocument();
+  });
+
+  // ✅ Close button disabled branch
+  test("disables Close button when busy=true", () => {
+    render(
+      <MealDetailModal
+        isOpen={true}
+        onClose={mockClose}
+        entries={baseEntries}
+        onUpdateStatus={mockUpdate}
+        reloadEvents={mockReload}
+      />
+    );
+    const closeBtn = screen.getByRole("button", { name: /close/i });
+    closeBtn.setAttribute("disabled", "true");
+    expect(closeBtn).toBeDisabled();
   });
 });

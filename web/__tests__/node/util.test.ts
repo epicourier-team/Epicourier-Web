@@ -1,4 +1,4 @@
-import { getRecipeDetail } from "@/lib/utils";
+import { getRecipeDetail, validatePassword } from "@/lib/utils";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const mockClient = {
@@ -71,5 +71,52 @@ describe("getRecipeDetail", () => {
     }));
     const result = await getRecipeDetail("999", mockClient);
     expect(result).toBeNull();
+  });
+});
+
+describe("validatePassword()", () => {
+  it("returns invalid when password is shorter than 8 characters", () => {
+    const result = validatePassword("Ab1!");
+    expect(result).toEqual({
+      isValid: false,
+      error: "Password must be at least 8 characters long",
+    });
+  });
+
+  it("returns invalid when password has no uppercase letter", () => {
+    const result = validatePassword("abc123!!");
+    expect(result).toEqual({
+      isValid: false,
+      error: "Password must contain at least one uppercase letter",
+    });
+  });
+
+  it("returns invalid when password has no lowercase letter", () => {
+    const result = validatePassword("ABC123!!");
+    expect(result).toEqual({
+      isValid: false,
+      error: "Password must contain at least one lowercase letter",
+    });
+  });
+
+  it("returns invalid when password has no number", () => {
+    const result = validatePassword("Abcdef!!");
+    expect(result).toEqual({
+      isValid: false,
+      error: "Password must contain at least one number",
+    });
+  });
+
+  it("returns invalid when password has no special character", () => {
+    const result = validatePassword("Abcdef12");
+    expect(result).toEqual({
+      isValid: false,
+      error: "Password must contain at least one special character",
+    });
+  });
+
+  it("returns valid when password meets all criteria", () => {
+    const result = validatePassword("Abc123!!");
+    expect(result).toEqual({ isValid: true, error: "" });
   });
 });
