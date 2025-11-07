@@ -23,6 +23,7 @@
     "@radix-ui/react-tooltip": "1.2.8",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.78.0",
+    "@swc/jest": "0.2.39",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "headlessui": "^0.0.0",
@@ -37,9 +38,6 @@
     "tailwindcss-animate": "1.0.7"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.28.5",
-    "@babel/preset-react": "^7.28.5",
-    "@babel/preset-typescript": "^7.28.5",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.19",
@@ -52,7 +50,6 @@
     "@types/react-dom": "^19",
     "@types/supertest": "^6.0.3",
     "autoprefixer": "^10.4.21",
-    "babel-jest": "^30.2.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "identity-obj-proxy": "^3.0.0",

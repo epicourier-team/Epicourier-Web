@@ -1,7 +1,13 @@
-import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
 
-import { TextEncoder, TextDecoder } from 'util';
+import { TextDecoder, TextEncoder } from "util";
 Object.assign(global, {
-    TextEncoder,
-    TextDecoder,
+  TextEncoder,
+  TextDecoder,
+});
+
+beforeAll(() => {
+  jest.spyOn(console, "log").mockImplementation(() => {});
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  jest.spyOn(console, "warn").mockImplementation(() => {});
 });
