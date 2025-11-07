@@ -14,14 +14,14 @@ describe("MealDetailModal (client component)", () => {
   const mockEntries = [
     {
       id: 1,
-      date: "2025-11-06",
+      date: "2025-11-07",
       meal_type: "lunch",
       status: false,
       Recipe: { id: 11, name: "Pasta", description: "Creamy pasta" },
     },
     {
       id: 2,
-      date: "2025-11-06",
+      date: "2025-11-07",
       meal_type: "dinner",
       status: false,
       Recipe: { id: 12, name: "Salad", description: "Fresh veggies" },
