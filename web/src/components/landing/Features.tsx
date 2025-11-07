@@ -42,11 +42,11 @@ const features = [
     title: "Smart Cart",
     description: "One-click ingredient ordering with exact weekly quantities"
   },
-  {
-    icon: MessageCircle,
-    title: "AI Chatbot Assistant",
-    description: "Instant help on meal plans, nutrition data, and app usage"
-  }
+  // {
+  //   icon: MessageCircle,
+  //   title: "AI Chatbot Assistant",
+  //   description: "Instant help on meal plans, nutrition data, and app usage"
+  // }
 ];
 
 const Features = () => {
@@ -62,12 +62,18 @@ const Features = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:flex lg:flex-wrap lg:justify-center lg:gap-6">
           {features.map((feature, index) => (
             <Card 
               key={index} 
-              className="border-gray-200 hover:shadow-md transition-all duration-300 hover-lift bg-white"
+              className="relative border-gray-200 hover:shadow-md transition-all duration-300 hover-lift bg-white w-full lg:basis-1/3 lg:max-w-[380px]"
             >
+              {/* Coming soon badge for specific features */}
+              {(["Gamified Challenges", "Green Score", "Smart Cart"].includes(feature.title)) && (
+                <span className="absolute top-4 right-4 bg-amber-50 text-amber-700 text-xs font-semibold px-2 py-1 rounded-full border border-amber-100">
+                  Coming soon
+                </span>
+              )}
               <CardContent className="p-6">
                 <div className="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center mb-4">
                   <feature.icon className="w-6 h-6 text-emerald-600" />

@@ -1,0 +1,59 @@
+name: 🧠 Python Syntax & Lint Check (on PR backend only)
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "backend/**"
+      - ".github/workflows/pr-lint.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install ruff black
+
+      - name: Syntax Check
+        run: |
+          find backend -name "*.py" ! -name "*.ipynb" -print0 | xargs -0 python -m py_compile
+
+      - name: Lint with Ruff
+        continue-on-error: true 
+        run: ruff check backend --exclude "*.ipynb"
+
+      - name: Run Black and capture diff
+        id: format-check
+        continue-on-error: true
+        run: |
+          set +e
+          DIFF=$(black --check --diff backend --exclude "\.ipynb$" 2>&1)
+          echo "$DIFF"
+          DIFF="${DIFF//'%'/'%25'}"
+          DIFF="${DIFF//$'\n'/'%0A'}"
+          DIFF="${DIFF//$'\r'/'%0D'}"
+          echo "::set-output name=black_diff::$DIFF"
+
+      - name: Comment Black suggestions on PR
+        if: always()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: "🖤 Black formatting suggestions"
+          message: |
+            ```diff
+            ${{ steps.format-check.outputs.black_diff }}
+            ```

@@ -28,55 +28,93 @@ const Footer = () => {
 
       {/* Links Section */}
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
           <div>
             <h4 className="mb-4 font-semibold">Product</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-white/70 transition-colors hover:text-white">
-                  Features
-                </a>
+                <Link
+                  href="https://github.com/epicourier-team/Epicourier-Web/wiki/Software-Overviews"
+                  className="text-white/70 transition-colors hover:text-white"
+                >
+                  Project Overview
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white/70 transition-colors hover:text-white">
-                  Pricing
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-white/70 transition-colors hover:text-white">
+                <Link
+                  href="https://youtu.be/QW4FuDJqLx0"
+                  className="text-white/70 transition-colors hover:text-white"
+                >
                   Demo
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-white/70 transition-colors hover:text-white">
-                  Integrations
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="mb-4 font-semibold">Company</h4>
+            <h4 className="mb-4 font-semibold">Development</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-white/70 transition-colors hover:text-white">
-                  About Us
-                </a>
+                <Link
+                  href="https://github.com/epicourier-team/Epicourier-Web/wiki/Roadmap"
+                  className="text-white/70 transition-colors hover:text-white"
+                >
+                  Roadmap
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white/70 transition-colors hover:text-white">
-                  Blog
-                </a>
+                <Link
+                  href="https://github.com/epicourier-team/Epicourier-Web/releases"
+                  className="text-white/70 transition-colors hover:text-white"
+                >
+                  Releases
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white/70 transition-colors hover:text-white">
-                  Careers
-                </a>
+                <Link
+                  href="https://github.com/epicourier-team/Epicourier-Web"
+                  className="text-white/70 transition-colors hover:text-white"
+                >
+                  GitHub
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="mb-4 font-semibold">Resources</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link
+                  href="https://github.com/epicourier-team/Epicourier-Web/wiki"
+                  className="text-white/70 transition-colors hover:text-white"
+                >
+                  Documentation
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white/70 transition-colors hover:text-white">
-                  Contact
-                </a>
+                <Link
+                  href="https://github.com/epicourier-team/Epicourier-Web/wiki/Case-Studies"
+                  className="text-white/70 transition-colors hover:text-white"
+                >
+                  Case Studies
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="https://github.com/epicourier-team/Epicourier-Web/wiki/Success-Stories"
+                  className="text-white/70 transition-colors hover:text-white"
+                >
+                  Success Stories
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="https://github.com/epicourier-team/Epicourier-Web/wiki/Get-Started-Guide"
+                  className="text-white/70 transition-colors hover:text-white"
+                >
+                  Start Guide
+                </Link>
               </li>
             </ul>
           </div>
@@ -85,23 +123,20 @@ const Footer = () => {
             <h4 className="mb-4 font-semibold">Support</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-white/70 transition-colors hover:text-white">
+                <Link
+                  href="https://slashpage.com/site-fn8swy4xu372s9jrqr2qdgr6l/dwy5rvmjgexyg2p46zn9"
+                  className="text-white/70 transition-colors hover:text-white"
+                >
                   Help Center
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white/70 transition-colors hover:text-white">
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-white/70 transition-colors hover:text-white">
-                  Terms of Service
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-white/70 transition-colors hover:text-white">
-                  Cookie Policy
+                <a
+                  href="mailto:epicourier.team@gmail.com"
+                  className="text-white/70 transition-colors hover:text-white"
+                  aria-label="Email support at epicourier.team@gmail.com"
+                >
+                  Email Support
                 </a>
               </li>
             </ul>

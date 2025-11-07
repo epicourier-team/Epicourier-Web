@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import AppDemo from "../src/components/landing/AppDemo";
-import Features from "../src/components/landing/Features";
-import Hero from "../src/components/landing/Hero";
+import AppDemo from "../../src/components/landing/AppDemo";
+import Features from "../../src/components/landing/Features";
+import Hero from "../../src/components/landing/Hero";
 
 describe("AppDemo Section", () => {
   it("renders heading, highlights, and app image", () => {
@@ -13,7 +13,7 @@ describe("AppDemo Section", () => {
 
     expect(screen.getByText(/personalized recipe recommendations/i)).toBeInTheDocument();
 
-    expect(screen.getByAltText(/epicourier app interface/i)).toBeInTheDocument();
+    expect(screen.getByAltText(/EpiCourier app interface/i)).toBeInTheDocument();
   });
 });
 
