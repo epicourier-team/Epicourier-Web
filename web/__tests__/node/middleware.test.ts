@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createServer } from "http";
 import { NextRequest } from "next/server";
 import request from "supertest";
+import { updateSession } from "../../src/utils/supabase/middleware";
 
 jest.mock("@supabase/ssr", () => ({
   createServerClient: jest.fn(),
@@ -69,5 +70,43 @@ describe("Next.js middleware integration tests", () => {
 
     expect(res.status).toBe(200);
     expect(res.headers.location).toBeUndefined();
+  });
+});
+
+describe("updateSession", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("calls cookies.getAll and setAll properly", async () => {
+    const url = "http://localhost:3000/dashboard";
+    const req = new NextRequest(url, {
+      headers: new Headers({ cookie: "session=abc123" }),
+    });
+
+    const getAllSpy = jest.spyOn(req.cookies, "getAll");
+    const setSpyRequest = jest.spyOn(req.cookies, "set");
+
+    (createServerClient as jest.Mock).mockImplementation((_url, _key, options) => {
+      const sampleCookies = [{ name: "token", value: "xyz", options: { path: "/" } }];
+
+      options.cookies.getAll();
+      options.cookies.setAll(sampleCookies.map((c) => ({ ...c, options: { path: "/" } })));
+
+      return {
+        auth: {
+          getUser: jest.fn().mockResolvedValue({ data: { user: null } }),
+        },
+      };
+    });
+
+    // 4️⃣ 실행
+    const response = await updateSession(req);
+
+    // 5️⃣ 검증
+    expect(getAllSpy).toHaveBeenCalled();
+    expect(setSpyRequest).toHaveBeenCalledWith("token", "xyz");
+    expect(createServerClient).toHaveBeenCalledTimes(1);
+    expect(response).toBeDefined();
   });
 });
