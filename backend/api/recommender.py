@@ -79,8 +79,7 @@ def load_gemini_client():
 # --------------------------------------------------
 def make_recipe_text(row):
     return (
-        f"{row['name']}. "
-        f"Description: {row.get('description', '')}. "
+        f"{row.get('description', '')}. "
         f"Ingredients: {', '.join(row['ingredients'])}. "
         f"Tags: {', '.join(row['tags'])}."
     )
