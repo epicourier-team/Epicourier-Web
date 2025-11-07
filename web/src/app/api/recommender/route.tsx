@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 
+const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:8000";
+
 export async function POST(req: Request) {
   try {
     const { goal, numMeals } = await req.json();
 
     // Call FastAPI backend directly
-    const res = await fetch("http://localhost:8000/recommender", {
+    const res = await fetch(`${BACKEND_URL}/recommender`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ goal, numMeals }),
