@@ -61,6 +61,9 @@ If you use this repository or dataset in your work, please cite it as:
 > Epicourier Team. (2025). *Epicourier-Web* [Computer software]. Zenodo.  
 > [https://doi.org/10.5281/zenodo.17537732](https://doi.org/10.5281/zenodo.17537732)
 
+Related publications:
+- *(No related publications yet — if you publish one, please let us know!)*
+
 ---
 
 ## 📎 License
