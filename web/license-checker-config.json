@@ -1,0 +1,18 @@
+{
+  "organization": "Epicourier Team",
+  "license": "../LICENSE.md",
+  "cwd": "src",
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "ignore": [
+    "node_modules/**/*",
+    "__tests__/**/*",
+    "__mocks__/**/*",
+    "*.config.*",
+    ".gitignore",
+    ".vercelignore",
+    "*.setup.*",
+    "*.md",
+    ".prettierrc",
+    "*.css"
+  ]
+}
