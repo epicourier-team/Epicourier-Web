@@ -50,15 +50,21 @@ export default function AddMealModal({ recipe, isOpen, onClose, onSuccess }: Add
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
         <h2 className="mb-4 text-lg font-semibold">Select Date for {recipe.name}</h2>
-        <label className="mb-2 block text-sm font-medium text-gray-700">Choose a date:</label>
+        <label htmlFor="meal-date" className="mb-2 block text-sm font-medium text-gray-700">
+          Choose a date:
+        </label>
         <input
+          id="meal-date"
           type="date"
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
           className="mb-4 block w-106 rounded-lg border px-3 py-2"
         />
-        <label className="mb-2 block text-sm font-medium text-gray-700">Choose meal type:</label>
+        <label htmlFor="meal-type" className="mb-2 block text-sm font-medium text-gray-700">
+          Choose meal type:
+        </label>
         <select
+          id="meal-type"
           value={mealType}
           onChange={(e) => setMealType(e.target.value)}
           className="mb-4 block w-113 rounded-lg border px-3 py-2"
