@@ -1,0 +1,70 @@
+name: Run Frontend & Backend Tests
+
+on:
+  pull_request:
+    paths:
+      - "web/**"
+      - "backend/**"
+      - ".github/workflows/ci-all.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ----------------------------
+      # 🟦 Frontend (web) - Node/Jest
+      # ----------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install frontend dependencies
+        run: cd web && npm ci
+
+      - name: Run Jest tests
+        run: cd web && npm run test -- --coverage
+
+      # ----------------------------
+      # 🐍 Backend (FastAPI) - Python/pytest
+      # ----------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest
+        run: |
+          cd backend
+          pytest -v --maxfail=1 --disable-warnings --cov=. --cov-report=xml
+
+      # ----------------------------
+      # ☁️ Upload coverage to Codecov
+      # ----------------------------
+      - name: Upload combined results to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: |
+            web/coverage/lcov.info
+            backend/coverage.xml
+          flags: frontend,backend
+          fail_ci_if_error: true

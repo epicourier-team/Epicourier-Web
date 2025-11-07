@@ -9,3 +9,6 @@ sentence-transformers
 scikit-learn
 transformers
 google-genai
+pytest
+pytest-cov
+hypothesis
