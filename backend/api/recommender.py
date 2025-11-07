@@ -5,6 +5,7 @@ recommender.py — Lazy-load + Render-safe version
 import os
 from functools import lru_cache
 
+
 import pandas as pd
 import torch
 from dotenv import load_dotenv
