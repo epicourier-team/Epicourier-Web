@@ -42,7 +42,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="https://youtu.be/R2pvrWlpgaU"
+                  href="https://youtu.be/QW4FuDJqLx0"
                   className="text-white/70 transition-colors hover:text-white"
                 >
                   Demo

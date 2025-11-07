@@ -7,9 +7,9 @@ This repository hosts the **frontend** (Next.js + TypeScript + Tailwind CSS) and
 [![codecov](https://codecov.io/github/epicourier-team/Epicourier-Web/graph/badge.svg?token=TTLT1APZ44)](https://codecov.io/github/epicourier-team/Epicourier-Web)
 
 ## 🎬 Demo Video
-[![Demo Video](https://img.youtube.com/vi/R2pvrWlpgaU/maxresdefault.jpg)](https://youtu.be/R2pvrWlpgaU)
+[![Demo Video](https://img.youtube.com/vi/QW4FuDJqLx0/maxresdefault.jpg)](https://youtu.be/QW4FuDJqLx0)
 <br>
-**[Watch the demo on YouTube »](https://youtu.be/R2pvrWlpgaU)**
+**[Watch the demo on YouTube »](https://youtu.be/QW4FuDJqLx0)**
 
 ---
 

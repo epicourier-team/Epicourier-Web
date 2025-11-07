@@ -39,7 +39,7 @@ const Hero = () => {
             <ArrowRight className="ml-2 h-5 w-5" />
           </Link>
           <Link
-            href="https://youtu.be/R2pvrWlpgaU"
+            href="https://youtu.be/QW4FuDJqLx0"
             className="hover-lift flex items-center justify-center gap-2 rounded-lg bg-emerald-50 px-4 py-2 text-lg font-bold text-emerald-600 shadow-lg hover:bg-emerald-100"
           >
             Watch Demo
