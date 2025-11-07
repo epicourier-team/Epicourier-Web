@@ -19,7 +19,11 @@ describe("login server action", () => {
 
   it("returns error when signIn fails", async () => {
     (createClient as jest.Mock).mockResolvedValue({
-      auth: { signInWithPassword: jest.fn().mockResolvedValue({ error: { message: "Invalid credentials" } }) },
+      auth: {
+        signInWithPassword: jest
+          .fn()
+          .mockResolvedValue({ error: { message: "Invalid credentials" } }),
+      },
     });
 
     const result = await login({ email: "a@test.com", password: "pw" });
@@ -37,6 +41,6 @@ describe("login server action", () => {
     await login({ email: "a@test.com", password: "pw" });
 
     expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
-    expect(redirect).toHaveBeenCalledWith("/recipes");
+    expect(redirect).toHaveBeenCalledWith("/dashboard/recipes");
   });
 });
