@@ -1,316 +1,537 @@
-# Architecture Overview
-
-## Current System Architecture (MVP)
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Users (Web Browser)                      │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-┌─────────────────────────────┴───────────────────────────────┐
-│                    Frontend (React SPA)                      │
-│               Development: Vite Dev Server                   │
-│               Production: Static Hosting                     │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-┌─────────────────────────────┴───────────────────────────────┐
-│                  FastAPI Monolithic Backend                  │
-│                         /api/*                               │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  Routers: auth.py, users.py                         │   │
-│  ├─────────────────────────────────────────────────────┤   │
-│  │  Services: user_service.py                          │   │
-│  ├─────────────────────────────────────────────────────┤   │
-│  │  Middleware: rate_limit.py, CORS                    │   │
-│  ├─────────────────────────────────────────────────────┤   │
-│  │  Models: SQLAlchemy ORM                             │   │
-│  └─────────────────────────────────────────────────────┘   │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-                    ┌─────────┴──────────┐
-                    │   PostgreSQL       │
-                    │  (Production DB)    │
-                    │    or SQLite       │
-                    │  (Development)     │
-                    └────────────────────┘
-```
-
-## Future Architecture (Planned)
-
-The system is designed to evolve into a microservices architecture as it scales:
-
-- Separate services for Auth, User, Health, AI
-- Redis caching layer
-- API Gateway for routing
-- Container orchestration with Kubernetes
-
-## Current Implementation
-
-### Frontend Application
-
-- **Technology**: React + TypeScript + Vite
-- **Development**: Vite dev server on port 5173
-- **Key Components**:
-  - `SignupField.tsx` - User registration form with validation
-  - `VerifyEmail.tsx` - Email verification flow
-  - `Dashboard.tsx` - User dashboard
-- **State Management**: React hooks (useState, useEffect)
-- **Form Handling**: React Hook Form + Zod validation
-- **API Communication**: Fetch API with `/api` proxy
-
-### Backend Application (Monolithic)
-
-- **Technology**: FastAPI + Python 3.11+
-
-- **Development**: Uvicorn server on port 8000
-
-- **Application Structure**:
-
-#### Core Layer
-
-- **`core/config.py`** - Application-wide configurations
-
-- **`core/dependencies.py`** - Dependency injection for database sessions, etc.
-
-#### Data Layer
-
-- **`db/database.py`** - Database connection and session management
-
-- **`models/models.py`** - SQLAlchemy ORM models
-
-- **`schemas/schemas.py`** - Pydantic schemas for validation
-
-#### Service Layer
-
-- **`services/auth_service.py`** - Business logic for authentication
-
-- **`services/user_service.py`** - Business logic for user operations
-
-- **`services/emailer.py`** - Email sending service abstraction
-
-- **`services/emailer_ses.py`** - AWS SES implementation for email sending
-
-#### Utility Layer
-
-- **`utils/auth_util.py`** - Authentication-related utilities (password hashing, token generation)
-
-#### Routers Layer
-
-- **`/api/auth/*`** - Authentication endpoints
-  - `POST /api/auth/register` - User registration
-
-  - `GET /api/auth/verify-email/{token}` - Email verification
-
-  - `POST /api/auth/resend-verification` - Resend verification email
-
-#### Middleware
-
-- **Rate Limiting** - 100 requests/minute per IP
-
-- **CORS** - Configured for frontend origins
-
-### Database
-
-- **Development**: SQLite (file-based)
-- **Production**: PostgreSQL
-- **Migrations**: Alembic
-- **Current Tables**:
-  ```sql
-  users
-  ├── id (UUID, PK)
-  ├── username (String, unique)
-  ├── email (String, unique)
-  ├── password_hash (String)
-  ├── is_email_verified (Boolean)
-  ├── verification_token (String)
-  ├── verification_token_expires (DateTime)
-  ├── created_at (DateTime)
-  └── updated_at (DateTime)
-  ```
-
-### Planned Services (Not Yet Implemented)
-
-- **Health Profile Service** - User health data management
-- **AI Recommendation Service** - LLM-powered meal suggestions
-- **Restaurant Service** - Restaurant and menu data
-
-## Data Flow (Current Implementation)
-
-### User Registration Flow
-
-```
-1. User fills form → Frontend validates with Zod
-2. Frontend → POST /api/auth/register
-3. FastAPI → Validate with Pydantic schemas
-4. user_service → Check if email/username exists
-5. user_service → Hash password with bcrypt
-6. user_service → Generate verification token
-7. user_service → Save user to database
-8. user_service → Send verification email
-9. FastAPI → Return UserResponse
-10. Frontend → Navigate to verification page
-```
-
-### Email Verification Flow
-
-```
-1. User clicks verification link in email
-2. Frontend → Navigate to /verify-email?token=xxx
-3. VerifyEmail component → GET /api/auth/verify-email/{token}
-4. FastAPI → Extract token from URL
-5. user_service → Find user by token
-6. user_service → Check token expiry
-7. user_service → Update is_email_verified = True
-8. user_service → Clear verification token
-9. FastAPI → Return success message
-10. Frontend → Show success and redirect to dashboard
-```
-
-### Future Flows (Not Yet Implemented)
-
-- Health Profile Creation
-- AI-Powered Recommendations
-- Restaurant Discovery
-- Meal Planning
-
-## Security Implementation (Current)
-
-### Authentication Method
-
-- **Current**: Email verification tokens (no JWT yet)
-- **Password Security**: bcrypt hashing with salt
-- **Session Management**: TBD (JWT planned)
-
-### Security Measures
-
-1. **Application Layer**:
-   - Password complexity validation (8+ chars, upper/lower/number/special)
-   - Rate limiting (100 requests/minute per IP)
-   - CORS configured for frontend origin
-   - Input sanitization via Pydantic
-
-2. **Data Security**:
-   - Passwords hashed with bcrypt
-   - Verification tokens expire after 24 hours
-   - Sensitive data excluded from API responses
-
-### Planned Security Enhancements
-
-- JWT token authentication
-- OAuth2 integration
-- Two-factor authentication
-- API key management for external integrations
-
-## Database Schema
-
-### Current Tables
-
-**users** table:
-
-- `id` - UUID primary key
-- `username` - Unique, 3-20 characters
-- `email` - Unique, valid email format
-- `password_hash` - Bcrypt hashed password
-- `is_email_verified` - Boolean, default False
-- `verification_token` - String, nullable
-- `verification_token_expires` - DateTime, nullable
-- `created_at` - DateTime, auto-generated
-- `updated_at` - DateTime, auto-updated
-
-### Planned Tables (Not Yet Implemented)
-
-- `health_profiles` - User health data
-- `user_allergies` - Allergen information
-- `dietary_restrictions` - Diet preferences
-- `restaurants` - Restaurant data
-- `menu_items` - Restaurant menus
-- `recommendations` - AI-generated suggestions
-
-## Development Setup
-
-### Local Development
-
-```
-Local Machine
-├── Frontend (http://localhost:5173)
-│   └── Vite Dev Server
-├── Backend (http://localhost:8000)
-│   └── Uvicorn Server
-└── Database
-    └── SQLite (development.db)
-```
-
-### Development Commands
-
-```bash
-# Terminal 1 - Frontend
-cd frontend
-npm run dev
-
-# Terminal 2 - Backend
-cd backend
-uv run fastapi dev src/eatsential/index.py
-
-# Database Migrations
-cd backend
-alembic upgrade head
-```
-
-### Future Production Deployment
-
-- Frontend: Static hosting (Vercel/Netlify/S3+CloudFront)
-- Backend: Container deployment (AWS ECS/Google Cloud Run)
-- Database: Managed PostgreSQL (AWS RDS/Supabase)
-
-## Current Development Tools
-
-### Testing
-
-- **Frontend**: Vitest + React Testing Library
-- **Backend**: Pytest + pytest-asyncio
-- **API Testing**: FastAPI TestClient
-
-### Code Quality
-
-- **Linting**: ESLint (frontend), Ruff (backend)
-- **Formatting**: Prettier (frontend), Black (backend)
-- **Type Checking**: TypeScript (frontend), mypy (backend)
-
-### CI/CD (GitHub Actions)
-
-- **On Push**: Linting, formatting checks
-- **On PR**: Full test suite, coverage reports
-- **On Merge**: Deploy to staging (planned)
-
-## Environment Variables
-
-### Backend (.env)
-
-```
-DATABASE_URL=sqlite:///./development.db
-SECRET_KEY=your-secret-key
-EMAIL_PROVIDER=console  # or smtp/ses
-SMTP_HOST=localhost
-SMTP_PORT=1025
-```
-
-### Frontend (.env)
-
-```
-VITE_API_URL=http://localhost:8000
-```
-
-### RTO/RPO Targets
-
-- **RTO**: 2 hours (system recovery)
-- **RPO**: 1 hour (data loss tolerance)
+# Epicourier System Architecture
+
+**Document Version**: 1.0  
+**Last Updated**: November 17, 2025  
+**Status**: Production (Phase 1 Complete)
 
 ---
 
-**Key Decisions**:
+## 📋 Document Overview
 
-1. Microservices for scalability
-2. PostgreSQL for ACID compliance
-3. Redis for performance
-4. RAG for accurate AI recommendations
-5. AWS for managed infrastructure
+This document describes the complete system architecture of Epicourier, a full-stack meal planning platform. It covers frontend structure, backend services, database design, AI/ML pipeline, and deployment architecture.
+
+**Purpose**:
+- Understand high-level system design and component relationships
+- Learn data flow between frontend, backend, and database
+- Understand authentication and middleware layers
+- Reference AI/ML recommendation pipeline architecture
+
+---
+
+## 🏗️ High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Users (Web Browser)                      │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             │ HTTPS
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   Next.js 15 Frontend (Vercel)                   │
+│                                                                   │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌───────────────┐ │
+│  │   Public Pages   │  │  Protected Routes │  │  Middleware   │ │
+│  │  /, /signin,     │  │  /dashboard/*     │  │  Auth Check   │ │
+│  │  /signup         │  │                   │  │  Session Mgmt │ │
+│  └──────────────────┘  └──────────────────┘  └───────────────┘ │
+│                                                                   │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │         Next.js API Routes (/app/api/*)                  │   │
+│  │  /recipes, /calendar, /events, /recommendations          │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────┬───────────────────────────────┬───────────────────┘
+              │                               │
+              │ Supabase Client               │ HTTP (ngrok in dev)
+              │                               │
+              ▼                               ▼
+┌─────────────────────────┐    ┌──────────────────────────────────┐
+│   Supabase Platform     │    │   FastAPI Backend (Python 3.11+) │
+│                         │    │                                   │
+│  ┌──────────────────┐  │    │  ┌────────────────────────────┐  │
+│  │  PostgreSQL DB   │  │    │  │  /recommender Endpoint     │  │
+│  │  - Recipe        │  │    │  │  - Gemini AI Integration   │  │
+│  │  - Ingredient    │  │    │  │  - SentenceTransformers    │  │
+│  │  - RecipeTag     │  │    │  │  - KMeans Clustering       │  │
+│  │  - Calendar      │  │    │  └────────────────────────────┘  │
+│  │  - Events        │  │    │                                   │
+│  └──────────────────┘  │    │  ┌────────────────────────────┐  │
+│                         │    │  │  Lazy-Loaded Components    │  │
+│  ┌──────────────────┐  │    │  │  - Model Cache (LRU)       │  │
+│  │  Supabase Auth   │  │    │  │  - CUDA Support            │  │
+│  │  - JWT Sessions  │  │    │  │  - Data Preprocessing      │  │
+│  │  - Email/Password│  │    │  └────────────────────────────┘  │
+│  └──────────────────┘  │    └──────────────────────────────────┘
+│                         │                     │
+│  ┌──────────────────┐  │                     │
+│  │  Row Level       │  │                     │
+│  │  Security (RLS)  │  │                     │
+│  └──────────────────┘  │                     │
+└─────────────────────────┘                     │
+                                                │
+                                                ▼
+                                    ┌───────────────────────┐
+                                    │  Google Gemini API    │
+                                    │  gemini-2.5-flash     │
+                                    │  (Goal Expansion)     │
+                                    └───────────────────────┘
+```
+
+---
+
+## 🎨 Frontend Architecture (Next.js 15)
+
+### App Router Structure
+
+Epicourier uses **Next.js 15 App Router** with the following directory organization:
+
+```
+web/src/app/
+├── layout.tsx                # Root layout with fonts
+├── page.tsx                  # Landing page (/)
+├── signin/                   # Sign-in page
+│   └── page.tsx
+├── signup/                   # Sign-up page
+│   └── page.tsx
+├── dashboard/                # Protected area (requires auth)
+│   ├── layout.tsx            # Dashboard layout with sidebar
+│   ├── recipes/              # Recipe browsing
+│   │   ├── page.tsx          # Recipe list with search/filter
+│   │   └── [id]/             # Dynamic route for recipe details
+│   │       └── page.tsx
+│   ├── calendar/             # Meal planning calendar
+│   │   └── page.tsx          # FullCalendar integration
+│   └── recommender/          # AI meal recommendations
+│       └── page.tsx
+└── api/                      # Next.js API Routes (Server-side)
+    ├── recipes/
+    │   └── route.ts          # GET /api/recipes (search, filter)
+    ├── ingredients/
+    │   └── route.ts          # GET /api/ingredients
+    ├── tags/
+    │   └── route.ts          # GET /api/tags
+    ├── calendar/
+    │   └── route.ts          # GET/POST /api/calendar
+    ├── events/
+    │   └── [id]/
+    │       └── route.ts      # PATCH /api/events/[id]
+    └── recommendations/
+        └── route.ts          # POST /api/recommendations (proxy to FastAPI)
+```
+
+### Component Architecture
+
+```
+web/src/components/
+├── landing/                  # Landing page components
+│   ├── Hero.tsx
+│   ├── Features.tsx
+│   └── FAQ.tsx
+├── sidebar/                  # Dashboard navigation
+│   └── AppSidebar.tsx
+├── ui/                       # shadcn/ui components
+│   ├── button.tsx
+│   ├── card.tsx
+│   ├── modal.tsx
+│   ├── calendar.tsx
+│   ├── sheet.tsx
+│   └── ...
+└── recipes/                  # Recipe-specific components
+    ├── RecipeCard.tsx
+    ├── RecipeDetailModal.tsx
+    └── SearchBar.tsx
+```
+
+### Key Libraries
+
+| Library            | Version  | Purpose                                    |
+|--------------------|----------|--------------------------------------------|
+| Next.js            | 15.5.4   | React framework with App Router            |
+| React              | 19.1.0   | UI library                                 |
+| TypeScript         | 5.x      | Type safety                                |
+| Tailwind CSS       | 3.x      | Utility-first styling                      |
+| shadcn/ui          | Latest   | Accessible UI components                   |
+| FullCalendar       | 6.1.19   | Interactive calendar for meal planning     |
+| @supabase/ssr      | Latest   | Supabase client for Next.js                |
+| lucide-react       | Latest   | Icon library                               |
+
+---
+
+## ⚙️ Backend Architecture (FastAPI)
+
+### Project Structure
+
+```
+backend/
+├── api/
+│   ├── __init__.py
+│   ├── index.py              # Main FastAPI app with CORS
+│   └── recommender.py        # AI recommendation engine
+├── dataset/                  # CSV data for development
+│   ├── recipes-supabase.csv
+│   ├── ingredients-supabase.csv
+│   ├── recipe_ingredient_map-supabase.csv
+│   ├── tags-supabase.csv
+│   └── recipe_tag_map-supabase.csv
+├── tests/
+│   ├── conftest.py
+│   └── test_recommender.py
+├── requirements.txt          # Python dependencies
+├── Dockerfile
+├── Makefile
+└── vercel.json              # Deployment config
+```
+
+### FastAPI Application (`index.py`)
+
+**Key Components**:
+
+1. **CORS Middleware**: Allows frontend to call API
+   ```python
+   app.add_middleware(
+       CORSMiddleware,
+       allow_origins=["*"],
+       allow_credentials=True,
+       allow_methods=["*"],
+       allow_headers=["*"],
+   )
+   ```
+
+2. **Supabase Integration**:
+   ```python
+   url = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+   key = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+   supabase: Client = create_client(url, key)
+   ```
+
+3. **Endpoints**:
+   - `GET /test` - Test Supabase connection
+   - `POST /recommender` - AI meal recommendations
+
+### AI Recommendation Engine (`recommender.py`)
+
+**Architecture Layers**:
+
+| Layer                   | Description                                         |
+|-------------------------|-----------------------------------------------------|
+| **Global Setup**        | Device detection (CUDA/CPU), env variables          |
+| **Lazy Loaders**        | `@lru_cache()` for models, data, API clients        |
+| **Utilities**           | Recipe text formatting, embedding generation        |
+| **Goal Expansion**      | Gemini API for nutrition goal understanding         |
+| **Recommendation**      | Semantic search + KMeans clustering for diversity   |
+
+**Data Flow**:
+
+```
+User Goal (Natural Language)
+    ↓
+[Gemini API] → Expanded Nutrition Goal
+    ↓
+[SentenceTransformer] → Goal Embedding
+    ↓
+[Cosine Similarity] → Ranked Recipes (Top-20)
+    ↓
+[KMeans Clustering] → Diverse Selection (n meals)
+    ↓
+Final Meal Plan
+```
+
+**Key Technologies**:
+
+- **Google Gemini** (`gemini-2.5-flash`): Goal expansion
+- **SentenceTransformers** (`all-MiniLM-L6-v2`): Text embeddings
+- **PyTorch**: Model inference (with CUDA support)
+- **KMeans Clustering**: Recipe diversity
+- **Pandas**: Data processing
+
+---
+
+## 🗄️ Database Architecture (Supabase PostgreSQL)
+
+### Tables
+
+| Table                  | Description                                  |
+|------------------------|----------------------------------------------|
+| `Recipe`               | Recipe metadata (name, description, etc.)    |
+| `Ingredient`           | Ingredient master list                       |
+| `RecipeTag`            | Tag categories (vegetarian, gluten-free)     |
+| `Recipe-Ingredient_Map`| Many-to-many: Recipe ↔ Ingredient            |
+| `Recipe-Tag_Map`       | Many-to-many: Recipe ↔ Tag                   |
+| `Calendar`             | User meal plans                              |
+| `Events`               | Meal events (breakfast, lunch, dinner)       |
+
+### Relationships
+
+```
+Recipe ─┬─ Recipe-Ingredient_Map ─ Ingredient
+        │
+        └─ Recipe-Tag_Map ─ RecipeTag
+
+Calendar ─ Events (meal_date, meal_type, completed)
+```
+
+**Reference**: See [04-DATABASE-DESIGN.md](./04-DATABASE-DESIGN.md) for detailed schema.
+
+---
+
+## 🔐 Authentication & Middleware
+
+### Supabase Auth Flow
+
+```
+User Sign-Up/Sign-In
+    ↓
+[Supabase Auth] → JWT Token
+    ↓
+[Next.js Middleware] → Session Validation
+    ↓
+Protected Routes Accessible
+```
+
+### Middleware (`web/src/middleware.ts`)
+
+**Protected Route Pattern**:
+```typescript
+export const config = {
+  matcher: [
+    '/((?!landing|signup|signin|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}
+```
+
+**Session Management**:
+- Uses `@supabase/ssr` for server-side session handling
+- Automatically refreshes tokens
+- Redirects unauthenticated users to `/signin`
+
+### Supabase Clients
+
+**Client-Side** (`lib/supabaseClient.ts`):
+```typescript
+import { createClient } from "@supabase/supabase-js";
+
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+```
+
+**Server-Side** (`lib/supabaseServer.ts`):
+```typescript
+export const supabaseServer = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+```
+
+---
+
+## 🚀 Deployment Architecture
+
+### Frontend Deployment (Vercel)
+
+- **Platform**: Vercel
+- **Framework**: Next.js 15 with App Router
+- **Build Command**: `npm run build`
+- **Output**: Static + Server-Side Rendered pages
+- **Environment Variables**:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `NEXT_PUBLIC_BACKEND_URL` (FastAPI endpoint)
+
+### Backend Deployment
+
+**Development**:
+- **Tool**: ngrok
+- **Command**: `ngrok http 8000`
+- **Purpose**: Expose local FastAPI to internet for testing
+
+**Production** (Planned):
+- Platform TBD (Railway, Fly.io, or AWS Lambda)
+- Docker containerization ready (`backend/Dockerfile`)
+
+### Database (Supabase)
+
+- **Hosted**: Supabase Cloud
+- **Type**: PostgreSQL with Row Level Security (RLS)
+- **Backups**: Automatic daily backups
+- **Scaling**: Managed by Supabase
+
+---
+
+## 📊 Data Flow Diagrams
+
+### Recipe Search Flow
+
+```
+User enters search query
+    ↓
+[Next.js Client] → GET /api/recipes?keyword=...
+    ↓
+[Next.js API Route] → Supabase Query
+    ↓
+[Supabase] → Filter recipes by keyword/tags/ingredients
+    ↓
+[Next.js API] → JSON response
+    ↓
+[Frontend] → Display RecipeCard components
+```
+
+### AI Recommendation Flow
+
+```
+User enters dietary goal
+    ↓
+[Next.js Client] → POST /api/recommendations
+    ↓
+[Next.js API Route] → POST /recommender (FastAPI)
+    ↓
+[FastAPI] → Gemini API (goal expansion)
+    ↓
+[FastAPI] → SentenceTransformer embeddings
+    ↓
+[FastAPI] → Cosine similarity ranking
+    ↓
+[FastAPI] → KMeans clustering (diversity)
+    ↓
+[FastAPI] → Return meal plan JSON
+    ↓
+[Next.js API] → Forward to client
+    ↓
+[Frontend] → Display recommended meals
+```
+
+### Meal Planning Flow
+
+```
+User selects recipe + date + meal type
+    ↓
+[Next.js Client] → POST /api/calendar
+    ↓
+[Next.js API Route] → Supabase Insert
+    ↓
+[Supabase] → Calendar + Events tables
+    ↓
+[FullCalendar] → Re-fetch and display updated calendar
+```
+
+---
+
+## 🧩 Component Interaction Matrix
+
+| Component        | Interacts With                     | Protocol/Method         |
+|------------------|------------------------------------|-------------------------|
+| Next.js Frontend | Supabase Auth                      | Supabase Client SDK     |
+| Next.js Frontend | Supabase Database                  | Supabase Client SDK     |
+| Next.js Frontend | FastAPI Backend                    | HTTP REST API           |
+| Next.js API      | Supabase Database                  | Supabase Server SDK     |
+| FastAPI Backend  | Supabase Database                  | Supabase Python Client  |
+| FastAPI Backend  | Google Gemini API                  | HTTP REST API           |
+| FastAPI Backend  | SentenceTransformers (Local Model) | PyTorch                 |
+| Middleware       | Supabase Auth                      | Session Validation      |
+
+---
+
+## 🔧 Development Environment
+
+### Local Development Setup
+
+**Frontend**:
+```bash
+cd web
+npm install
+npm run dev        # http://localhost:3000
+```
+
+**Backend**:
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn api.index:app --reload  # http://localhost:8000
+```
+
+**Database**:
+- Supabase project on cloud
+- Connection via environment variables
+
+### Environment Variables
+
+**Frontend** (`.env.local`):
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxx...
+SUPABASE_SERVICE_ROLE_KEY=eyJxxx...
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+```
+
+**Backend** (`.env`):
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxx...
+GEMINI_KEY=AIzxxx...
+```
+
+---
+
+## 🎯 Performance Optimizations
+
+### Frontend
+
+1. **Server Components**: Default to Server Components, use Client Components only when needed
+2. **Image Optimization**: Next.js `<Image>` component with automatic optimization
+3. **Code Splitting**: Automatic route-based code splitting
+4. **Static Generation**: Pre-render pages where possible
+
+### Backend
+
+1. **Lazy Loading**: Models and data loaded once with `@lru_cache()`
+2. **CUDA Support**: Automatic GPU detection for faster inference
+3. **Batch Processing**: Recipe embeddings computed once and cached
+4. **Connection Pooling**: Supabase client reuse
+
+### Database
+
+1. **Indexes**: Optimized queries with proper indexing
+2. **RLS Policies**: Row-level security for data isolation
+3. **Query Optimization**: Efficient joins for recipe data
+
+---
+
+## 🔮 Future Architecture Enhancements
+
+### Phase 2 Planned Improvements
+
+1. **Caching Layer**: Redis for frequently accessed recipes
+2. **CDN Integration**: CloudFront for static assets
+3. **WebSocket Support**: Real-time meal plan updates
+4. **Microservices**: Separate nutrient tracking service
+5. **Mobile App**: React Native with shared API
+6. **Analytics**: User behavior tracking and meal insights
+
+---
+
+## 📚 Related Documentation
+
+| Document                                      | Purpose                        |
+|-----------------------------------------------|--------------------------------|
+| [01-TECH-STACK.md](./01-TECH-STACK.md)       | Technology details and versions|
+| [03-API-SPECIFICATIONS.md](./03-API-SPECIFICATIONS.md) | API endpoint documentation |
+| [04-DATABASE-DESIGN.md](./04-DATABASE-DESIGN.md) | Database schema and migrations |
+| [05-FRONTEND-PATTERNS.md](./05-FRONTEND-PATTERNS.md) | Frontend coding patterns    |
+| [06-BACKEND-PATTERNS.md](./06-BACKEND-PATTERNS.md) | Backend coding patterns      |
+| [Software Overview](../Epicourier-Web.wiki/Software-Overview.md) | High-level system overview |
+
+---
+
+## 🔄 Document Updates
+
+This document should be updated when:
+- ✅ New services or components are added
+- ✅ Architecture patterns change
+- ✅ Deployment infrastructure updates
+- ✅ Major technology stack changes
+
+**Last Review**: November 17, 2025  
+**Next Review**: December 1, 2025
+
