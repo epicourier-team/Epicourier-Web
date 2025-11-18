@@ -18,6 +18,116 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 
 ---
 
+## 🎯 Current Focus - Phase 2 Issue Tracking
+
+### 📊 Phase 2 Status Overview
+
+**Active Phase**: Phase 2 - Advanced Features (Months 1-3)  
+**Total Planned Issues**: 0 (To be created)  
+**Completed**: 0  
+**In Progress**: 0  
+**Planned**: All Phase 2 features below
+
+---
+
+### 📋 Month 1: Nutrient Summary System (Issues TBD)
+
+**Milestone**: `phase-2-month-1-nutrient-tracking`  
+**Status**: 📝 Planning  
+**Timeline**: Weeks 5-8
+
+| Issue | Title | Type | Priority | Assignee | Status |
+|-------|-------|------|----------|----------|--------|
+| TBD | feat(frontend): Nutrient Dashboard Page | Frontend | P1 | - | 📝 To Create |
+| TBD | feat(frontend): Chart Components for Nutrition Trends | Frontend | P1 | - | 📝 To Create |
+| TBD | feat(backend): Nutrient Aggregation API | Backend | P1 | - | 📝 To Create |
+| TBD | feat(backend): Historical Data Query Endpoints | Backend | P1 | - | 📝 To Create |
+| TBD | feat(database): Nutrient Tracking Schema | Database | P1 | - | 📝 To Create |
+| TBD | feat: Export Nutrition Data (CSV/PDF) | Full-Stack | P2 | - | 📝 To Create |
+| TBD | test: Nutrient Tracking Integration Tests | Testing | P1 | - | 📝 To Create |
+
+**Expected Deliverables**:
+- [ ] Complete nutrient tracking system
+- [ ] Visualization dashboard with charts
+- [ ] Data export functionality
+- [ ] >85% test coverage
+
+---
+
+### 📋 Month 2: Gamified Challenges (Issues TBD)
+
+**Milestone**: `phase-2-month-2-gamification`  
+**Status**: 📝 Planning  
+**Timeline**: Weeks 9-12
+
+| Issue | Title | Type | Priority | Assignee | Status |
+|-------|-------|------|----------|----------|--------|
+| TBD | feat(frontend): Badges & Achievements Page | Frontend | P2 | - | 📝 To Create |
+| TBD | feat(frontend): Challenge Tracking UI | Frontend | P2 | - | 📝 To Create |
+| TBD | feat(backend): Achievement Tracking API | Backend | P2 | - | 📝 To Create |
+| TBD | feat(backend): Challenge Management System | Backend | P2 | - | 📝 To Create |
+| TBD | feat(database): Achievements & Challenges Schema | Database | P2 | - | 📝 To Create |
+| TBD | feat: Streak Tracking System | Full-Stack | P2 | - | 📝 To Create |
+| TBD | feat: Notification System for Achievements | Full-Stack | P3 | - | 📝 To Create |
+| TBD | test: Gamification System Tests | Testing | P2 | - | 📝 To Create |
+
+**Expected Deliverables**:
+- [ ] Badge and achievement system
+- [ ] Weekly/monthly challenges
+- [ ] Streak tracking
+- [ ] Notification integration
+
+---
+
+### 📋 Month 3: Smart Cart Integration (Issues TBD)
+
+**Milestone**: `phase-2-month-3-smart-cart`  
+**Status**: 📝 Planning  
+**Timeline**: Weeks 13-16
+
+| Issue | Title | Type | Priority | Assignee | Status |
+|-------|-------|------|----------|----------|--------|
+| TBD | feat(frontend): Shopping List Page | Frontend | P1 | - | 📝 To Create |
+| TBD | feat(frontend): Inventory Management UI | Frontend | P1 | - | 📝 To Create |
+| TBD | feat(backend): Shopping List Generation Algorithm | Backend | P1 | - | 📝 To Create |
+| TBD | feat(backend): Inventory Tracking API | Backend | P1 | - | 📝 To Create |
+| TBD | feat(backend): Smart Suggestion Engine | Backend | P1 | - | 📝 To Create |
+| TBD | feat(database): Shopping List & Inventory Schema | Database | P1 | - | 📝 To Create |
+| TBD | feat: Quantity Calculation Service | Backend | P1 | - | 📝 To Create |
+| TBD | feat: Shopping List Export (Print/Email) | Full-Stack | P2 | - | 📝 To Create |
+| TBD | test: Shopping Cart Integration Tests | Testing | P1 | - | 📝 To Create |
+
+**Expected Deliverables**:
+- [ ] Automated shopping list generation
+- [ ] Inventory management system
+- [ ] Recipe suggestions based on inventory
+- [ ] Export and sharing capabilities
+
+---
+
+### 🚨 How to Create Issues for Phase 2
+
+When ready to start a Phase 2 feature, create a GitHub issue using this workflow:
+
+1. **Use the Issue Template** (from this document's "Issue Tracking Guidelines" section)
+2. **Add to Project Board**: Link to Epicourier Phase 2 project
+3. **Set Milestone**: Choose appropriate month (Month 1/2/3)
+4. **Add Labels**: `feature`, `frontend`/`backend`, `phase-2`, `priority-p1`
+5. **Update This Document**: Add issue number to the table above
+6. **Assign**: Self-assign or leave for team assignment
+
+**Example Issue Title Format**:
+```
+feat(frontend): Nutrient Dashboard Page with Chart Components
+```
+
+**Example Labels**:
+```
+feature, frontend, phase-2, priority-p1, good-first-issue
+```
+
+---
+
 ## ✅ Phase 1 - Completed Milestones (Weeks 1-4)
 
 ### Week 1: Core Architecture Setup ✅
@@ -147,22 +257,25 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 
 ---
 
-## �� Phase 2 - Upcoming Milestones (Next 3 Months)
+## 🚀 Phase 2 - Upcoming Milestones (Next 3 Months)
+
+> **Note**: Issues for Phase 2 features should be created using the template in the "Issue Tracking Guidelines" section below. Once created, update the issue tracking tables at the top of this document.
 
 ### Month 1 (Weeks 5-8): Monthly Nutrient Summary
 
 **Status**: 📝 Planning  
-**Priority**: P1
+**Priority**: P1  
+**Milestone**: `phase-2-month-1-nutrient-tracking`
 
 #### Planned Features
 
-| Feature | Description | Complexity |
-|---------|-------------|-----------|
-| Nutrient Tracking | Track daily/weekly/monthly nutrient intake | Medium |
-| Visualization | Charts and graphs for nutrition trends | Medium |
-| Goal Setting | Set personal nutrition goals | Low |
-| Progress Reports | Weekly/monthly nutrition reports | Medium |
-| Export Data | Export nutrition data (CSV/PDF) | Low |
+| Feature | Description | Complexity | Issue # |
+|---------|-------------|-----------|---------|
+| Nutrient Tracking | Track daily/weekly/monthly nutrient intake | Medium | TBD |
+| Visualization | Charts and graphs for nutrition trends | Medium | TBD |
+| Goal Setting | Set personal nutrition goals | Low | TBD |
+| Progress Reports | Weekly/monthly nutrition reports | Medium | TBD |
+| Export Data | Export nutrition data (CSV/PDF) | Low | TBD |
 
 #### Technical Requirements
 
@@ -191,17 +304,18 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 ### Month 2 (Weeks 9-12): Gamified Challenges
 
 **Status**: 📝 Planning  
-**Priority**: P2
+**Priority**: P2  
+**Milestone**: `phase-2-month-2-gamification`
 
 #### Planned Features
 
-| Feature | Description | Complexity |
-|---------|-------------|-----------|
-| Badge System | Earn badges for achievements | Medium |
-| Challenges | Weekly/monthly health challenges | Medium |
-| Leaderboard | Community rankings (optional) | High |
-| Streaks | Track consecutive days of healthy eating | Low |
-| Rewards | Unlock features through achievements | Medium |
+| Feature | Description | Complexity | Issue # |
+|---------|-------------|-----------|---------|
+| Badge System | Earn badges for achievements | Medium | TBD |
+| Challenges | Weekly/monthly health challenges | Medium | TBD |
+| Leaderboard | Community rankings (optional) | High | TBD |
+| Streaks | Track consecutive days of healthy eating | Low | TBD |
+| Rewards | Unlock features through achievements | Medium | TBD |
 
 #### Technical Requirements
 
@@ -230,17 +344,18 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 ### Month 3 (Weeks 13-16): Smart Cart Integration
 
 **Status**: 📝 Planning  
-**Priority**: P1
+**Priority**: P1  
+**Milestone**: `phase-2-month-3-smart-cart`
 
 #### Planned Features
 
-| Feature | Description | Complexity |
-|---------|-------------|-----------|
-| Shopping List | Generate from weekly meal plan | Medium |
-| Ingredient Quantities | Calculate exact amounts needed | High |
-| Inventory Tracking | Track pantry items | High |
-| Smart Suggestions | Suggest recipes based on inventory | High |
-| Integration Ready | Prepare for grocery API integration | Medium |
+| Feature | Description | Complexity | Issue # |
+|---------|-------------|-----------|---------|
+| Shopping List | Generate from weekly meal plan | Medium | TBD |
+| Ingredient Quantities | Calculate exact amounts needed | High | TBD |
+| Inventory Tracking | Track pantry items | High | TBD |
+| Smart Suggestions | Suggest recipes based on inventory | High | TBD |
+| Integration Ready | Prepare for grocery API integration | Medium | TBD |
 
 #### Technical Requirements
 
@@ -300,7 +415,72 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 
 ## 📋 Issue Tracking Guidelines
 
-### Creating New Issues
+### Quick Start: Creating Phase 2 Issues
+
+For each feature in Phase 2, follow this process:
+
+1. **Choose a feature** from the tables at the top of this document
+2. **Create GitHub Issue** with the template below
+3. **Add to milestone** (e.g., `phase-2-month-1-nutrient-tracking`)
+4. **Add labels**: `feature`, `phase-2`, component type, priority
+5. **Update this document** with the issue number in the tracking table
+6. **Self-assign** or leave for team assignment
+
+### Example: Creating a Nutrient Dashboard Issue
+
+```markdown
+Title: feat(frontend): Nutrient Dashboard Page with Chart Components
+
+Labels: feature, frontend, phase-2, priority-p1
+
+Milestone: phase-2-month-1-nutrient-tracking
+
+## Feature: Nutrient Dashboard Page
+
+### Description
+Create a comprehensive nutrient tracking dashboard that displays daily, weekly, 
+and monthly nutrition intake with interactive charts and graphs.
+
+### User Story
+As a health-conscious user, I want to visualize my nutrient intake over time 
+so that I can track my progress toward nutrition goals.
+
+### Acceptance Criteria
+- [ ] Dashboard displays daily nutrient breakdown
+- [ ] Charts show weekly and monthly trends
+- [ ] Date range picker allows historical data viewing
+- [ ] Responsive design works on mobile and desktop
+- [ ] Loading states and error handling implemented
+
+### Technical Requirements
+**Frontend**:
+- [ ] Create `/dashboard/nutrients` page
+- [ ] Integrate Chart.js or Recharts for visualization
+- [ ] Implement date range picker component
+- [ ] Connect to nutrient aggregation API
+- [ ] Add responsive layout with Tailwind CSS
+
+**API Dependencies**:
+- [ ] Requires `GET /api/nutrients/summary` endpoint (Backend Issue #TBD)
+- [ ] Requires `GET /api/nutrients/history` endpoint (Backend Issue #TBD)
+
+### Testing Requirements
+- [ ] Component unit tests with Jest
+- [ ] Chart rendering tests
+- [ ] API integration tests
+- [ ] Responsive layout tests
+
+### Dependencies
+- Backend nutrient aggregation API (Issue #TBD)
+- Meal calendar data must be available
+
+### Estimated Effort
+Medium (3-5 days)
+```
+
+---
+
+### Creating New Issues - Full Template
 
 Use this template for new feature issues:
 
@@ -344,7 +524,7 @@ As a [user type], I want [goal] so that [benefit]
 [Small / Medium / Large]
 
 ### Labels
-\`feature\`, \`frontend\`, \`backend\`, \`priority-p1\`
+\`feature\`, \`frontend\`, \`backend\`, \`priority-p1\`, \`phase-2\`
 \`\`\`
 
 ### Issue Labels
@@ -353,6 +533,7 @@ As a [user type], I want [goal] so that [benefit]
 |-------|-------|
 | \`feature\` | New feature implementation |
 | \`bug\` | Bug fix |
+| \`phase-2\` | Phase 2 features (Month 1-3) |
 | \`documentation\` | Documentation updates |
 | \`frontend\` | Frontend-related work |
 | \`backend\` | Backend-related work |
