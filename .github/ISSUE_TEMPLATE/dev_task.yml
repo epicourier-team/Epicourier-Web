@@ -1,53 +1,149 @@
 name: "Development Task"
-description: "Create a lightweight issue for upcoming implementation or refactor."
+description: "Create a task for implementation, refactoring, or technical work"
 labels: ["task"]
+title: "chore(scope): "
 
 body:
-  - type: input
-    id: summary
+  - type: markdown
     attributes:
-      label: "Task summary"
-      description: "Briefly describe what needs to be implemented or changed."
-      placeholder: "Example: Implement user signup API"
-    validations:
-      required: true
+      value: |
+        ## ⚙️ Development Task
+        Use this for technical tasks, refactoring, infrastructure work, or testing that doesn't fit feature/bug templates.
 
-  - type: textarea
-    id: context
+  - type: dropdown
+    id: task_type
     attributes:
-      label: "Context or background"
-      description: "Why is this task needed? What problem does it solve?"
-      placeholder: "This API is needed for onboarding flow. It will connect to the auth service."
-    validations:
-      required: false
-
-  - type: textarea
-    id: plan
-    attributes:
-      label: "Implementation plan"
-      description: "Rough outline of how you plan to implement it."
-      placeholder: |
-        - Create new endpoint `/api/signup`
-        - Add user validation logic
-        - Connect to DB and return JWT token
-    validations:
-      required: false
-
-  - type: checkboxes
-    id: goal
-    attributes:
-      label: "Goal of this issue"
+      label: "Task Type"
+      description: "What kind of task is this?"
       options:
-        - label: "Implement new functionality"
-        - label: "Refactor existing code"
-        - label: "Write supporting tests"
-        - label: "Update documentation"
+        - Refactoring
+        - Testing
+        - Documentation
+        - Infrastructure/DevOps
+        - Code Quality
+        - Performance Optimization
+        - Security
+        - Database Migration
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: "Component"
+      description: "Which part of the application does this affect?"
+      options:
+        - Frontend
+        - Backend
+        - Database
+        - AI/ML
+        - Full-Stack
+        - DevOps/CI-CD
+        - Documentation
+        - Testing
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      description: "How urgent is this task?"
+      options:
+        - P0 - Critical
+        - P1 - High
+        - P2 - Medium
+        - P3 - Low
+    validations:
+      required: true
+
+  - type: input
+    id: title
+    attributes:
+      label: "Task Title"
+      description: "Concise task name (will be prepended with type like 'test:', 'refactor:', 'docs:')"
+      placeholder: "Example: Add integration tests for nutrient API endpoints"
     validations:
       required: true
 
   - type: textarea
-    id: notes
+    id: description
     attributes:
-      label: "Notes or references"
-      description: "Add related issue numbers, links, or design documents if any."
-      placeholder: "Related: #45 (Signup flow design), #52 (DB schema update)"
+      label: "Description"
+      description: "Detailed description of what needs to be done and why"
+      placeholder: "We need comprehensive integration tests for the nutrient tracking API to ensure data consistency and proper error handling across different scenarios."
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope_of_work
+    attributes:
+      label: "Scope of Work"
+      description: "List specific tasks or changes to be made"
+      placeholder: |
+        - [ ] Add tests for GET /api/nutrients/summary endpoint
+        - [ ] Add tests for GET /api/nutrients/history endpoint
+        - [ ] Test error cases (invalid dates, missing user data)
+        - [ ] Test edge cases (empty data, first-time users)
+        - [ ] Add test coverage reporting
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_details
+    attributes:
+      label: "Technical Details"
+      description: "Implementation approach, tools, or technical considerations"
+      placeholder: |
+        **Testing Framework**: Jest + Supertest
+        **Coverage Target**: >85%
+        **Mock Strategy**: Mock Supabase client for database calls
+        **Test Data**: Use fixtures from /tests/fixtures
+    validations:
+      required: false
+
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: "Target Milestone"
+      description: "Which version should this be completed in?"
+      options:
+        - v1.0.0 - Current
+        - v1.1.0 - Nutrient Tracking
+        - v1.2.0 - Gamification
+        - v1.3.0 - Smart Cart
+        - v2.0.0+ - Future
+        - Undecided
+    validations:
+      required: false
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: "Dependencies"
+      description: "Related issues, blockers, or required prerequisites"
+      placeholder: |
+        - Blocked by: Issue #123 (API implementation)
+        - Related: Issue #456 (Frontend tests)
+    validations:
+      required: false
+
+  - type: textarea
+    id: success_criteria
+    attributes:
+      label: "Success Criteria"
+      description: "How will we know this task is complete?"
+      placeholder: |
+        - [ ] All tests pass with >85% coverage
+        - [ ] CI pipeline runs tests automatically
+        - [ ] Documentation updated with testing guidelines
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context"
+      description: "Links, references, or any other relevant information"
+      placeholder: "See testing strategy doc: AGENT-PLAN/07-TESTING-STRATEGY.md"
