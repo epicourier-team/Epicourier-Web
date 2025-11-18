@@ -118,19 +118,6 @@ body:
     validations:
       required: false
 
-  - type: dropdown
-    id: complexity
-    attributes:
-      label: "Estimated Effort"
-      description: "How much work is involved?"
-      options:
-        - Small (1-2 days)
-        - Medium (3-5 days)
-        - Large (1-2 weeks)
-        - Extra Large (2+ weeks)
-    validations:
-      required: true
-
   - type: textarea
     id: dependencies
     attributes:
