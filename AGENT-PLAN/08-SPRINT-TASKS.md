@@ -22,7 +22,7 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 
 ### 📊 Phase 2 Status Overview
 
-**Active Phase**: Phase 2 - Advanced Features (Months 1-3)  
+**Active Phase**: Phase 2 - Advanced Features (v1.1.0 - v1.3.0)  
 **Total Planned Issues**: 0 (To be created)  
 **Completed**: 0  
 **In Progress**: 0  
@@ -30,11 +30,11 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 
 ---
 
-### 📋 Month 1: Nutrient Summary System (Issues TBD)
+### 📋 v1.1.0: Nutrient Summary System (Issues TBD)
 
-**Milestone**: `phase-2-month-1-nutrient-tracking`  
+**Milestone**: `v1.1.0-nutrient-tracking`  
 **Status**: 📝 Planning  
-**Timeline**: Weeks 5-8
+**Target Release**: TBD
 
 | Issue | Title | Type | Priority | Assignee | Status |
 |-------|-------|------|----------|----------|--------|
@@ -54,11 +54,11 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 
 ---
 
-### 📋 Month 2: Gamified Challenges (Issues TBD)
+### 📋 v1.2.0: Gamified Challenges (Issues TBD)
 
-**Milestone**: `phase-2-month-2-gamification`  
+**Milestone**: `v1.2.0-gamification`  
 **Status**: 📝 Planning  
-**Timeline**: Weeks 9-12
+**Target Release**: TBD
 
 | Issue | Title | Type | Priority | Assignee | Status |
 |-------|-------|------|----------|----------|--------|
@@ -79,11 +79,11 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 
 ---
 
-### 📋 Month 3: Smart Cart Integration (Issues TBD)
+### 📋 v1.3.0: Smart Cart Integration (Issues TBD)
 
-**Milestone**: `phase-2-month-3-smart-cart`  
+**Milestone**: `v1.3.0-smart-cart`  
 **Status**: 📝 Planning  
-**Timeline**: Weeks 13-16
+**Target Release**: TBD
 
 | Issue | Title | Type | Priority | Assignee | Status |
 |-------|-------|------|----------|----------|--------|
@@ -111,7 +111,7 @@ When ready to start a Phase 2 feature, create a GitHub issue using this workflow
 
 1. **Use the Issue Template** (from this document's "Issue Tracking Guidelines" section)
 2. **Add to Project Board**: Link to Epicourier Phase 2 project
-3. **Set Milestone**: Choose appropriate month (Month 1/2/3)
+3. **Set Milestone**: Choose appropriate version (v1.1.0/v1.2.0/v1.3.0)
 4. **Add Labels**: `feature`, `frontend`/`backend`, `phase-2`, `priority-p1`
 5. **Update This Document**: Add issue number to the table above
 6. **Assign**: Self-assign or leave for team assignment
@@ -128,12 +128,13 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 
 ---
 
-## ✅ Phase 1 - Completed Milestones (Weeks 1-4)
+## ✅ Phase 1 - Completed Milestones (v1.0.0)
 
-### Week 1: Core Architecture Setup ✅
+### v1.0.0-alpha: Core Architecture Setup ✅
 
 **Completion**: 100%  
 **Status**: Production
+**Release Date**: Completed
 
 | Component | Features Implemented | Status |
 |-----------|---------------------|--------|
@@ -150,10 +151,11 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 
 ---
 
-### Week 2: User Authentication & Database Integration ✅
+### v1.0.0-beta: User Authentication & Database Integration ✅
 
 **Completion**: 100%  
 **Status**: Production
+**Release Date**: Completed
 
 | Component | Features Implemented | Status |
 |-----------|---------------------|--------|
@@ -171,10 +173,11 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 
 ---
 
-### Week 3: Recipe Management Dashboard ✅
+### v1.0.0-rc1: Recipe Management Dashboard ✅
 
 **Completion**: 100%  
 **Status**: Production
+**Release Date**: Completed
 
 | Component | Features Implemented | Status |
 |-----------|---------------------|--------|
@@ -198,10 +201,11 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 
 ---
 
-### Week 4: Meal Calendar & AI Recommender ✅
+### v1.0.0: Meal Calendar & AI Recommender ✅
 
 **Completion**: 100%  
 **Status**: Production
+**Release Date**: Completed
 
 | Component | Features Implemented | Status |
 |-----------|---------------------|--------|
@@ -233,11 +237,11 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 
 ---
 
-## 📊 Phase 1 Summary
+## 📊 Phase 1 Summary (v1.0.0)
 
 ### Overall Statistics
 
-- **Total Weeks**: 4
+- **Version Released**: v1.0.0
 - **Total Features**: 15+
 - **Completion Rate**: 100%
 - **Test Coverage**: Jest tests implemented
@@ -257,15 +261,16 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 
 ---
 
-## 🚀 Phase 2 - Upcoming Milestones (Next 3 Months)
+## 🚀 Phase 2 - Upcoming Milestones (v1.1.0 - v1.3.0)
 
 > **Note**: Issues for Phase 2 features should be created using the template in the "Issue Tracking Guidelines" section below. Once created, update the issue tracking tables at the top of this document.
 
-### Month 1 (Weeks 5-8): Monthly Nutrient Summary
+### v1.1.0: Monthly Nutrient Summary
 
 **Status**: 📝 Planning  
 **Priority**: P1  
-**Milestone**: `phase-2-month-1-nutrient-tracking`
+**Milestone**: `v1.1.0-nutrient-tracking`
+**Target Release**: TBD
 
 #### Planned Features
 
@@ -296,16 +301,17 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 - [ ] User goal preferences table
 - [ ] Aggregation indexes
 
-**Estimated Timeline**: 4 weeks  
+**Estimated Effort**: Medium to Large  
 **Dependencies**: Meal calendar data
 
 ---
 
-### Month 2 (Weeks 9-12): Gamified Challenges
+### v1.2.0: Gamified Challenges
 
 **Status**: 📝 Planning  
 **Priority**: P2  
-**Milestone**: `phase-2-month-2-gamification`
+**Milestone**: `v1.2.0-gamification`
+**Target Release**: TBD
 
 #### Planned Features
 
@@ -336,16 +342,17 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 - [ ] Challenges table
 - [ ] User progress tracking
 
-**Estimated Timeline**: 4 weeks  
-**Dependencies**: Nutrient tracking system
+**Estimated Effort**: Medium to Large  
+**Dependencies**: Nutrient tracking system (v1.1.0)
 
 ---
 
-### Month 3 (Weeks 13-16): Smart Cart Integration
+### v1.3.0: Smart Cart Integration
 
 **Status**: 📝 Planning  
 **Priority**: P1  
-**Milestone**: `phase-2-month-3-smart-cart`
+**Milestone**: `v1.3.0-smart-cart`
+**Target Release**: TBD
 
 #### Planned Features
 
@@ -376,35 +383,35 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 - [ ] Inventory table
 - [ ] Recipe-to-ingredients mapping enhancement
 
-**Estimated Timeline**: 4 weeks  
-**Dependencies**: Meal calendar
+**Estimated Effort**: Large  
+**Dependencies**: Meal calendar (v1.0.0)
 
 ---
 
-## 🎯 Long-Term Vision (Phase 3+)
+## 🎯 Long-Term Vision (v2.0.0+)
 
-### User Personalization
+### v2.0.0: User Personalization & AI Enhancement
 
 - Continuous refinement of AI recommendations
 - User feedback integration
 - Dietary preference learning
 - Adaptive meal suggestions
 
-### Sustainability Focus
+### v2.1.0: Sustainability Enhancement
 
 - CO₂ impact metrics per recipe
 - Eco-friendly meal suggestions
 - Seasonal ingredient recommendations
 - Local sourcing information
 
-### Cross-Platform Expansion
+### v3.0.0: Cross-Platform Expansion
 
 - Mobile app (React Native / Flutter)
 - Offline mode support
 - Push notifications
 - Wearable device integration
 
-### Community Features
+### v3.1.0: Community Features
 
 - Recipe sharing between users
 - User-generated content
@@ -433,7 +440,7 @@ Title: feat(frontend): Nutrient Dashboard Page with Chart Components
 
 Labels: feature, frontend, phase-2, priority-p1
 
-Milestone: phase-2-month-1-nutrient-tracking
+Milestone: v1.1.0-nutrient-tracking
 
 ## Feature: Nutrient Dashboard Page
 
