@@ -10,6 +10,10 @@ const customJestConfig = {
     "^@/(.*)$": "<rootDir>/src/$1",
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
   },
+  testEnvironmentOptions: {
+    customExportConditions: [""],
+  },
+  setupFiles: ["<rootDir>/jest.env.setup.js"],
   transform: {
     "^.+\\.(t|j)sx?$": [
       "@swc/jest",

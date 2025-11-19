@@ -12,6 +12,7 @@ const customJestConfig = {
     "^@/lib/supabaseClient$": "<rootDir>/__mocks__/@/lib/supabaseClient.ts",
     "^@/(.*)$": "<rootDir>/src/$1",
   },
+  setupFiles: ["<rootDir>/jest.env.setup.js"],
   transformIgnorePatterns: ["node_modules/(?!(next|react|react-dom)/)"],
   testMatch: ["**/__tests__/node/**/*.[jt]s?(x)"],
 };
