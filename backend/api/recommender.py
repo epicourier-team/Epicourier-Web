@@ -5,7 +5,6 @@ recommender.py — Lazy-load + Render-safe version
 import os
 from functools import lru_cache
 
-
 import pandas as pd
 import torch
 from dotenv import load_dotenv
@@ -43,22 +42,44 @@ def load_recipe_data():
 
     ingredients = pd.DataFrame(supabase.table("Ingredient").select("*").execute().data)
     recipes = pd.DataFrame(supabase.table("Recipe").select("*").execute().data)
-    recipe_ing_map = pd.DataFrame(supabase.table("Recipe-Ingredient_Map").select("*").execute().data)
+    recipe_ing_map = pd.DataFrame(
+        supabase.table("Recipe-Ingredient_Map").select("*").execute().data
+    )
     tags = pd.DataFrame(supabase.table("RecipeTag").select("*").execute().data)
-    recipe_tag_map = pd.DataFrame(supabase.table("Recipe-Tag_Map").select("*").execute().data)
+    recipe_tag_map = pd.DataFrame(
+        supabase.table("Recipe-Tag_Map").select("*").execute().data
+    )
 
     # Merge metadata
-    recipe_tags = recipe_tag_map.merge(tags, left_on="tag_id", right_on="id", suffixes=("", "_tag"))
-    recipe_tags = recipe_tags.groupby("recipe_id")["name"].apply(list).reset_index(name="tags")
+    recipe_tags = recipe_tag_map.merge(
+        tags, left_on="tag_id", right_on="id", suffixes=("", "_tag")
+    )
+    recipe_tags = (
+        recipe_tags.groupby("recipe_id")["name"].apply(list).reset_index(name="tags")
+    )
 
-    recipe_ing = recipe_ing_map.merge(ingredients, left_on="ingredient_id", right_on="id", suffixes=("", "_ing"))
-    recipe_ing = recipe_ing.groupby("recipe_id")["name"].apply(list).reset_index(name="ingredients")
+    recipe_ing = recipe_ing_map.merge(
+        ingredients, left_on="ingredient_id", right_on="id", suffixes=("", "_ing")
+    )
+    recipe_ing = (
+        recipe_ing.groupby("recipe_id")["name"]
+        .apply(list)
+        .reset_index(name="ingredients")
+    )
 
-    recipe_data = recipes.merge(recipe_tags, left_on="id", right_on="recipe_id", how="left")
-    recipe_data = recipe_data.merge(recipe_ing, left_on="id", right_on="recipe_id", how="left")
+    recipe_data = recipes.merge(
+        recipe_tags, left_on="id", right_on="recipe_id", how="left"
+    )
+    recipe_data = recipe_data.merge(
+        recipe_ing, left_on="id", right_on="recipe_id", how="left"
+    )
 
-    recipe_data["tags"] = recipe_data["tags"].apply(lambda x: x if isinstance(x, list) else [])
-    recipe_data["ingredients"] = recipe_data["ingredients"].apply(lambda x: x if isinstance(x, list) else [])
+    recipe_data["tags"] = recipe_data["tags"].apply(
+        lambda x: x if isinstance(x, list) else []
+    )
+    recipe_data["ingredients"] = recipe_data["ingredients"].apply(
+        lambda x: x if isinstance(x, list) else []
+    )
     return recipe_data
 
 
@@ -91,44 +112,49 @@ def get_recipe_embeddings(recipe_data):
     if "recipe_text" not in recipe_data.columns:
         recipe_data["recipe_text"] = recipe_data.apply(make_recipe_text, axis=1)
     print("Computing recipe embeddings ...")
-    embeddings = embedder.encode(recipe_data["recipe_text"].tolist(), convert_to_tensor=True)
+    embeddings = embedder.encode(
+        recipe_data["recipe_text"].tolist(), convert_to_tensor=True
+    )
     return embeddings
 
+
 client = load_gemini_client()
+
+
 # --------------------------------------------------
 # 4. Gemini-based goal expansion
 # --------------------------------------------------
 def nutrition_goal(goal_text):
     """Translate a user's goal into target nutritional values using Gemini."""
-    prompt = f"""
-    Your task is to translate a user's specific diet goal into precise, target nutritional values for a daily meal plan.
-    Just provide the nutritional values without any additional explanation or context.
-
-    **GOAL:** {goal_text}
-
-    You may include: calories_kcal, protein_g, carbs_g, sugars_g, total_fats_g,
-    cholesterol_mg, total_minerals_mg, vit_a_microg, total_vit_b_mg,
-    vit_c_mg, vit_d_microg, vit_e_mg, vit_k_microg
-    """
+    prompt = (
+        "Your task is to translate a user's specific diet goal into precise, "
+        "target nutritional values for a daily meal plan.\n"
+        "Just provide the nutritional values without any additional explanation "
+        "or context.\n\n"
+        f"**GOAL:** {goal_text}\n\n"
+        "You may include: calories_kcal, protein_g, carbs_g, sugars_g, total_fats_g, "
+        "cholesterol_mg, total_minerals_mg, vit_a_microg, total_vit_b_mg, "
+        "vit_c_mg, vit_d_microg, vit_e_mg, vit_k_microg"
+    )
     response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
     return response.text.strip()
+
 
 def expand_goal(goal_text):
     """Translate a user's goal into nutrition information using Gemini."""
 
-    prompt = f"""
-    Your task is to translate a user's specific diet goal into precise, target nutritional values for a daily meal plan.
-
-    **GOAL:** {goal_text}
-
-    You may include: calories_kcal, protein_g, carbs_g, sugars_g, total_fats_g, cholesterol_mg, total_minerals_mg, vit_a_microg, total_vit_b_mg, vit_c_mg, vit_d_microg, vit_e_mg, vit_k_microg
-    """
-
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
+    prompt = (
+        "Your task is to translate a user's specific diet goal into precise, "
+        "target nutritional values for a daily meal plan.\n\n"
+        f"**GOAL:** {goal_text}\n\n"
+        "You may include: calories_kcal, protein_g, carbs_g, sugars_g, total_fats_g, "
+        "cholesterol_mg, total_minerals_mg, vit_a_microg, total_vit_b_mg, "
+        "vit_c_mg, vit_d_microg, vit_e_mg, vit_k_microg"
     )
+
+    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
     return response.text.strip()
+
 
 # --------------------------------------------------
 # 5. Recommendation pipeline
@@ -175,15 +201,20 @@ def create_meal_plan(goal_text, n_meals=3):
 
     meal_plan = []
     for i, row in enumerate(diverse.itertuples(), 1):
-        meal_plan.append({
-            "meal_number": i,
-            "name": row.name,
-            "tags": row.tags,
-            "key_ingredients": row.ingredients[:10],  # limit to first few
-            "reason": f"Selected because it aligns with goal '{goal_text}' and differs from other meals.",
-            "similarity_score": round(float(row.similarity), 3),
-            "recipe": row.recipe_text
-        })
+        meal_plan.append(
+            {
+                "meal_number": i,
+                "name": row.name,
+                "tags": row.tags,
+                "key_ingredients": row.ingredients[:10],  # limit to first few
+                "reason": (
+                    f"Selected because it aligns with goal '{goal_text}' "
+                    "and differs from other meals."
+                ),
+                "similarity_score": round(float(row.similarity), 3),
+                "recipe": row.recipe_text,
+            }
+        )
 
     # print(f"Expanded goal: {exp_goal}\n")
     return meal_plan, exp_goal

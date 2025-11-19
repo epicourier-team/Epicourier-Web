@@ -11,6 +11,7 @@
 This document tracks development milestones, tasks, and roadmap for the Epicourier meal planning platform. It organizes work by feature areas and links to GitHub issues for collaboration.
 
 **Purpose**:
+
 - Track implementation progress and completion status
 - Define upcoming features and milestones
 - Coordinate multi-developer collaboration
@@ -23,8 +24,8 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 ### 📊 Phase 2 Status Overview
 
 **Active Phase**: Phase 2 - Advanced Features (v1.1.0 - v1.3.0)  
-**Total Planned Issues**: 0 (To be created)  
-**Completed**: 0  
+**Total Planned Issues**: 1  
+**Completed**: 1  
 **In Progress**: 0  
 **Planned**: All Phase 2 features below
 
@@ -36,21 +37,22 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 **Status**: 📝 Planning  
 **Target Release**: TBD
 
-| Issue | Title                                             | Type       | Priority | Assignee | Status         |
-|-------|---------------------------------------------------|------------|----------|----------|----------------|
-| TBD   | feat(frontend): Nutrient Dashboard Page           | Frontend   | P1       | -        | 📝 To Create   |
-| TBD   | feat(frontend): Chart Components for Nutrition    | Frontend   | P1       | -        | 📝 To Create   |
-| TBD   | feat(backend): Nutrient Aggregation API           | Backend    | P1       | -        | 📝 To Create   |
-| TBD   | feat(backend): Historical Data Query Endpoints    | Backend    | P1       | -        | 📝 To Create   |
-| TBD   | feat(database): Nutrient Tracking Schema          | Database   | P1       | -        | 📝 To Create   |
-| TBD   | feat: Export Nutrition Data (CSV/PDF)             | Full-Stack | P2       | -        | 📝 To Create   |
-| TBD   | test: Nutrient Tracking Integration Tests         | Testing    | P1       | -        | 📝 To Create   |
+| Issue | Title                                          | Type       | Priority | Assignee | Status       |
+| ----- | ---------------------------------------------- | ---------- | -------- | -------- | ------------ |
+| TBD   | feat(frontend): Nutrient Dashboard Page        | Frontend   | P1       | -        | 📝 To Create |
+| TBD   | feat(frontend): Chart Components for Nutrition | Frontend   | P1       | -        | 📝 To Create |
+| TBD   | feat(backend): Nutrient Aggregation API        | Backend    | P1       | -        | 📝 To Create |
+| TBD   | feat(backend): Historical Data Query Endpoints | Backend    | P1       | -        | 📝 To Create |
+| TBD   | feat(database): Nutrient Tracking Schema       | Database   | P1       | -        | 📝 To Create |
+| TBD   | feat: Export Nutrition Data (CSV/PDF)          | Full-Stack | P2       | -        | 📝 To Create |
+| TBD   | test: Nutrient Tracking Integration Tests      | Testing    | P1       | -        | 📝 To Create |
 
 **Expected Deliverables**:
+
 - [ ] Complete nutrient tracking system
 - [ ] Visualization dashboard with charts
 - [ ] Data export functionality
-- [ ] >85% test coverage
+- [ ] > 85% test coverage
 
 ---
 
@@ -60,18 +62,19 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 **Status**: 📝 Planning  
 **Target Release**: TBD
 
-| Issue | Title                                             | Type       | Priority | Assignee | Status         |
-|-------|---------------------------------------------------|------------|----------|----------|----------------|
-| TBD   | feat(frontend): Badges & Achievements Page        | Frontend   | P2       | -        | 📝 To Create   |
-| TBD   | feat(frontend): Challenge Tracking UI             | Frontend   | P2       | -        | 📝 To Create   |
-| TBD   | feat(backend): Achievement Tracking API           | Backend    | P2       | -        | 📝 To Create   |
-| TBD   | feat(backend): Challenge Management System        | Backend    | P2       | -        | 📝 To Create   |
-| TBD   | feat(database): Achievements & Challenges Schema  | Database   | P2       | -        | 📝 To Create   |
-| TBD   | feat: Streak Tracking System                      | Full-Stack | P2       | -        | 📝 To Create   |
-| TBD   | feat: Notification System for Achievements        | Full-Stack | P3       | -        | 📝 To Create   |
-| TBD   | test: Gamification System Tests                   | Testing    | P2       | -        | 📝 To Create   |
+| Issue | Title                                            | Type       | Priority | Assignee | Status       |
+| ----- | ------------------------------------------------ | ---------- | -------- | -------- | ------------ |
+| TBD   | feat(frontend): Badges & Achievements Page       | Frontend   | P2       | -        | 📝 To Create |
+| TBD   | feat(frontend): Challenge Tracking UI            | Frontend   | P2       | -        | 📝 To Create |
+| TBD   | feat(backend): Achievement Tracking API          | Backend    | P2       | -        | 📝 To Create |
+| TBD   | feat(backend): Challenge Management System       | Backend    | P2       | -        | 📝 To Create |
+| TBD   | feat(database): Achievements & Challenges Schema | Database   | P2       | -        | 📝 To Create |
+| TBD   | feat: Streak Tracking System                     | Full-Stack | P2       | -        | 📝 To Create |
+| TBD   | feat: Notification System for Achievements       | Full-Stack | P3       | -        | 📝 To Create |
+| TBD   | test: Gamification System Tests                  | Testing    | P2       | -        | 📝 To Create |
 
 **Expected Deliverables**:
+
 - [ ] Badge and achievement system
 - [ ] Weekly/monthly challenges
 - [ ] Streak tracking
@@ -85,19 +88,20 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 **Status**: 📝 Planning  
 **Target Release**: TBD
 
-| Issue | Title                                             | Type       | Priority | Assignee | Status         |
-|-------|---------------------------------------------------|------------|----------|----------|----------------|
-| TBD   | feat(frontend): Shopping List Page                | Frontend   | P1       | -        | 📝 To Create   |
-| TBD   | feat(frontend): Inventory Management UI           | Frontend   | P1       | -        | 📝 To Create   |
-| TBD   | feat(backend): Shopping List Generation Algorithm | Backend    | P1       | -        | 📝 To Create   |
-| TBD   | feat(backend): Inventory Tracking API             | Backend    | P1       | -        | 📝 To Create   |
-| TBD   | feat(backend): Smart Suggestion Engine            | Backend    | P1       | -        | 📝 To Create   |
-| TBD   | feat(database): Shopping List & Inventory Schema  | Database   | P1       | -        | 📝 To Create   |
-| TBD   | feat: Quantity Calculation Service                | Backend    | P1       | -        | 📝 To Create   |
-| TBD   | feat: Shopping List Export (Print/Email)          | Full-Stack | P2       | -        | 📝 To Create   |
-| TBD   | test: Shopping Cart Integration Tests             | Testing    | P1       | -        | 📝 To Create   |
+| Issue | Title                                             | Type       | Priority | Assignee | Status       |
+| ----- | ------------------------------------------------- | ---------- | -------- | -------- | ------------ |
+| TBD   | feat(frontend): Shopping List Page                | Frontend   | P1       | -        | 📝 To Create |
+| TBD   | feat(frontend): Inventory Management UI           | Frontend   | P1       | -        | 📝 To Create |
+| TBD   | feat(backend): Shopping List Generation Algorithm | Backend    | P1       | -        | 📝 To Create |
+| TBD   | feat(backend): Inventory Tracking API             | Backend    | P1       | -        | 📝 To Create |
+| TBD   | feat(backend): Smart Suggestion Engine            | Backend    | P1       | -        | 📝 To Create |
+| TBD   | feat(database): Shopping List & Inventory Schema  | Database   | P1       | -        | 📝 To Create |
+| TBD   | feat: Quantity Calculation Service                | Backend    | P1       | -        | 📝 To Create |
+| TBD   | feat: Shopping List Export (Print/Email)          | Full-Stack | P2       | -        | 📝 To Create |
+| TBD   | test: Shopping Cart Integration Tests             | Testing    | P1       | -        | 📝 To Create |
 
 **Expected Deliverables**:
+
 - [ ] Automated shopping list generation
 - [ ] Inventory management system
 - [ ] Recipe suggestions based on inventory
@@ -117,11 +121,13 @@ When ready to start a Phase 2 feature, create a GitHub issue using this workflow
 6. **Assign**: Self-assign or leave for team assignment
 
 **Example Issue Title Format**:
+
 ```
 feat(frontend): Nutrient Dashboard Page with Chart Components
 ```
 
 **Example Labels**:
+
 ```
 feature, frontend, phase-2, priority-p1, good-first-issue
 ```
@@ -136,14 +142,15 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 **Status**: Production
 **Release Date**: Completed
 
-| Component  | Features Implemented                 | Status       |
-|------------|--------------------------------------|--------------|
-| Frontend   | Next.js 15 + App Router scaffold     | ✅ Complete  |
-| Backend    | FastAPI + Supabase integration       | ✅ Complete  |
-| Database   | Supabase PostgreSQL setup            | ✅ Complete  |
-| Deployment | Vercel + ngrok configuration         | ✅ Complete  |
+| Component  | Features Implemented             | Status      |
+| ---------- | -------------------------------- | ----------- |
+| Frontend   | Next.js 15 + App Router scaffold | ✅ Complete |
+| Backend    | FastAPI + Supabase integration   | ✅ Complete |
+| Database   | Supabase PostgreSQL setup        | ✅ Complete |
+| Deployment | Vercel + ngrok configuration     | ✅ Complete |
 
 **Key Deliverables**:
+
 - ✅ Project structure established
 - ✅ Development environment configured
 - ✅ CI/CD pipeline with GitHub Actions
@@ -157,15 +164,16 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 **Status**: Production
 **Release Date**: Completed
 
-| Component         | Features Implemented                | Status       |
-|-------------------|-------------------------------------|--------------|
-| Auth System       | Supabase Auth integration           | ✅ Complete  |
-| User Sign Up      | Email/password registration         | ✅ Complete  |
-| User Sign In      | Login with session management       | ✅ Complete  |
-| Protected Routes  | Middleware authentication           | ✅ Complete  |
-| Environment Config| .env setup for both frontend/backend| ✅ Complete  |
+| Component          | Features Implemented                 | Status      |
+| ------------------ | ------------------------------------ | ----------- |
+| Auth System        | Supabase Auth integration            | ✅ Complete |
+| User Sign Up       | Email/password registration          | ✅ Complete |
+| User Sign In       | Login with session management        | ✅ Complete |
+| Protected Routes   | Middleware authentication            | ✅ Complete |
+| Environment Config | .env setup for both frontend/backend | ✅ Complete |
 
 **Key Deliverables**:
+
 - ✅ Complete user authentication flow
 - ✅ Protected dashboard routes
 - ✅ Session management with Supabase
@@ -179,21 +187,23 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 **Status**: Production
 **Release Date**: Completed
 
-| Component      | Features Implemented                      | Status       |
-|----------------|-------------------------------------------|--------------|
-| Recipe List    | `/dashboard/recipes` with search          | ✅ Complete  |
-| Recipe Detail  | `/dashboard/recipes/[id]` with full info  | ✅ Complete  |
-| Search & Filter| Keyword, ingredient, tag filtering        | ✅ Complete  |
-| Green Score    | Sustainability metrics display            | ✅ Complete  |
-| Database       | Recipe, Ingredient, Tag tables            | ✅ Complete  |
+| Component       | Features Implemented                     | Status      |
+| --------------- | ---------------------------------------- | ----------- |
+| Recipe List     | `/dashboard/recipes` with search         | ✅ Complete |
+| Recipe Detail   | `/dashboard/recipes/[id]` with full info | ✅ Complete |
+| Search & Filter | Keyword, ingredient, tag filtering       | ✅ Complete |
+| Green Score     | Sustainability metrics display           | ✅ Complete |
+| Database        | Recipe, Ingredient, Tag tables           | ✅ Complete |
 
 **API Endpoints Implemented**:
+
 - ✅ `GET /api/recipes` - List recipes with filtering
 - ✅ `GET /api/recipes/[id]` - Recipe details
 - ✅ `GET /api/ingredients` - Ingredient search
 - ✅ `GET /api/tags` - Tag filtering
 
 **Key Deliverables**:
+
 - ✅ Full recipe browsing interface
 - ✅ Advanced search and filtering
 - ✅ Green Score sustainability feature
@@ -207,15 +217,16 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 **Status**: Production
 **Release Date**: Completed
 
-| Component             | Features Implemented                   | Status       |
-|-----------------------|----------------------------------------|--------------|
-| Meal Calendar         | `/dashboard/calendar` with FullCalendar| ✅ Complete  |
-| Meal Planning         | Add recipes to breakfast/lunch/dinner  | ✅ Complete  |
-| Meal Tracking         | Mark meals as completed                | ✅ Complete  |
-| AI Recommender        | `/dashboard/recommender` with Gemini   | ✅ Complete  |
-| Recommendation Engine | Semantic search + clustering           | ✅ Complete  |
+| Component             | Features Implemented                    | Status      |
+| --------------------- | --------------------------------------- | ----------- |
+| Meal Calendar         | `/dashboard/calendar` with FullCalendar | ✅ Complete |
+| Meal Planning         | Add recipes to breakfast/lunch/dinner   | ✅ Complete |
+| Meal Tracking         | Mark meals as completed                 | ✅ Complete |
+| AI Recommender        | `/dashboard/recommender` with Gemini    | ✅ Complete |
+| Recommendation Engine | Semantic search + clustering            | ✅ Complete |
 
 **API Endpoints Implemented**:
+
 - ✅ `GET /api/calendar` - Get user's meal calendar
 - ✅ `POST /api/calendar` - Add meal to calendar
 - ✅ `PATCH /api/events/[id]` - Update meal status
@@ -223,6 +234,7 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 - ✅ `GET /api/recommendations` - Fetch recommendations
 
 **AI Features**:
+
 - ✅ Google Gemini for goal expansion
 - ✅ SentenceTransformers for semantic embeddings
 - ✅ KMeans clustering for diversity
@@ -230,6 +242,7 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 - ✅ GPU support (CUDA detection)
 
 **Key Deliverables**:
+
 - ✅ Interactive meal calendar
 - ✅ AI-powered personalized recommendations
 - ✅ Goal-based meal planning
@@ -249,21 +262,30 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 
 ### Technology Implementation
 
-| Layer      | Technology                  | Status       |
-|------------|-----------------------------|--------------|
-| Frontend   | Next.js 15 + TypeScript     | ✅ Complete  |
-| Backend    | FastAPI + Python            | ✅ Complete  |
-| Database   | Supabase PostgreSQL         | ✅ Complete  |
-| Auth       | Supabase Auth               | ✅ Complete  |
-| AI/ML      | Gemini + SentenceTransformers| ✅ Complete |
-| Deployment | Vercel + ngrok              | ✅ Complete  |
-| Testing    | Jest + Pytest               | ✅ Complete  |
+| Layer      | Technology                    | Status      |
+| ---------- | ----------------------------- | ----------- |
+| Frontend   | Next.js 15 + TypeScript       | ✅ Complete |
+| Backend    | FastAPI + Python              | ✅ Complete |
+| Database   | Supabase PostgreSQL           | ✅ Complete |
+| Auth       | Supabase Auth                 | ✅ Complete |
+| AI/ML      | Gemini + SentenceTransformers | ✅ Complete |
+| Deployment | Vercel + ngrok                | ✅ Complete |
+| Testing    | Jest + Pytest                 | ✅ Complete |
 
 ---
 
 ## 🚀 Phase 2 - Upcoming Milestones (v1.1.0 - v1.3.0)
 
 > **Note**: Issues for Phase 2 features should be created using the template in the "Issue Tracking Guidelines" section below. Once created, update the issue tracking tables at the top of this document.
+
+### 🛠️ Foundation & Tooling
+
+**Status**: ✅ Complete
+**Priority**: P0
+
+| Issue | Title                                         | Type    | Priority | Assignee  | Status      |
+| ----- | --------------------------------------------- | ------- | -------- | --------- | ----------- |
+| #3    | chore(backend): Refactor dev tools (uv, ruff) | Backend | P0       | @zhanyang | ✅ Complete |
 
 ### v1.1.0: Monthly Nutrient Summary
 
@@ -274,29 +296,32 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 
 #### Planned Features
 
-| Feature          | Description                                | Complexity | Issue # |
-|------------------|--------------------------------------------|------------|---------|
-| Nutrient Tracking| Track daily/weekly/monthly nutrient intake | Medium     | TBD     |
-| Visualization    | Charts and graphs for nutrition trends     | Medium     | TBD     |
-| Goal Setting     | Set personal nutrition goals               | Low        | TBD     |
-| Progress Reports | Weekly/monthly nutrition reports           | Medium     | TBD     |
-| Export Data      | Export nutrition data (CSV/PDF)            | Low        | TBD     |
+| Feature           | Description                                | Complexity | Issue # |
+| ----------------- | ------------------------------------------ | ---------- | ------- |
+| Nutrient Tracking | Track daily/weekly/monthly nutrient intake | Medium     | TBD     |
+| Visualization     | Charts and graphs for nutrition trends     | Medium     | TBD     |
+| Goal Setting      | Set personal nutrition goals               | Low        | TBD     |
+| Progress Reports  | Weekly/monthly nutrition reports           | Medium     | TBD     |
+| Export Data       | Export nutrition data (CSV/PDF)            | Low        | TBD     |
 
 #### Technical Requirements
 
 **Frontend Tasks**:
+
 - [ ] Nutrient dashboard page (`/dashboard/nutrients`)
 - [ ] Chart components (Chart.js or Recharts)
 - [ ] Date range picker for historical data
 - [ ] Export functionality
 
 **Backend Tasks**:
+
 - [ ] Nutrient calculation aggregation API
 - [ ] Historical data query endpoints
 - [ ] Report generation service
 - [ ] Data export endpoints
 
 **Database**:
+
 - [ ] Nutrient tracking table
 - [ ] User goal preferences table
 - [ ] Aggregation indexes
@@ -315,29 +340,32 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 
 #### Planned Features
 
-| Feature      | Description                                | Complexity | Issue # |
-|--------------|--------------------------------------------|------------|---------|
-| Badge System | Earn badges for achievements               | Medium     | TBD     |
-| Challenges   | Weekly/monthly health challenges           | Medium     | TBD     |
-| Leaderboard  | Community rankings (optional)              | High       | TBD     |
-| Streaks      | Track consecutive days of healthy eating   | Low        | TBD     |
-| Rewards      | Unlock features through achievements       | Medium     | TBD     |
+| Feature      | Description                              | Complexity | Issue # |
+| ------------ | ---------------------------------------- | ---------- | ------- |
+| Badge System | Earn badges for achievements             | Medium     | TBD     |
+| Challenges   | Weekly/monthly health challenges         | Medium     | TBD     |
+| Leaderboard  | Community rankings (optional)            | High       | TBD     |
+| Streaks      | Track consecutive days of healthy eating | Low        | TBD     |
+| Rewards      | Unlock features through achievements     | Medium     | TBD     |
 
 #### Technical Requirements
 
 **Frontend Tasks**:
+
 - [ ] Badges & achievements page
 - [ ] Challenge tracking UI
 - [ ] Progress animations
 - [ ] Notification system for achievements
 
 **Backend Tasks**:
+
 - [ ] Achievement tracking logic
 - [ ] Badge assignment system
 - [ ] Challenge creation/management API
 - [ ] Notification service
 
 **Database**:
+
 - [ ] User achievements table
 - [ ] Challenges table
 - [ ] User progress tracking
@@ -356,29 +384,32 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 
 #### Planned Features
 
-| Feature               | Description                              | Complexity | Issue # |
-|-----------------------|------------------------------------------|------------|---------|
-| Shopping List         | Generate from weekly meal plan           | Medium     | TBD     |
-| Ingredient Quantities | Calculate exact amounts needed           | High       | TBD     |
-| Inventory Tracking    | Track pantry items                       | High       | TBD     |
-| Smart Suggestions     | Suggest recipes based on inventory       | High       | TBD     |
-| Integration Ready     | Prepare for grocery API integration      | Medium     | TBD     |
+| Feature               | Description                         | Complexity | Issue # |
+| --------------------- | ----------------------------------- | ---------- | ------- |
+| Shopping List         | Generate from weekly meal plan      | Medium     | TBD     |
+| Ingredient Quantities | Calculate exact amounts needed      | High       | TBD     |
+| Inventory Tracking    | Track pantry items                  | High       | TBD     |
+| Smart Suggestions     | Suggest recipes based on inventory  | High       | TBD     |
+| Integration Ready     | Prepare for grocery API integration | Medium     | TBD     |
 
 #### Technical Requirements
 
 **Frontend Tasks**:
+
 - [ ] Shopping list page (`/dashboard/shopping`)
 - [ ] Inventory management UI
 - [ ] Quantity adjustment interface
 - [ ] Export shopping list (print/email)
 
 **Backend Tasks**:
+
 - [ ] Shopping list generation algorithm
 - [ ] Quantity calculation service
 - [ ] Inventory tracking API
 - [ ] Smart suggestion engine
 
 **Database**:
+
 - [ ] Shopping list table
 - [ ] Inventory table
 - [ ] Recipe-to-ingredients mapping enhancement
@@ -445,14 +476,17 @@ Milestone: v1.1.0-nutrient-tracking
 ## Feature: Nutrient Dashboard Page
 
 ### Description
-Create a comprehensive nutrient tracking dashboard that displays daily, weekly, 
+
+Create a comprehensive nutrient tracking dashboard that displays daily, weekly,
 and monthly nutrition intake with interactive charts and graphs.
 
 ### User Story
-As a health-conscious user, I want to visualize my nutrient intake over time 
+
+As a health-conscious user, I want to visualize my nutrient intake over time
 so that I can track my progress toward nutrition goals.
 
 ### Acceptance Criteria
+
 - [ ] Dashboard displays daily nutrient breakdown
 - [ ] Charts show weekly and monthly trends
 - [ ] Date range picker allows historical data viewing
@@ -460,7 +494,9 @@ so that I can track my progress toward nutrition goals.
 - [ ] Loading states and error handling implemented
 
 ### Technical Requirements
+
 **Frontend**:
+
 - [ ] Create `/dashboard/nutrients` page
 - [ ] Integrate Chart.js or Recharts for visualization
 - [ ] Implement date range picker component
@@ -468,20 +504,24 @@ so that I can track my progress toward nutrition goals.
 - [ ] Add responsive layout with Tailwind CSS
 
 **API Dependencies**:
+
 - [ ] Requires `GET /api/nutrients/summary` endpoint (Backend Issue #TBD)
 - [ ] Requires `GET /api/nutrients/history` endpoint (Backend Issue #TBD)
 
 ### Testing Requirements
+
 - [ ] Component unit tests with Jest
 - [ ] Chart rendering tests
 - [ ] API integration tests
 - [ ] Responsive layout tests
 
 ### Dependencies
+
 - Backend nutrient aggregation API (Issue #TBD)
 - Meal calendar data must be available
 
 ### Estimated Effort
+
 Medium (3-5 days)
 ```
 
@@ -492,65 +532,77 @@ Medium (3-5 days)
 Use this template for new feature issues:
 
 \`\`\`markdown
+
 ## Feature: [Feature Name]
 
 ### Description
+
 [Brief description of the feature]
 
 ### User Story
+
 As a [user type], I want [goal] so that [benefit]
 
 ### Acceptance Criteria
+
 - [ ] Criterion 1
 - [ ] Criterion 2
 - [ ] Criterion 3
 
 ### Technical Requirements
+
 **Frontend**:
+
 - [ ] Task 1
 - [ ] Task 2
 
 **Backend**:
+
 - [ ] Task 1
 - [ ] Task 2
 
 **Database**:
+
 - [ ] Schema changes
 - [ ] Migrations
 
 ### Testing Requirements
+
 - [ ] Unit tests
 - [ ] Integration tests
 - [ ] E2E tests
 
 ### Dependencies
+
 - Issue #X
 - Feature Y must be complete
 
 ### Estimated Effort
+
 [Small / Medium / Large]
 
 ### Labels
+
 \`feature\`, \`frontend\`, \`backend\`, \`priority-p1\`, \`phase-2\`
 \`\`\`
 
 ### Issue Labels
 
-| Label                | Usage                          |
-|----------------------|--------------------------------|
-| `feature`            | New feature implementation     |
-| `bug`                | Bug fix                        |
-| `phase-2`            | Phase 2 features (Month 1-3)   |
-| `documentation`      | Documentation updates          |
-| `frontend`           | Frontend-related work          |
-| `backend`            | Backend-related work           |
-| `ai-ml`              | AI/ML components               |
-| `database`           | Database changes               |
-| `priority-p0`        | Critical                       |
-| `priority-p1`        | High                           |
-| `priority-p2`        | Medium                         |
-| `priority-p3`        | Low                            |
-| `good-first-issue`   | Good for newcomers             |
+| Label              | Usage                        |
+| ------------------ | ---------------------------- |
+| `feature`          | New feature implementation   |
+| `bug`              | Bug fix                      |
+| `phase-2`          | Phase 2 features (Month 1-3) |
+| `documentation`    | Documentation updates        |
+| `frontend`         | Frontend-related work        |
+| `backend`          | Backend-related work         |
+| `ai-ml`            | AI/ML components             |
+| `database`         | Database changes             |
+| `priority-p0`      | Critical                     |
+| `priority-p1`      | High                         |
+| `priority-p2`      | Medium                       |
+| `priority-p3`      | Low                          |
+| `good-first-issue` | Good for newcomers           |
 
 ---
 
@@ -603,20 +655,21 @@ Closes #123
 
 ## 📚 Related Documentation
 
-| Document                                                      | Purpose                     |
-|---------------------------------------------------------------|-----------------------------|
-| [Roadmap](../Epicourier-Web.wiki/Roadmap.md)                 | High-level feature roadmap  |
-| [01-TECH-STACK.md](./01-TECH-STACK.md)                       | Technology details          |
-| [02-ARCHITECTURE.md](./02-ARCHITECTURE.md)                   | System architecture         |
-| [03-API-SPECIFICATIONS.md](./03-API-SPECIFICATIONS.md)       | API documentation           |
-| [05-FRONTEND-PATTERNS.md](./05-FRONTEND-PATTERNS.md)         | Frontend coding patterns    |
-| [06-BACKEND-PATTERNS.md](./06-BACKEND-PATTERNS.md)           | Backend coding patterns     |
+| Document                                               | Purpose                    |
+| ------------------------------------------------------ | -------------------------- |
+| [Roadmap](../Epicourier-Web.wiki/Roadmap.md)           | High-level feature roadmap |
+| [01-TECH-STACK.md](./01-TECH-STACK.md)                 | Technology details         |
+| [02-ARCHITECTURE.md](./02-ARCHITECTURE.md)             | System architecture        |
+| [03-API-SPECIFICATIONS.md](./03-API-SPECIFICATIONS.md) | API documentation          |
+| [05-FRONTEND-PATTERNS.md](./05-FRONTEND-PATTERNS.md)   | Frontend coding patterns   |
+| [06-BACKEND-PATTERNS.md](./06-BACKEND-PATTERNS.md)     | Backend coding patterns    |
 
 ---
 
 ## 🔄 Document Updates
 
 This document should be updated:
+
 - ✅ When new milestones are defined
 - ✅ When features are completed
 - ✅ Monthly during sprint planning

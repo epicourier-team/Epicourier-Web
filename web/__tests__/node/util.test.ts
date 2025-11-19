@@ -53,6 +53,11 @@ const mockClient = {
   }),
 } as unknown as SupabaseClient;
 
+// Mock the module so utils.ts uses our mockClient instead of the real one
+jest.mock("@/lib/supabaseClient", () => ({
+  supabase: mockClient,
+}));
+
 describe("getRecipeDetail", () => {
   it("returns full recipe detail when all data exist", async () => {
     const result = await getRecipeDetail("1", mockClient);

@@ -1,6 +1,6 @@
 name: "Feature Request"
 description: "Propose a new feature for Epicourier meal planning platform"
-labels: ["feature"]
+labels: ["backend", "frontend", "database", "documentation", "enhancement"]
 title: "feat(scope): "
 
 body:
