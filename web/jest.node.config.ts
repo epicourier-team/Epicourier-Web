@@ -9,6 +9,7 @@ const customJestConfig = {
   testEnvironment: "node",
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   moduleNameMapper: {
+    "^@/lib/supabaseClient$": "<rootDir>/__mocks__/@/lib/supabaseClient.ts",
     "^@/(.*)$": "<rootDir>/src/$1",
   },
   transformIgnorePatterns: ["node_modules/(?!(next|react|react-dom)/)"],
