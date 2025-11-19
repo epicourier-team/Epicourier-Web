@@ -6,7 +6,9 @@ project/
 ├─ api/
 │  └─ index.py          # FastAPI entrypoint
 ├─ .env                 # Supabase + Backend config (ignored by git)
-├─ requirements.txt     # Python dependencies
+├─ .env                 # Supabase + Backend config (ignored by git)
+├─ pyproject.toml       # Python dependencies and config
+├─ uv.lock              # Dependency lock file
 └─ Makefile             # Local dev shortcuts (optional)
 
 ```
@@ -38,7 +40,7 @@ replace the `BACKEND_URL` value with your temporary **ngrok** URL.
 
 BACKEND_URL=[https://xxxx-1234-56-78.ngrok-free.app](https://xxxx-1234-56-78.ngrok-free.app)
 
-````
+```
 
 ---
 
@@ -47,8 +49,8 @@ BACKEND_URL=[https://xxxx-1234-56-78.ngrok-free.app](https://xxxx-1234-56-78.ngr
 ### 1️⃣ Install dependencies
 
 ```bash
-pip install -r requirements.txt
-````
+uv sync
+```
 
 ### 2️⃣ Run the backend
 
@@ -61,13 +63,13 @@ make dev
 Option B — manual run:
 
 ```bash
-python -m uvicorn api.index:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn api.index:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ### 3️⃣ Access the API
 
-* Local: [http://localhost:8000](http://localhost:8000)
-* Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+- Local: [http://localhost:8000](http://localhost:8000)
+- Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
