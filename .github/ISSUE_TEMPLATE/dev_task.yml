@@ -1,6 +1,6 @@
 name: "Development Task"
 description: "Create a task for implementation, refactoring, or technical work"
-labels: ["task"]
+labels: ["backend", "frontend", "database", "documentation", "enhancement"]
 title: "chore(scope): "
 
 body:

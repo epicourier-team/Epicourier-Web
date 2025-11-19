@@ -7,6 +7,7 @@ Operational notes:
 - Store the issue body in a temporary Markdown file to avoid `\n` escape issues.
 - Update issues with `--body-file`; include `--title` if you also rename the issue.
 - Reference concrete paths in the body (router/service/schemas/function names).
+- Choose the correct label from the template.
 - Cross-link related issues and task identifiers (for example `#106`, `BE-04-001`).
 - Confirm milestone and state before editing:
   - `gh issue list --state all --milestone "<milestone name>"`
