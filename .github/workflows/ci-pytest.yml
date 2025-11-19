@@ -1,4 +1,4 @@
-name: 🧠 Python Syntax & Lint Check (on PR backend only)
+name: 🐍 Backend CI
 
 on:
   pull_request:
@@ -38,13 +38,15 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          OUTPUT=$(uv run ruff check . --output-format=text 2>&1)
+          OUTPUT=$(uv run ruff check . --output-format=full 2>&1)
+          EXIT_CODE=$?
           echo "$OUTPUT"
-          if [ -n "$OUTPUT" ]; then
-            OUTPUT="${OUTPUT//'%'/'%25'}"
-            OUTPUT="${OUTPUT//$'\n'/'%0A'}"
-            OUTPUT="${OUTPUT//$'\r'/'%0D'}"
-            echo "ruff_lint=$OUTPUT" >> $GITHUB_OUTPUT
+          if [ $EXIT_CODE -ne 0 ]; then
+            {
+              echo "ruff_lint<<EOF"
+              echo "$OUTPUT"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
           fi
           # Also run with github format for annotations
           uv run ruff check --output-format=github .
@@ -64,16 +66,16 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          DIFF=$(uv run ruff format --diff . 2>&1)
-          echo "$DIFF"
-          if [ -n "$DIFF" ]; then
-            DIFF="${DIFF//'%'/'%25'}"
-            DIFF="${DIFF//$'\n'/'%0A'}"
-            DIFF="${DIFF//$'\r'/'%0D'}"
-            echo "ruff_diff=$DIFF" >> $GITHUB_OUTPUT
+          if ! uv run ruff format --check . > /dev/null 2>&1; then
+            DIFF=$(uv run ruff format --diff . 2>&1)
+            echo "$DIFF"
+            {
+              echo "ruff_diff<<EOF"
+              echo "$DIFF"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
+            exit 1
           fi
-          # Exit with failure if there was a diff, so the job fails (optional, but good for CI)
-          uv run ruff format --check .
 
       - name: Comment Ruff formatting suggestions
         if: steps.ruff-format.outputs.ruff_diff
