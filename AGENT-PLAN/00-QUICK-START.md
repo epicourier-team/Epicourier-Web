@@ -42,6 +42,15 @@ python -m uvicorn api.index:app --reload --host 0.0.0.0 --port 8000
 pytest                           # Run tests
 ```
 
+### Database (Supabase Local)
+
+```bash
+npx supabase@beta start          # Start local Supabase
+npx supabase@beta stop           # Stop local Supabase
+npx supabase@beta db reset       # Reset DB & apply seeds
+npx supabase@beta status         # Check service status
+```
+
 ### Using ngrok for Backend Exposure
 
 ```bash
@@ -73,6 +82,7 @@ BACKEND_URL=https://your-ngrok-url.ngrok-free.app
 ### 🚀 Next Phase Priorities
 
 See [Roadmap](../Epicourier-Web.wiki/Roadmap.md) for upcoming features:
+
 - Monthly Nutrient Summary
 - Gamified Challenges
 - Smart Cart Integration
