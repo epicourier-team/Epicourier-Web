@@ -102,7 +102,7 @@ export default function RecommendPage() {
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-24">
+    <section className="min-h-screen py-24">
       <div className="container mx-auto max-w-3xl px-4">
         <h1 className="mb-8 text-center text-4xl font-bold text-gray-900 md:text-5xl">
           Personalized Meal Recommendations

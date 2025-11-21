@@ -1,7 +1,7 @@
 "use client";
 
 import { AppSidebar } from "@/components/sidebar/AppSideBar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { logout } from "./action";
@@ -27,7 +27,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex min-h-screen w-full">
       <SidebarProvider>
         <AppSidebar onLogout={handleLogout} />
-        <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+        <main className="flex-1 overflow-auto p-4 md:p-6">
+          <SidebarTrigger className="mb-2 md:hidden" />
+          {children}
+        </main>
       </SidebarProvider>
     </div>
   );

@@ -15,6 +15,7 @@ import {
 import { createClient } from "@/utils/supabase/client";
 import { Calendar, ChefHat, HelpCircle, Lightbulb, LogOut, User } from "lucide-react";
 import Link from "next/link";
+import { Button } from "../ui/button";
 import { useEffect, useState } from "react";
 
 const menuItems = [
@@ -55,13 +56,13 @@ export function AppSidebar({ onLogout }: { onLogout: () => void }) {
         <SidebarGroup>
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="overflow-hidden">
+            <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
-                    <Link className="flex w-full items-center gap-2" href={item.url}>
-                      <item.icon />
-                      {item.title}
+                  <SidebarMenuButton tooltip={item.title}>
+                    <Link href={item.url} className="flex w-full items-center gap-2">
+                      <item.icon className="size-4" />
+                      <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -72,18 +73,6 @@ export function AppSidebar({ onLogout }: { onLogout: () => void }) {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Help Center">
-              <a
-                href="https://slashpage.com/site-fn8swy4xu372s9jrqr2qdgr6l/dwy5rvmjgexyg2p46zn9"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <HelpCircle />
-                <span>Help Center</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
@@ -96,6 +85,19 @@ export function AppSidebar({ onLogout }: { onLogout: () => void }) {
                 <span className="truncate font-semibold">User</span>
                 <span className="truncate text-xs">{userEmail || "Guest"}</span>
               </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip="Help Center">
+              <Link
+                href="https://slashpage.com/site-fn8swy4xu372s9jrqr2qdgr6l/dwy5rvmjgexyg2p46zn9"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2"
+              >
+                <HelpCircle className="size-4" />
+                <span className="group-data-[collapsible=icon]:hidden">Help Center</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

@@ -223,7 +223,7 @@ export default function CalendarPage() {
   // Render
   // ------------------------------
   return (
-    <SidebarInset className="bg-gray-50 p-6 pl-12">
+    <SidebarInset className="p-6 pl-12">
       {/* Header */}
 
       <div className="mb-6 flex items-center justify-between">
