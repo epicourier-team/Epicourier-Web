@@ -3,16 +3,9 @@
  */
 
 import { GET, POST } from "@/app/api/events/route";
-import { supabaseServer } from "@/lib/supabaseServer";
 import { createClient } from "@/utils/supabase/server";
 
-// Mock both supabase server clients
-jest.mock("@/lib/supabaseServer", () => ({
-  supabaseServer: {
-    from: jest.fn(),
-  },
-}));
-
+// Mock supabase server client
 jest.mock("@/utils/supabase/server", () => ({
   createClient: jest.fn(),
 }));
@@ -35,14 +28,6 @@ interface CalendarEntry {
 // ------------------------------
 // Mock Object Definitions
 // ------------------------------
-type SupabaseSelectReturn = {
-  eq: jest.MockedFunction<() => SupabaseSelectReturn>;
-  order: jest.MockedFunction<() => SupabaseSelectReturn>;
-  gte: jest.MockedFunction<() => SupabaseSelectReturn>;
-  lte: jest.MockedFunction<() => SupabaseSelectReturn>;
-  limit: jest.MockedFunction<() => SupabaseSelectReturn>;
-  then: (resolve: (val: { data: any; error: Error | null }) => void) => void;
-};
 
 // ------------------------------
 // Mock Supabase chainable behavior
@@ -88,11 +73,12 @@ beforeEach(() => {
   mockSelect.mockReturnValue({
     eq: jest.fn().mockReturnThis(),
     limit: jest.fn().mockReturnValue({
-      then: async (resolve: any) => resolve({ data: [{ id: 123 }], error: null }),
+      then: async (resolve: (...args: unknown[]) => void) =>
+        resolve({ data: [{ id: 123 }], error: null }),
     }),
     // For other queries
     order: jest.fn().mockReturnThis(),
-    then: async (resolve: any) => resolve({ data: [], error: null }),
+    then: async (resolve: (...args: unknown[]) => void) => resolve({ data: [], error: null }),
   });
 });
 
@@ -116,7 +102,8 @@ describe("GET /api/events", () => {
     mockSelect.mockReturnValueOnce({
       eq: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnValue({
-        then: async (resolve: any) => resolve({ data: [{ id: 123 }], error: null }),
+        then: async (resolve: (...args: unknown[]) => void) =>
+          resolve({ data: [{ id: 123 }], error: null }),
       }),
     });
 
@@ -125,7 +112,8 @@ describe("GET /api/events", () => {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnValue({
-        then: async (resolve: any) => resolve({ data: mockData, error: null }),
+        then: async (resolve: (...args: unknown[]) => void) =>
+          resolve({ data: mockData, error: null }),
       }),
     });
 
@@ -143,7 +131,8 @@ describe("GET /api/events", () => {
     mockSelect.mockReturnValueOnce({
       eq: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnValue({
-        then: async (resolve: any) => resolve({ data: [{ id: 123 }], error: null }),
+        then: async (resolve: (...args: unknown[]) => void) =>
+          resolve({ data: [{ id: 123 }], error: null }),
       }),
     });
 
@@ -152,7 +141,8 @@ describe("GET /api/events", () => {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnValue({
-        then: async (resolve: any) => resolve({ data: null, error: supabaseError }),
+        then: async (resolve: (...args: unknown[]) => void) =>
+          resolve({ data: null, error: supabaseError }),
       }),
     });
 
@@ -170,7 +160,8 @@ describe("POST /api/events", () => {
     mockSelect.mockReturnValueOnce({
       eq: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnValue({
-        then: async (resolve: any) => resolve({ data: [{ id: 123 }], error: null }),
+        then: async (resolve: (...args: unknown[]) => void) =>
+          resolve({ data: [{ id: 123 }], error: null }),
       }),
     });
 
@@ -202,7 +193,8 @@ describe("POST /api/events", () => {
     mockSelect.mockReturnValueOnce({
       eq: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnValue({
-        then: async (resolve: any) => resolve({ data: [{ id: 123 }], error: null }),
+        then: async (resolve: (...args: unknown[]) => void) =>
+          resolve({ data: [{ id: 123 }], error: null }),
       }),
     });
 
@@ -233,7 +225,8 @@ describe("POST /api/events", () => {
     mockSelect.mockReturnValueOnce({
       eq: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnValue({
-        then: async (resolve: any) => resolve({ data: [{ id: 123 }], error: null }),
+        then: async (resolve: (...args: unknown[]) => void) =>
+          resolve({ data: [{ id: 123 }], error: null }),
       }),
     });
 

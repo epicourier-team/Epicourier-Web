@@ -18,9 +18,9 @@ jest.mock("@/app/dashboard/action", () => ({
 }));
 
 // Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -43,28 +43,48 @@ describe("DashboardLayout", () => {
   });
 
   it("renders the home link", () => {
-    render(<DashboardLayout children={<div>Content</div>} />);
+    render(
+      <DashboardLayout>
+        <div>Content</div>
+      </DashboardLayout>
+    );
     expect(screen.getByText("EpiCourier")).toBeInTheDocument();
   });
 
   it("renders the Log Out button", () => {
-    render(<DashboardLayout children={<div>Content</div>} />);
+    render(
+      <DashboardLayout>
+        <div>Content</div>
+      </DashboardLayout>
+    );
     expect(screen.getByText("Log Out")).toBeInTheDocument();
   });
 
   it("renders the SidebarTrigger", () => {
-    render(<DashboardLayout children={<div>Content</div>} />);
+    render(
+      <DashboardLayout>
+        <div>Content</div>
+      </DashboardLayout>
+    );
     expect(screen.getByLabelText("Toggle sidebar")).toBeInTheDocument();
   });
 
   it("renders the children content", () => {
-    render(<DashboardLayout children={<div>Content</div>} />);
+    render(
+      <DashboardLayout>
+        <div>Content</div>
+      </DashboardLayout>
+    );
     expect(screen.getByText("Content")).toBeInTheDocument();
   });
 
   it("calls logout when Log Out button is clicked", async () => {
     (logout as jest.Mock).mockResolvedValue({ success: true });
-    render(<DashboardLayout children={<div>Content</div>} />);
+    render(
+      <DashboardLayout>
+        <div>Content</div>
+      </DashboardLayout>
+    );
     fireEvent.click(screen.getByText("Log Out"));
     await waitFor(() => {
       expect(logout).toHaveBeenCalled();
@@ -73,7 +93,11 @@ describe("DashboardLayout", () => {
 
   it("redirects to /signin on successful logout", async () => {
     (logout as jest.Mock).mockResolvedValue({ success: true });
-    render(<DashboardLayout children={<div>Content</div>} />);
+    render(
+      <DashboardLayout>
+        <div>Content</div>
+      </DashboardLayout>
+    );
     fireEvent.click(screen.getByText("Log Out"));
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith("/signin");
@@ -82,7 +106,11 @@ describe("DashboardLayout", () => {
 
   it("shows error toast on failed logout", async () => {
     (logout as jest.Mock).mockResolvedValue({ error: { message: "Logout error" } });
-    render(<DashboardLayout children={<div>Content</div>} />);
+    render(
+      <DashboardLayout>
+        <div>Content</div>
+      </DashboardLayout>
+    );
     fireEvent.click(screen.getByText("Log Out"));
     await waitFor(() => {
       expect(mockToast).toHaveBeenCalledWith(

@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 
 interface CalendarApiResponse {
   id: number;
@@ -121,11 +122,14 @@ export default function MealDetailModal({
       <div className="relative w-full max-w-2xl rounded-xl bg-white p-6 shadow-lg">
         <div className="flex flex-col items-center">
           {!!selected.Recipe?.image_url && (
-            <img
-              src={selected.Recipe.image_url}
-              alt={selected.Recipe.name ?? "meal"}
-              className="mb-4 h-48 w-full rounded-lg object-cover"
-            />
+            <div className="relative mb-4 h-48 w-full">
+              <Image
+                src={selected.Recipe.image_url}
+                alt={selected.Recipe.name ?? "meal"}
+                fill
+                className="rounded-lg object-cover"
+              />
+            </div>
           )}
 
           {/* title and arrow */}
