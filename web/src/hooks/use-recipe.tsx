@@ -20,8 +20,8 @@ export function useRecipes(filters: RecipeFilter) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const ingredientIdsStr = JSON.stringify(filters.ingredientIds);
-  const tagIdsStr = JSON.stringify(filters.tagIds);
+  const ingredientIdsStr = JSON.stringify(filters.ingredientIds ?? []);
+  const tagIdsStr = JSON.stringify(filters.tagIds ?? []);
 
   useEffect(() => {
     const controller = new AbortController();
