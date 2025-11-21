@@ -12,8 +12,16 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { createClient } from "@/utils/supabase/client";
-import { Calendar, ChefHat, HelpCircle, Lightbulb, LogOut, User } from "lucide-react";
+import { Calendar, ChefHat, ChevronUp, HelpCircle, Lightbulb, LogOut, User } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { useEffect, useState } from "react";
@@ -74,37 +82,57 @@ export function AppSidebar({ onLogout }: { onLogout: () => void }) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <div className="bg-muted text-muted-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                <User className="size-4" />
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">User</span>
-                <span className="truncate text-xs">{userEmail || "Guest"}</span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Help Center">
-              <Link
-                href="https://slashpage.com/site-fn8swy4xu372s9jrqr2qdgr6l/dwy5rvmjgexyg2p46zn9"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2"
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <div className="bg-muted text-muted-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                    <User className="size-4" />
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">User</span>
+                    <span className="truncate text-xs">{userEmail || "Guest"}</span>
+                  </div>
+                  <ChevronUp className="ml-auto size-4" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                side="top"
+                align="end"
+                sideOffset={4}
               >
-                <HelpCircle className="size-4" />
-                <span className="group-data-[collapsible=icon]:hidden">Help Center</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={onLogout} tooltip="Log Out">
-              <LogOut />
-              <span>Log Out</span>
-            </SidebarMenuButton>
+                <DropdownMenuLabel className="p-0 font-normal">
+                  <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                    <div className="bg-muted text-muted-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                      <User className="size-4" />
+                    </div>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-semibold">User</span>
+                      <span className="truncate text-xs">{userEmail || "Guest"}</span>
+                    </div>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="https://slashpage.com/site-fn8swy4xu372s9jrqr2qdgr6l/dwy5rvmjgexyg2p46zn9"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2"
+                  >
+                    <HelpCircle className="size-4" />
+                    <span>Help Center</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onLogout} className="flex items-center gap-2">
+                  <LogOut className="size-4" />
+                  <span>Log Out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
