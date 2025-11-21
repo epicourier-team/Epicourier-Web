@@ -14,7 +14,7 @@ describe("Next.js middleware integration tests", () => {
     createServer(async (req, res) => {
       const headers = Object.fromEntries(
         Object.entries(req.headers)
-          .filter(([_, v]) => typeof v === "string")
+          .filter(([, v]) => typeof v === "string")
           .map(([k, v]) => [k, v as string])
       );
 

@@ -15,7 +15,7 @@ export async function GET() {
     if (error) throw error;
     return NextResponse.json(data ?? []);
   } catch (err: unknown) {
-    console.error("POST /api/calendar error:", err);
+    console.error("GET /api/users error:", err);
 
     let errorMessage = "Unknown error";
     if (err instanceof Error) {
