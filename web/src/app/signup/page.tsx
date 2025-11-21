@@ -78,7 +78,7 @@ const SignUp = () => {
   };
 
   const [serverError, setServerError] = useState<string | null>(null);
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -99,14 +99,14 @@ const SignUp = () => {
 
     try {
       const result = await signup(formData);
-      
+
       if (result?.error) {
         // Handle specific error cases
         const errorMessage = result.error.message;
-        if (errorMessage.includes('email already exists')) {
-          setErrors(prev => ({ ...prev, email: errorMessage }));
-        } else if (errorMessage.includes('Password')) {
-          setErrors(prev => ({ ...prev, password: errorMessage }));
+        if (errorMessage.includes("email already exists")) {
+          setErrors((prev) => ({ ...prev, email: errorMessage }));
+        } else if (errorMessage.includes("Password")) {
+          setErrors((prev) => ({ ...prev, password: errorMessage }));
         } else {
           // Show server errors in the red box
           setServerError(errorMessage);
@@ -121,7 +121,7 @@ const SignUp = () => {
         });
         router.push("/signin");
       }
-    } catch (err: unknown) {
+    } catch {
       const errorMessage = "An unexpected error occurred. Please try again.";
       setServerError(errorMessage);
     }

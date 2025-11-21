@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/client";
 import { EventClickArg } from "@fullcalendar/core";
+import Image from "next/image";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
@@ -61,7 +62,9 @@ export default function CalendarPage() {
   // State management
   // ------------------------------
   const [userName, setUserName] = useState<string>("");
-  const [recommendations, setRecommendations] = useState<Recipe[]>([]);
+
+  // const [recommendations, setRecommendations] = useState<Recipe[]>([]);
+  const [recommendations] = useState<Recipe[]>([]); // Kept empty for now as logic is commented out
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -214,7 +217,7 @@ export default function CalendarPage() {
 
     fetchUserName();
     loadEvents();
-  }, [supabase, loadEvents]);
+  }, [supabase, loadEvents, setUserName]);
 
   // ------------------------------
   // Render
@@ -248,7 +251,9 @@ export default function CalendarPage() {
                 className="overflow-hidden rounded-lg border shadow transition hover:shadow-md"
               >
                 {r.image_url && (
-                  <img src={r.image_url} alt={r.name} className="h-40 w-full object-cover" />
+                  <div className="relative h-40 w-full">
+                    <Image src={r.image_url} alt={r.name} fill className="object-cover" />
+                  </div>
                 )}
                 <div className="p-3">
                   <h3 className="font-semibold">{r.name}</h3>
