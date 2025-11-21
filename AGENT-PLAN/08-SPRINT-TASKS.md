@@ -283,10 +283,12 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 **Status**: ✅ Complete
 **Priority**: P0
 
-| Issue | Title                                         | Type    | Priority | Assignee  | Status      |
-| ----- | --------------------------------------------- | ------- | -------- | --------- | ----------- |
-| #3    | chore(backend): Refactor dev tools (uv, ruff) | Backend | P0       | @zhanyang | ✅ Complete |
+| Issue | Title                                                 | Type     | Priority | Assignee  | Status      |
+| ----- | ----------------------------------------------------- | -------- | -------- | --------- | ----------- |
+| #3    | chore(backend): Refactor dev tools (uv, ruff)         | Backend  | P0       | @zhanyang | ✅ Complete |
 | #7    | fix(backend): Refactor Calendar API & DB      | Backend | P1       | @zhanyang | ✅ Complete |
+| #9    | chore(database): Build local Supabase with migrations | Database | P1       | @zhanyang | ✅ Complete |
+
 
 ### v1.1.0: Monthly Nutrient Summary
 
