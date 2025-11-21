@@ -4,11 +4,14 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
 import { Calendar, ChefHat, Lightbulb } from "lucide-react";
 import Link from "next/link";
@@ -21,7 +24,7 @@ const menuItems = [
   // { title: "Nutrient Summary", url: "/nutrient-summary", icon: PieChart },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ onLogout }: { onLogout: () => void }) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const supabase = createClient();
@@ -39,8 +42,29 @@ export function AppSidebar() {
   }, [supabase]);
 
   return (
-    <Sidebar collapsible="icon" className="border-r bg-white">
-      <div className="h-14" />
+    <Sidebar collapsible="icon" className="bg-white">
+      <SidebarHeader>
+        <div className="flex h-14 items-center justify-between gap-2 border-b px-4">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger aria-label="Toggle sidebar" />
+            {!collapsed && (
+              <Link href="/">
+                <span className="font-bold">EpiCourier</span>
+              </Link>
+            )}
+          </div>
+          {!collapsed && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-2 border-gray-600 bg-green-100 font-bold text-gray-600"
+              onClick={onLogout}
+            >
+              Log Out
+            </Button>
+          )}
+        </div>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>

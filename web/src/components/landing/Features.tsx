@@ -71,7 +71,7 @@ const Features = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:flex lg:flex-wrap lg:justify-center lg:gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid lg:grid-cols-3 lg:gap-8">
           {features.map((feature, index) => (
             <Card
               key={index}
