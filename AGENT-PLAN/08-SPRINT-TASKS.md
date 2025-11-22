@@ -288,6 +288,7 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 | #3    | chore(backend): Refactor dev tools (uv, ruff)         | Backend  | P0       | @zhanyang | ✅ Complete |
 | #7    | fix(backend): Refactor Calendar API & DB              | Backend  | P1       | @zhanyang | ✅ Complete |
 | #9    | chore(database): Build local Supabase with migrations | Database | P1       | @zhanyang | ✅ Complete |
+| #11   | fix(frontend): responsive design issues               | Frontend | P1       | @sdxshuai | ✅ Complete |
 
 ### v1.1.0: Monthly Nutrient Summary
 
