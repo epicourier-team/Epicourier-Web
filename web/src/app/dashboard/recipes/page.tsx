@@ -23,7 +23,7 @@ export default function RecipesPage() {
   return (
     <div className="mx-auto max-w-7xl p-6">
       {/* Page Title */}
-      <div className="mb-6 border-2 border-black bg-amber-100 p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div className="brutalism-banner mb-6 p-5">
         <h1 className="text-3xl font-bold tracking-tight">Recipe Collection</h1>
         <p className="mt-1 text-sm font-medium text-gray-700">Find your next favorite meal</p>
       </div>
@@ -43,12 +43,12 @@ export default function RecipesPage() {
       />
 
       {isLoading ? (
-        <div className="mt-10 border-2 border-black bg-gray-100 p-6 text-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-          <p className="text-lg font-bold">Loading...</p>
+        <div className="brutalism-panel mt-10 bg-gray-100 p-6 text-center">
+          <p className="brutalism-heading">Loading...</p>
         </div>
       ) : recipes.length === 0 ? (
-        <div className="mt-10 border-2 border-black bg-gray-100 p-6 text-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-          <p className="text-lg font-bold">No recipes found</p>
+        <div className="brutalism-panel mt-10 bg-gray-100 p-6 text-center">
+          <p className="brutalism-heading">No recipes found</p>
         </div>
       ) : (
         <>

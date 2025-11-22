@@ -62,31 +62,31 @@ export default function FilterPanel({
 
   if (loading) {
     return (
-      <div className="mb-4 h-60 border-2 border-black bg-gray-50 p-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-        <p className="font-bold text-gray-600">Loading filters...</p>
+      <div className="brutalism-panel mb-4 h-60 bg-gray-50 p-3">
+        <p className="brutalism-text-bold text-gray-600">Loading filters...</p>
       </div>
     );
   }
 
   return (
-    <div className="mb-4 border-2 border-black bg-white p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-      <h3 className="mb-3 text-lg font-bold">Filters</h3>
+    <div className="brutalism-panel mb-4 p-4">
+      <h3 className="brutalism-heading mb-3">Filters</h3>
 
       {/* 🧂 Ingredients */}
       <div className="mb-4">
         <div className="mb-2 flex items-center justify-between">
-          <p className="text-sm font-bold">Ingredients</p>
+          <p className="brutalism-text-bold text-sm">Ingredients</p>
           <div className="flex gap-1.5">
             <button
               disabled={ingredientPage === 1}
               onClick={() => setIngredientPage((p) => Math.max(1, p - 1))}
-              className="border-2 border-black bg-gray-100 px-2 py-0.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none disabled:cursor-not-allowed disabled:opacity-40"
+              className="brutalism-border brutalism-shadow-sm brutalism-hover brutalism-hover-sm brutalism-active bg-gray-100 px-2 py-0.5 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-40"
             >
               ←
             </button>
             <button
               onClick={() => setIngredientPage((p) => p + 1)}
-              className="border-2 border-black bg-gray-100 px-2 py-0.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none"
+              className="brutalism-border brutalism-shadow-sm brutalism-hover brutalism-hover-sm brutalism-active bg-gray-100 px-2 py-0.5 text-xs font-bold"
             >
               →
             </button>
@@ -100,9 +100,7 @@ export default function FilterPanel({
               <button
                 key={ing.id}
                 onClick={() => handleIngredientClick(ing.id)}
-                className={`border-2 border-black px-3 py-1 text-xs font-medium shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-0 active:translate-y-0 active:shadow-none ${
-                  active ? "bg-emerald-300 font-bold" : "bg-white"
-                }`}
+                className={active ? "brutalism-tag-active" : "brutalism-tag"}
               >
                 {ing.name}
               </button>
@@ -114,18 +112,18 @@ export default function FilterPanel({
       {/* 🏷️ Tags */}
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <p className="text-sm font-bold">Tags</p>
+          <p className="brutalism-text-bold text-sm">Tags</p>
           <div className="flex gap-1.5">
             <button
               disabled={tagPage === 1}
               onClick={() => setTagPage((p) => Math.max(1, p - 1))}
-              className="border-2 border-black bg-gray-100 px-2 py-0.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none disabled:cursor-not-allowed disabled:opacity-40"
+              className="brutalism-border brutalism-shadow-sm brutalism-hover brutalism-hover-sm brutalism-active bg-gray-100 px-2 py-0.5 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-40"
             >
               ←
             </button>
             <button
               onClick={() => setTagPage((p) => p + 1)}
-              className="border-2 border-black bg-gray-100 px-2 py-0.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none"
+              className="brutalism-border brutalism-shadow-sm brutalism-hover brutalism-hover-sm brutalism-active bg-gray-100 px-2 py-0.5 text-xs font-bold"
             >
               →
             </button>
@@ -139,9 +137,7 @@ export default function FilterPanel({
               <button
                 key={t.id}
                 onClick={() => handleTagClick(t.id)}
-                className={`border-2 border-black px-3 py-1 text-xs font-medium shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-0 active:translate-y-0 active:shadow-none ${
-                  active ? "bg-sky-300 font-bold" : "bg-white"
-                }`}
+                className={active ? "brutalism-tag bg-sky-300 font-bold" : "brutalism-tag"}
               >
                 {t.name}
               </button>

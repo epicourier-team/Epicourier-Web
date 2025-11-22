@@ -8,10 +8,10 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="group flex flex-col overflow-hidden border-2 border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
+    <div className="brutalism-card group flex flex-col overflow-hidden">
       <Link href={`/dashboard/recipes/${recipe.id}`} className="flex flex-col gap-3 p-4">
         {recipe.image_url && (
-          <div className="relative aspect-video w-full overflow-hidden border-2 border-black">
+          <div className="brutalism-border relative aspect-video w-full overflow-hidden">
             <Image
               src={recipe.image_url}
               alt={recipe.name ?? "recipe"}
@@ -22,17 +22,19 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
           </div>
         )}
         <div className="space-y-2">
-          <h3 className="line-clamp-2 text-base leading-tight font-bold">{recipe.name}</h3>
+          <h3 className="brutalism-text-bold line-clamp-2 text-base leading-tight">
+            {recipe.name}
+          </h3>
           <p className="line-clamp-2 text-sm text-gray-600">{recipe.description}</p>
         </div>
       </Link>
-      <div className="mt-auto border-t-2 border-black bg-gray-50 p-4">
+      <div className="brutalism-border mt-auto border-x-0 border-b-0 bg-gray-50 p-4">
         <button
           onClick={(e) => {
             e.preventDefault();
             setIsModalOpen(true);
           }}
-          className="w-full border-2 border-black bg-black px-4 py-2 text-sm font-bold text-white transition-all hover:bg-white hover:text-black"
+          className="brutalism-button-inverse w-full px-4 py-2 text-sm"
         >
           + Add to Calendar
         </button>
