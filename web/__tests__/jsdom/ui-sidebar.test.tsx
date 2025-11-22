@@ -35,7 +35,7 @@ describe("Sidebar Components", () => {
     const trigger = screen.getByRole("button", { name: /toggle sidebar/i });
     fireEvent.click(trigger);
 
-    expect(document.cookie).toContain("sidebar:state");
+    expect(document.cookie).toContain("sidebar_state");
   });
 
   // 🧱 2. useSidebar outside provider throws error
@@ -55,7 +55,7 @@ describe("Sidebar Components", () => {
       </SidebarProvider>
     );
     fireEvent.keyDown(window, { key: "b", ctrlKey: true });
-    expect(document.cookie).toContain("sidebar:state");
+    expect(document.cookie).toContain("sidebar_state");
   });
 
   // 🧱 5. SidebarMenuButton without tooltip
@@ -108,7 +108,7 @@ describe("Sidebar Components", () => {
     );
     const rail = screen.getByRole("button", { name: /toggle sidebar/i });
     fireEvent.click(rail);
-    expect(document.cookie).toContain("sidebar:state");
+    expect(document.cookie).toContain("sidebar_state");
   });
 
   // 🧱 9. SidebarMenuBadge displays child text
@@ -132,6 +132,6 @@ describe("Sidebar Components", () => {
 
     const trigger = screen.getByRole("button", { name: /toggle sidebar/i });
     fireEvent.click(trigger);
-    expect(document.cookie).toContain("sidebar:state");
+    expect(document.cookie).toContain("sidebar_state");
   });
 });

@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/client";
 import { EventClickArg } from "@fullcalendar/core";
 import Image from "next/image";
 import dayGridPlugin from "@fullcalendar/daygrid";
+import { useToast } from "@/hooks/use-toast";
 import interactionPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -12,7 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import AddMealModal from "@/components/ui/AddMealModal";
 import MealDetailModal from "@/components/ui/MealDetailModal";
-import { SidebarInset } from "@/components/ui/sidebar";
+import "@/styles/fullcalendar-brutalism.css";
 
 // ------------------------------
 // Type Definitions
@@ -57,6 +58,7 @@ interface CalendarApiResponse {
 export default function CalendarPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { toast } = useToast();
 
   // ------------------------------
   // State management
@@ -161,7 +163,11 @@ export default function CalendarPage() {
       : [calendarData];
 
     if (isPast && entries.every((x) => x.status === false)) {
-      alert("This meal is expired and cannot be modified.");
+      toast({
+        title: "❌ Expired Meal",
+        description: "This meal is expired and cannot be modified.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -180,12 +186,19 @@ export default function CalendarPage() {
     });
 
     if (res.ok) {
-      alert(newStatus ? "✅ Meal marked as completed!" : "👌 Meal status updated!");
+      toast({
+        title: newStatus ? "✅ Meal Completed" : "👌 Status Updated",
+        description: newStatus ? "Meal marked as completed!" : "Meal status updated!",
+      });
       await loadEvents();
     } else {
       const err: { error?: string } = await res.json();
       console.error("❌ Error updating status:", err);
-      alert(`❌ Error: ${err.error ?? "Unknown error"}`);
+      toast({
+        title: "❌ Error",
+        description: err.error ?? "Unknown error occurred",
+        variant: "destructive",
+      });
     }
   };
 
@@ -223,14 +236,15 @@ export default function CalendarPage() {
   // Render
   // ------------------------------
   return (
-    <SidebarInset className="bg-gray-50 p-6 pl-12">
+    <div className="p-6 pl-12">
       {/* Header */}
 
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-800">
+      <div className="brutalism-banner mb-6 bg-indigo-300! p-5">
+        <h1 className="text-3xl font-bold tracking-tight">
           {userName ? `${userName}'s Calendar` : "Loading Calendar..."}
         </h1>
-        {/*
+      </div>
+      {/*
         <button
           onClick={loadRecommendations}
           className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
@@ -238,18 +252,14 @@ export default function CalendarPage() {
           🍽️ Get Recommendations
         </button>
         */}
-      </div>
 
       {/* Recommendations */}
       {recommendations.length > 0 && (
-        <div className="mb-6 rounded-xl bg-white p-4 shadow">
-          <h2 className="mb-3 text-lg font-semibold">Recommended Recipes</h2>
+        <div className="brutalism-panel mb-6 rounded-none p-6">
+          <h2 className="brutalism-heading mb-4">Recommended Recipes</h2>
           <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {recommendations.map((r) => (
-              <li
-                key={r.id}
-                className="overflow-hidden rounded-lg border shadow transition hover:shadow-md"
-              >
+              <li key={r.id} className="brutalism-card overflow-hidden rounded-none">
                 {r.image_url && (
                   <div className="relative h-40 w-full">
                     <Image src={r.image_url} alt={r.name} fill className="object-cover" />
@@ -266,7 +276,7 @@ export default function CalendarPage() {
                       setSelectedRecipe(r);
                       setShowDateModal(true);
                     }}
-                    className="mt-2 w-full rounded bg-blue-600 py-1 text-white hover:bg-blue-700"
+                    className="brutalism-button-secondary mt-2 w-full rounded-none py-2"
                   >
                     + Add to Calendar
                   </button>
@@ -297,7 +307,7 @@ export default function CalendarPage() {
       />
 
       {/* Calendar */}
-      <div className="rounded-xl bg-white p-4 shadow">
+      <div className="brutalism-panel rounded-none p-6">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
@@ -313,6 +323,6 @@ export default function CalendarPage() {
           eventClick={handleEventClick}
         />
       </div>
-    </SidebarInset>
+    </div>
   );
 }

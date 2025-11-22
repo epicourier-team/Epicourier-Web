@@ -6,33 +6,39 @@ import AddMealModal from "@/components/ui/AddMealModal";
 
 export default function RecipeCard({ recipe }: { recipe: Recipe }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
-    <div className="flex flex-col rounded-lg border p-4 shadow-sm transition hover:shadow-lg">
-      <Link
-        className="flex flex-col rounded-lg border p-4 shadow-sm transition hover:shadow-lg"
-        href={`/dashboard/recipes/${recipe.id}`}
-      >
+    <div className="brutalism-card group flex flex-col overflow-hidden">
+      <Link href={`/dashboard/recipes/${recipe.id}`} className="flex flex-col gap-3 p-4">
         {recipe.image_url && (
-          <Image
-            src={recipe.image_url}
-            alt={recipe.name ?? "recipe"}
-            width={120}
-            height={120}
-            className="mb-2 self-center rounded-lg object-cover"
-          />
+          <div className="brutalism-border relative aspect-video w-full overflow-hidden">
+            <Image
+              src={recipe.image_url}
+              alt={recipe.name ?? "recipe"}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
         )}
-        <h3 className="text-lg font-semibold">{recipe.name}</h3>
-        <p className="line-clamp-2 text-sm text-gray-600">{recipe.description}</p>
+        <div className="space-y-2">
+          <h3 className="brutalism-text-bold line-clamp-2 text-base leading-tight">
+            {recipe.name}
+          </h3>
+          <p className="line-clamp-2 text-sm text-gray-600">{recipe.description}</p>
+        </div>
       </Link>
-      <button
-        onClick={(e) => {
-          e.preventDefault(); // 防止 Link 觸發跳轉
-          setIsModalOpen(true);
-        }}
-        className="mt-3 w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
-      >
-        + Add to Calendar
-      </button>
+      <div className="brutalism-border mt-auto border-x-0 border-b-0 bg-gray-50 p-4">
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            setIsModalOpen(true);
+          }}
+          className="brutalism-button-inverse w-full px-4 py-2 text-sm"
+        >
+          + Add to Calendar
+        </button>
+      </div>
 
       {isModalOpen && (
         <AddMealModal
