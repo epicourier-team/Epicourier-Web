@@ -104,13 +104,14 @@ export default function RecommendPage() {
   return (
     <section className="min-h-screen py-24">
       <div className="container mx-auto max-w-3xl px-4">
-        <h1 className="brutalism-title mb-8 text-center text-4xl md:text-5xl">
-          Personalized Meal Recommendations
-        </h1>
-        <p className="brutalism-text-bold mb-4 text-center">
-          Describe your goal (e.g. &quot;Lose 5 kg in 2 months&quot; or &quot;High-protein
-          vegetarian diet&quot;) and choose how many meals you want for your daily plan.
-        </p>
+        <div className="brutalism-banner mb-6 bg-red-300! p-5">
+          <h1 className="text-3xl font-bold tracking-tight">Personalized Meal Recommendations</h1>
+          <p className="mt-1 text-sm font-medium text-gray-900">
+            Describe your goal (e.g. &quot;Lose 5 kg in 2 months&quot; or &quot;High-protein
+            vegetarian diet&quot;) and choose how many meals you want for your daily plan.
+          </p>
+        </div>
+
         {error && <p className="mb-4 text-center text-red-600">{error}</p>}
 
         <form onSubmit={handleSubmit} className="brutalism-panel space-y-6 rounded-none p-8">
@@ -142,7 +143,7 @@ export default function RecommendPage() {
             type="submit"
             variant="default"
             size="lg"
-            className="brutalism-button-primary flex w-full items-center justify-center gap-2 rounded-none"
+            className="brutalism-button-primary flex w-full items-center justify-center gap-2 rounded-none text-black"
             disabled={loading}
           >
             {loading ? (

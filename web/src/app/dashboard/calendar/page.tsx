@@ -238,11 +238,12 @@ export default function CalendarPage() {
     <div className="p-6 pl-12">
       {/* Header */}
 
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="brutalism-title text-3xl">
+      <div className="brutalism-banner mb-6 bg-indigo-300! p-5">
+        <h1 className="text-3xl font-bold tracking-tight">
           {userName ? `${userName}'s Calendar` : "Loading Calendar..."}
         </h1>
-        {/*
+      </div>
+      {/*
         <button
           onClick={loadRecommendations}
           className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
@@ -250,7 +251,6 @@ export default function CalendarPage() {
           🍽️ Get Recommendations
         </button>
         */}
-      </div>
 
       {/* Recommendations */}
       {recommendations.length > 0 && (
