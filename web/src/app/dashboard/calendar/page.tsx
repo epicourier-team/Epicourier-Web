@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import AddMealModal from "@/components/ui/AddMealModal";
 import MealDetailModal from "@/components/ui/MealDetailModal";
+import "@/styles/fullcalendar-brutalism.css";
 
 // ------------------------------
 // Type Definitions
