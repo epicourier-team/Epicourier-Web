@@ -42,7 +42,7 @@ export default function RecipesPage() {
         <p className="mt-10 text-center text-gray-500">No recipes found</p>
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {recipes.map((r) => (
               <RecipeCard key={r.id} recipe={r} />
             ))}

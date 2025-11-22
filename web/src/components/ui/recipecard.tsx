@@ -7,32 +7,35 @@ import AddMealModal from "@/components/ui/AddMealModal";
 export default function RecipeCard({ recipe }: { recipe: Recipe }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   return (
-    <div className="flex flex-col rounded-lg border p-4 shadow-sm transition hover:shadow-lg">
-      <Link
-        className="flex flex-col rounded-lg border p-4 shadow-sm transition hover:shadow-lg"
-        href={`/dashboard/recipes/${recipe.id}`}
-      >
+    <div className="group bg-card text-card-foreground flex flex-col overflow-hidden rounded-lg border border-gray-200 shadow-sm transition-all hover:shadow-lg">
+      <Link href={`/dashboard/recipes/${recipe.id}`} className="flex flex-col gap-3 p-4">
         {recipe.image_url && (
-          <Image
-            src={recipe.image_url}
-            alt={recipe.name ?? "recipe"}
-            width={120}
-            height={120}
-            className="mb-2 self-center rounded-lg object-cover"
-          />
+          <div className="relative aspect-video w-full overflow-hidden rounded-md">
+            <Image
+              src={recipe.image_url}
+              alt={recipe.name ?? "recipe"}
+              fill
+              className="object-cover transition-transform group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
         )}
-        <h3 className="text-lg font-semibold">{recipe.name}</h3>
-        <p className="line-clamp-2 text-sm text-gray-600">{recipe.description}</p>
+        <div className="space-y-2">
+          <h3 className="line-clamp-1 text-lg font-semibold">{recipe.name}</h3>
+          <p className="text-muted-foreground line-clamp-2 text-sm">{recipe.description}</p>
+        </div>
       </Link>
-      <button
-        onClick={(e) => {
-          e.preventDefault(); // 防止 Link 觸發跳轉
-          setIsModalOpen(true);
-        }}
-        className="mt-3 w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
-      >
-        + Add to Calendar
-      </button>
+      <div className="mt-auto border-t p-4 pt-3">
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            setIsModalOpen(true);
+          }}
+          className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-md px-4 py-2 text-sm font-medium transition-colors"
+        >
+          + Add to Calendar
+        </button>
+      </div>
 
       {isModalOpen && (
         <AddMealModal

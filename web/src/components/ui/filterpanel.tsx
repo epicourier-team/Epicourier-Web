@@ -65,7 +65,7 @@ export default function FilterPanel({
   }
 
   return (
-    <div className="mb-4 h-60 rounded-lg border p-3">
+    <div className="mb-4 rounded-lg border p-3">
       <h3 className="mb-3 font-semibold">Filters</h3>
 
       {/* 🧂 Ingredients */}
