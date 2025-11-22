@@ -104,36 +104,33 @@ export default function RecommendPage() {
   return (
     <section className="min-h-screen py-24">
       <div className="container mx-auto max-w-3xl px-4">
-        <h1 className="mb-8 text-center text-4xl font-bold text-gray-900 md:text-5xl">
+        <h1 className="brutalism-title mb-8 text-center text-4xl md:text-5xl">
           Personalized Meal Recommendations
         </h1>
-        <p className="mb-4 text-center text-gray-600">
-          Describe your goal (e.g. “Lose 5 kg in 2 months” or “High-protein vegetarian diet”) and
-          choose how many meals you want for your daily plan.
+        <p className="brutalism-text-bold mb-4 text-center">
+          Describe your goal (e.g. &quot;Lose 5 kg in 2 months&quot; or &quot;High-protein
+          vegetarian diet&quot;) and choose how many meals you want for your daily plan.
         </p>
         {error && <p className="mb-4 text-center text-red-600">{error}</p>}
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-md"
-        >
+        <form onSubmit={handleSubmit} className="brutalism-panel space-y-6 rounded-none p-8">
           <div>
-            <label className="mb-2 block font-medium text-gray-700">Your Goal</label>
+            <label className="brutalism-text-bold mb-2 block">Your Goal</label>
             <textarea
               value={goal}
               onChange={(e) => setGoal(e.target.value)}
-              className="box-border w-full rounded-lg border border-gray-300 p-3 text-gray-800 focus:ring-2 focus:ring-emerald-500"
+              className="brutalism-input box-border w-full rounded-none p-3"
               placeholder="e.g., Lose 5 kg while keeping muscle, prefer Asian flavors"
               required
             />
           </div>
 
           <div>
-            <label className="mb-2 block font-medium text-gray-700">Number of Meals</label>
+            <label className="brutalism-text-bold mb-2 block">Number of Meals</label>
             <select
               value={numMeals}
               onChange={(e) => setNumMeals(Number(e.target.value))}
-              className="w-full rounded-lg border border-gray-300 p-3 text-gray-800 focus:ring-2 focus:ring-emerald-500"
+              className="brutalism-input w-full rounded-none p-3"
             >
               <option value={3}>3 meals</option>
               <option value={5}>5 meals</option>
@@ -145,7 +142,7 @@ export default function RecommendPage() {
             type="submit"
             variant="default"
             size="lg"
-            className="flex w-full items-center justify-center gap-2"
+            className="brutalism-button-primary flex w-full items-center justify-center gap-2 rounded-none"
             disabled={loading}
           >
             {loading ? (
@@ -164,8 +161,8 @@ export default function RecommendPage() {
 
         {/* Expanded Goal */}
         {expandedGoal && (
-          <div className="mt-12 text-center">
-            <h2 className="mb-2 text-2xl font-bold text-gray-900">Expanded Goal</h2>
+          <div className="brutalism-banner mt-12 rounded-none p-6 text-center">
+            <h2 className="brutalism-heading mb-4">Expanded Goal</h2>
             <div className="prose prose-emerald mx-auto max-w-none text-left">
               <ReactMarkdown>{expandedGoal}</ReactMarkdown>
             </div>
@@ -175,34 +172,31 @@ export default function RecommendPage() {
         {/* Recipes */}
         {recipes.length > 0 && (
           <div className="mt-16 space-y-8">
-            <h2 className="text-center text-3xl font-bold text-gray-900">Your Recommended Meals</h2>
+            <h2 className="brutalism-title text-center text-3xl">Your Recommended Meals</h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {recipes.map((r, i) => {
                 const RecipeCard: React.FC<{ recipe: Recipe }> = ({ recipe }) => {
                   const [isModalOpen, setIsModalOpen] = useState(false);
 
                   return (
-                    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:shadow-md">
-                      <h3 className="mb-3 text-2xl font-semibold text-emerald-700">
-                        {recipe.name}
-                      </h3>
+                    <div className="brutalism-card rounded-none p-6">
+                      <h3 className="brutalism-heading mb-3 text-emerald-700">{recipe.name}</h3>
 
-                      <p className="mb-2 text-gray-700">
-                        <span className="font-semibold text-gray-900">Key Ingredients:</span>{" "}
+                      <p className="mb-2">
+                        <span className="brutalism-text-bold">Key Ingredients:</span>{" "}
                         {recipe.key_ingredients.join(", ")}
                       </p>
 
-                      <p className="mb-2 whitespace-pre-line text-gray-700">
-                        <span className="font-semibold text-gray-900">Recipe:</span> {recipe.recipe}
+                      <p className="mb-2 whitespace-pre-line">
+                        <span className="brutalism-text-bold">Recipe:</span> {recipe.recipe}
                       </p>
 
-                      <p className="mb-2 text-gray-700">
-                        <span className="font-semibold text-gray-900">Tags:</span>{" "}
-                        {recipe.tags.join(", ")}
+                      <p className="mb-2">
+                        <span className="brutalism-text-bold">Tags:</span> {recipe.tags.join(", ")}
                       </p>
 
-                      <p className="mb-2 text-gray-700">
-                        <span className="font-semibold text-gray-900">Reason:</span> {recipe.reason}
+                      <p className="mb-2">
+                        <span className="brutalism-text-bold">Reason:</span> {recipe.reason}
                       </p>
 
                       <button
@@ -210,7 +204,7 @@ export default function RecommendPage() {
                           e.preventDefault();
                           setIsModalOpen(true);
                         }}
-                        className="mt-3 w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
+                        className="brutalism-button-secondary mt-3 w-full rounded-none py-2"
                       >
                         + Add to Calendar
                       </button>
