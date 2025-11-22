@@ -92,11 +92,12 @@ export default function MealDetailModal({
         setBusy(true);
         await onUpdateStatus(entryId, newStatus);
         await reloadEvents();
+        onClose();
       } finally {
         setBusy(false);
       }
     },
-    [busy, onUpdateStatus, reloadEvents]
+    [busy, onUpdateStatus, reloadEvents, onClose]
   );
 
   // update all

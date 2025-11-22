@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface AddMealModalProps {
   recipe: {
@@ -23,10 +24,15 @@ interface AddMealModalProps {
 export default function AddMealModal({ recipe, isOpen, onClose, onSuccess }: AddMealModalProps) {
   const [selectedDate, setSelectedDate] = useState("");
   const [mealType, setMealType] = useState("breakfast");
+  const { toast } = useToast();
 
   const handleConfirm = async () => {
     if (!selectedDate) {
-      alert("Please select a date");
+      toast({
+        title: "⚠️ Date Required",
+        description: "Please select a date",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -42,13 +48,20 @@ export default function AddMealModal({ recipe, isOpen, onClose, onSuccess }: Add
     });
 
     if (res.ok) {
-      alert("✅ Added to Calendar!");
+      toast({
+        title: "✅ Success",
+        description: "Added to Calendar!",
+      });
       onClose();
       onSuccess?.();
     } else {
       const err = await res.json();
       console.error(err);
-      alert(`❌ Failed to add: ${err.error ?? "Unknown error"}`);
+      toast({
+        title: "❌ Failed",
+        description: `Failed to add: ${err.error ?? "Unknown error"}`,
+        variant: "destructive",
+      });
     }
   };
 
