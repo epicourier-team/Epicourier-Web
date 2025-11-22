@@ -61,30 +61,34 @@ export default function FilterPanel({
   };
 
   if (loading) {
-    return <div className="mb-4 h-60 rounded-lg border p-3 text-gray-500">Loading filters...</div>;
+    return (
+      <div className="mb-4 h-60 border-2 border-black bg-gray-50 p-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+        <p className="font-bold text-gray-600">Loading filters...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="mb-4 rounded-lg border p-3">
-      <h3 className="mb-3 font-semibold">Filters</h3>
+    <div className="mb-4 border-2 border-black bg-white p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+      <h3 className="mb-3 text-lg font-bold">Filters</h3>
 
       {/* 🧂 Ingredients */}
-      <div className="mb-3">
-        <div className="mb-1 flex items-center justify-between">
-          <p className="text-sm font-medium">Ingredients</p>
-          <div className="flex gap-1 text-xs">
+      <div className="mb-4">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-sm font-bold">Ingredients</p>
+          <div className="flex gap-1.5">
             <button
               disabled={ingredientPage === 1}
               onClick={() => setIngredientPage((p) => Math.max(1, p - 1))}
-              className="rounded border px-2 py-0.5 disabled:opacity-40"
+              className="border-2 border-black bg-gray-100 px-2 py-0.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Prev
+              ←
             </button>
             <button
               onClick={() => setIngredientPage((p) => p + 1)}
-              className="rounded border px-2 py-0.5"
+              className="border-2 border-black bg-gray-100 px-2 py-0.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none"
             >
-              Next
+              →
             </button>
           </div>
         </div>
@@ -96,8 +100,8 @@ export default function FilterPanel({
               <button
                 key={ing.id}
                 onClick={() => handleIngredientClick(ing.id)}
-                className={`rounded border px-3 py-1 text-sm ${
-                  active ? "border-green-500 bg-green-200 font-medium" : "border-gray-300 bg-white"
+                className={`border-2 border-black px-3 py-1 text-xs font-medium shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-0 active:translate-y-0 active:shadow-none ${
+                  active ? "bg-emerald-300 font-bold" : "bg-white"
                 }`}
               >
                 {ing.name}
@@ -109,18 +113,21 @@ export default function FilterPanel({
 
       {/* 🏷️ Tags */}
       <div>
-        <div className="mb-1 flex items-center justify-between">
-          <p className="text-sm font-medium">Tags</p>
-          <div className="flex gap-1 text-xs">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-sm font-bold">Tags</p>
+          <div className="flex gap-1.5">
             <button
               disabled={tagPage === 1}
               onClick={() => setTagPage((p) => Math.max(1, p - 1))}
-              className="rounded border px-2 py-0.5 disabled:opacity-40"
+              className="border-2 border-black bg-gray-100 px-2 py-0.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Prev
+              ←
             </button>
-            <button onClick={() => setTagPage((p) => p + 1)} className="rounded border px-2 py-0.5">
-              Next
+            <button
+              onClick={() => setTagPage((p) => p + 1)}
+              className="border-2 border-black bg-gray-100 px-2 py-0.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none"
+            >
+              →
             </button>
           </div>
         </div>
@@ -132,8 +139,8 @@ export default function FilterPanel({
               <button
                 key={t.id}
                 onClick={() => handleTagClick(t.id)}
-                className={`rounded border px-3 py-1 text-sm ${
-                  active ? "border-blue-500 bg-blue-200 font-medium" : "border-gray-300 bg-white"
+                className={`border-2 border-black px-3 py-1 text-xs font-medium shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] active:translate-x-0 active:translate-y-0 active:shadow-none ${
+                  active ? "bg-sky-300 font-bold" : "bg-white"
                 }`}
               >
                 {t.name}

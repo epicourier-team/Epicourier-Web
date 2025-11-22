@@ -21,7 +21,13 @@ export default function RecipesPage() {
   });
 
   return (
-    <div className="mx-auto max-w-5xl p-6">
+    <div className="mx-auto max-w-7xl p-6">
+      {/* Page Title */}
+      <div className="mb-6 border-2 border-black bg-amber-100 p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <h1 className="text-3xl font-bold tracking-tight">Recipe Collection</h1>
+        <p className="mt-1 text-sm font-medium text-gray-700">Find your next favorite meal</p>
+      </div>
+
       <SearchBar
         onSearch={(q) => {
           setQuery(q);
@@ -37,12 +43,16 @@ export default function RecipesPage() {
       />
 
       {isLoading ? (
-        <p className="mt-10 text-center text-gray-500">Loading...</p>
+        <div className="mt-10 border-2 border-black bg-gray-100 p-6 text-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+          <p className="text-lg font-bold">Loading...</p>
+        </div>
       ) : recipes.length === 0 ? (
-        <p className="mt-10 text-center text-gray-500">No recipes found</p>
+        <div className="mt-10 border-2 border-black bg-gray-100 p-6 text-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+          <p className="text-lg font-bold">No recipes found</p>
+        </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {recipes.map((r) => (
               <RecipeCard key={r.id} recipe={r} />
             ))}
