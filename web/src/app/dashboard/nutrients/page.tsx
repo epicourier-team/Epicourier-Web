@@ -63,6 +63,7 @@ type TrendPoint = {
   carbs: number;
   fats: number;
   daysTracked?: number;
+  rangeLabel?: string;
 };
 
 type GoalField = "calories_kcal" | "protein_g" | "carbs_g" | "fats_g" | "sodium_mg" | "fiber_g";
@@ -81,6 +82,11 @@ const numericField = (label: string) =>
       .refine((val) => Number.isFinite(val), `${label} must be a number`)
       .nonnegative({ message: `${label} must be 0 or greater` })
   );
+
+const formatTooltipLabel = (label: string, payload: ReadonlyArray<{ payload?: TrendPoint }>) => {
+  const range = payload?.[0]?.payload?.rangeLabel;
+  return range ?? label;
+};
 
 const goalSchema = z.object({
   calories_kcal: numericField("Calories"),
@@ -101,6 +107,13 @@ const GOAL_FIELD_CONFIG: { key: GoalField; label: string; unit: string }[] = [
   { key: "sodium_mg", label: "Sodium", unit: "mg" },
   { key: "fiber_g", label: "Fiber", unit: "g" },
 ];
+
+const MACRO_COLORS = {
+  calories: "#0ea5e9", // Sky Blue (天蓝) - 清晰的主色调
+  protein: "#ff6b6b", // Pastel Red (柔和红) - 醒目但不警示
+  carbs: "#ffd43b", // Bright Yellow (亮黄) - 活力
+  fats: "#20c997", // Teal (青绿) - 清新，区别于普通的绿色
+};
 
 const RECOMMENDED_GOALS: GoalFormValues = {
   calories_kcal: 2000,
@@ -362,25 +375,25 @@ export default function NutrientsPage() {
 
   const dailyPieData = useMemo(
     () => [
-      { name: "Protein", value: dailyData.protein_g, color: "#ef4444" },
-      { name: "Carbs", value: dailyData.carbs_g, color: "#eab308" },
-      { name: "Fats", value: dailyData.fats_g, color: "#22c55e" },
+      { name: "Protein", value: dailyData.protein_g, color: MACRO_COLORS.protein },
+      { name: "Carbs", value: dailyData.carbs_g, color: MACRO_COLORS.carbs },
+      { name: "Fats", value: dailyData.fats_g, color: MACRO_COLORS.fats },
     ],
     [dailyData.carbs_g, dailyData.fats_g, dailyData.protein_g]
   );
 
-  const weeklyTrend: TrendPoint[] = useMemo(
-    () =>
-      (weekly || []).map((w) => ({
-        label: `${w.week_start} → ${w.week_end}`,
-        calories: w.calories_kcal,
-        protein: w.protein_g,
-        carbs: w.carbs_g,
-        fats: w.fats_g,
-        daysTracked: w.days_tracked,
-      })),
-    [weekly]
-  );
+  const weeklyTrend: TrendPoint[] = useMemo(() => {
+    const total = weekly.length;
+    return (weekly || []).map((w, idx) => ({
+      label: `W-${total - idx - 1}`,
+      rangeLabel: `${w.week_start} → ${w.week_end}`,
+      calories: w.calories_kcal,
+      protein: w.protein_g,
+      carbs: w.carbs_g,
+      fats: w.fats_g,
+      daysTracked: w.days_tracked,
+    }));
+  }, [weekly]);
 
   const monthlyTrend: TrendPoint[] = useMemo(
     () =>
@@ -409,9 +422,8 @@ export default function NutrientsPage() {
     [effectiveGoal, weeklyTrend]
   );
   const monthlyTrendNormalized = useMemo(
-    () => toPercentTrend(monthlyTrend, effectiveGoal, (point) =>
-      getMonthDaysFromLabel(point.label)
-    ),
+    () =>
+      toPercentTrend(monthlyTrend, effectiveGoal, (point) => getMonthDaysFromLabel(point.label)),
     [effectiveGoal, monthlyTrend]
   );
 
@@ -612,7 +624,10 @@ export default function NutrientsPage() {
                   tickFormatter={(v) => `${Math.round(Number(v) || 0)}%`}
                   domain={[0, "dataMax + 20"]}
                 />
-                <Tooltip formatter={(value) => `${(value as number).toFixed(0)}%`} />
+                <Tooltip
+                  formatter={(value) => `${(value as number).toFixed(0)}%`}
+                  labelFormatter={formatTooltipLabel}
+                />
                 <ReferenceLine
                   y={100}
                   stroke="#000"
@@ -627,10 +642,20 @@ export default function NutrientsPage() {
                   }}
                 />
                 <Legend />
-                <Line type="monotone" dataKey="calories" stroke="#f97316" strokeWidth={3} />
-                <Line type="monotone" dataKey="protein" stroke="#ef4444" strokeWidth={3} />
-                <Line type="monotone" dataKey="carbs" stroke="#eab308" strokeWidth={3} />
-                <Line type="monotone" dataKey="fats" stroke="#22c55e" strokeWidth={3} />
+                <Line
+                  type="monotone"
+                  dataKey="calories"
+                  stroke={MACRO_COLORS.calories}
+                  strokeWidth={3}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="protein"
+                  stroke={MACRO_COLORS.protein}
+                  strokeWidth={3}
+                />
+                <Line type="monotone" dataKey="carbs" stroke={MACRO_COLORS.carbs} strokeWidth={3} />
+                <Line type="monotone" dataKey="fats" stroke={MACRO_COLORS.fats} strokeWidth={3} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
@@ -663,31 +688,49 @@ export default function NutrientsPage() {
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                <YAxis
-                  width={48}
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(v) => `${Math.round(Number(v) || 0)}%`}
-                  domain={[0, "dataMax + 20"]}
-                />
-                <Tooltip formatter={(value) => `${(value as number).toFixed(0)}%`} />
-                <ReferenceLine
-                  y={100}
-                  stroke="#000"
-                  strokeDasharray="6 6"
-                  strokeWidth={2}
-                  label={{
-                    value: "Goal",
-                    position: "insideTopRight",
-                    fill: "#000",
-                    fontSize: 12,
-                    fontWeight: 700,
-                  }}
-                />
-                <Legend />
-                <Line type="monotone" dataKey="calories" stroke="#f97316" strokeWidth={3} />
-                <Line type="monotone" dataKey="protein" stroke="#ef4444" strokeWidth={3} />
-                <Line type="monotone" dataKey="carbs" stroke="#eab308" strokeWidth={3} />
-                <Line type="monotone" dataKey="fats" stroke="#22c55e" strokeWidth={3} />
+                  <YAxis
+                    width={48}
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(v) => `${Math.round(Number(v) || 0)}%`}
+                    domain={[0, "dataMax + 20"]}
+                  />
+                  <Tooltip
+                    formatter={(value) => `${(value as number).toFixed(0)}%`}
+                    labelFormatter={formatTooltipLabel}
+                  />
+                  <ReferenceLine
+                    y={100}
+                    stroke="#000"
+                    strokeDasharray="6 6"
+                    strokeWidth={2}
+                    label={{
+                      value: "Goal",
+                      position: "insideTopRight",
+                      fill: "#000",
+                      fontSize: 12,
+                      fontWeight: 700,
+                    }}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="calories"
+                    stroke={MACRO_COLORS.calories}
+                    strokeWidth={3}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="protein"
+                    stroke={MACRO_COLORS.protein}
+                    strokeWidth={3}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="carbs"
+                    stroke={MACRO_COLORS.carbs}
+                    strokeWidth={3}
+                  />
+                  <Line type="monotone" dataKey="fats" stroke={MACRO_COLORS.fats} strokeWidth={3} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
@@ -735,31 +778,49 @@ export default function NutrientsPage() {
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                <YAxis
-                  width={48}
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(v) => `${Math.round(Number(v) || 0)}%`}
-                  domain={[0, "dataMax + 20"]}
-                />
-                <Tooltip formatter={(value) => `${(value as number).toFixed(0)}%`} />
-                <ReferenceLine
-                  y={100}
-                  stroke="#000"
-                  strokeDasharray="6 6"
-                  strokeWidth={2}
-                  label={{
-                    value: "Goal",
-                    position: "insideTopRight",
-                    fill: "#000",
-                    fontSize: 12,
-                    fontWeight: 700,
-                  }}
-                />
-                <Legend />
-                <Line type="monotone" dataKey="calories" stroke="#fb7185" strokeWidth={3} />
-                <Line type="monotone" dataKey="protein" stroke="#22c55e" strokeWidth={3} />
-                <Line type="monotone" dataKey="carbs" stroke="#eab308" strokeWidth={3} />
-                <Line type="monotone" dataKey="fats" stroke="#0ea5e9" strokeWidth={3} />
+                  <YAxis
+                    width={48}
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(v) => `${Math.round(Number(v) || 0)}%`}
+                    domain={[0, "dataMax + 20"]}
+                  />
+                  <Tooltip
+                    formatter={(value) => `${(value as number).toFixed(0)}%`}
+                    labelFormatter={formatTooltipLabel}
+                  />
+                  <ReferenceLine
+                    y={100}
+                    stroke="#000"
+                    strokeDasharray="6 6"
+                    strokeWidth={2}
+                    label={{
+                      value: "Goal",
+                      position: "insideTopRight",
+                      fill: "#000",
+                      fontSize: 12,
+                      fontWeight: 700,
+                    }}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="calories"
+                    stroke={MACRO_COLORS.calories}
+                    strokeWidth={3}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="protein"
+                    stroke={MACRO_COLORS.protein}
+                    strokeWidth={3}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="carbs"
+                    stroke={MACRO_COLORS.carbs}
+                    strokeWidth={3}
+                  />
+                  <Line type="monotone" dataKey="fats" stroke={MACRO_COLORS.fats} strokeWidth={3} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
@@ -809,26 +870,6 @@ export default function NutrientsPage() {
                   {dailyData?.meal_count || 0}
                 </div>
                 <p className="mt-2 font-semibold text-gray-600">Meals logged today</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg bg-amber-50 transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-sm font-bold uppercase">Tips</CardTitle>
-              <CardDescription className="font-semibold">
-                Keep ranges short for sharper trends
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="rounded-none border-2 border-dashed border-gray-400 bg-white p-3 text-center">
-                <p className="font-semibold text-gray-600">📊 Weekly vs Monthly contrast intake</p>
-              </div>
-              <div className="rounded-none border-2 border-dashed border-gray-400 bg-white p-3 text-center">
-                <p className="font-semibold text-gray-600">📈 Adjust dates to replay past weeks</p>
-              </div>
-              <div className="rounded-none border-2 border-dashed border-gray-400 bg-white p-3 text-center">
-                <p className="font-semibold text-gray-600">🎯 Align with your nutrient goals</p>
               </div>
             </CardContent>
           </Card>
