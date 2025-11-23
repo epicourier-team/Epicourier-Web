@@ -12,6 +12,7 @@ import {
   LineChart,
   Pie,
   PieChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -26,6 +27,7 @@ import {
   RefreshCcw,
   Scale,
   Target,
+  Wand2,
 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,6 +62,7 @@ type TrendPoint = {
   protein: number;
   carbs: number;
   fats: number;
+  daysTracked?: number;
 };
 
 type GoalField = "calories_kcal" | "protein_g" | "carbs_g" | "fats_g" | "sodium_mg" | "fiber_g";
@@ -99,6 +102,45 @@ const GOAL_FIELD_CONFIG: { key: GoalField; label: string; unit: string }[] = [
   { key: "fiber_g", label: "Fiber", unit: "g" },
 ];
 
+const RECOMMENDED_GOALS: GoalFormValues = {
+  calories_kcal: 2000,
+  protein_g: 120,
+  carbs_g: 240,
+  fats_g: 70,
+  sodium_mg: 2000,
+  fiber_g: 30,
+};
+
+const percentOfGoal = (value: number, goalValue: number | null | undefined) => {
+  if (!goalValue || goalValue <= 0) return 0;
+  return (value / goalValue) * 100;
+};
+
+const toPercentTrend = (
+  trend: TrendPoint[],
+  goals: GoalFormValues,
+  resolvePeriodDays: (point: TrendPoint) => number
+): TrendPoint[] =>
+  trend.map((t) => {
+    const periodDays = resolvePeriodDays(t) || 1;
+    return {
+      label: t.label,
+      calories: percentOfGoal(t.calories, goals.calories_kcal * periodDays),
+      protein: percentOfGoal(t.protein, goals.protein_g * periodDays),
+      carbs: percentOfGoal(t.carbs, goals.carbs_g * periodDays),
+      fats: percentOfGoal(t.fats, goals.fats_g * periodDays),
+      daysTracked: periodDays,
+    };
+  });
+
+const getMonthDaysFromLabel = (label: string) => {
+  const [yearStr, monthStr] = label.split("-");
+  const year = Number(yearStr);
+  const monthIndex = Number(monthStr) - 1;
+  if (!Number.isFinite(year) || !Number.isFinite(monthIndex)) return 30;
+  return new Date(year, monthIndex + 1, 0).getDate();
+};
+
 const buildGoalFormDefaults = (goal?: NutrientGoal | null): GoalFormValues => ({
   calories_kcal: goal?.calories_kcal ?? 0,
   protein_g: goal?.protein_g ?? 0,
@@ -109,32 +151,6 @@ const buildGoalFormDefaults = (goal?: NutrientGoal | null): GoalFormValues => ({
 });
 
 const formatDateInput = (date: Date) => date.toLocaleDateString("en-CA");
-
-const normalizeTrend = (trend: TrendPoint[]): TrendPoint[] => {
-  if (!trend.length) return [];
-  // Log compression to suppress very large values and lift smaller ones
-  const compress = (v: number) => Math.log1p(Math.max(0, v));
-  const compressed = trend.map((t) => ({
-    ...t,
-    calories: compress(t.calories),
-    protein: compress(t.protein),
-    carbs: compress(t.carbs),
-    fats: compress(t.fats),
-  }));
-
-  const maxVal = Math.max(
-    ...compressed.flatMap((t) => [t.calories, t.protein, t.carbs, t.fats].map((v) => Math.abs(v)))
-  );
-  if (maxVal === 0 || !Number.isFinite(maxVal)) return compressed;
-
-  return compressed.map((t) => ({
-    ...t,
-    calories: t.calories / maxVal,
-    protein: t.protein / maxVal,
-    carbs: t.carbs / maxVal,
-    fats: t.fats / maxVal,
-  }));
-};
 
 const emptyDaily: DailyNutrient = {
   date: "N/A",
@@ -361,6 +377,7 @@ export default function NutrientsPage() {
         protein: w.protein_g,
         carbs: w.carbs_g,
         fats: w.fats_g,
+        daysTracked: w.days_tracked,
       })),
     [weekly]
   );
@@ -373,13 +390,30 @@ export default function NutrientsPage() {
         protein: m.protein_g,
         carbs: m.carbs_g,
         fats: m.fats_g,
+        daysTracked: m.days_tracked,
       })),
     [monthly]
   );
 
-  const pastSevenNormalized = useMemo(() => normalizeTrend(pastSeven), [pastSeven]);
-  const weeklyTrendNormalized = useMemo(() => normalizeTrend(weeklyTrend), [weeklyTrend]);
-  const monthlyTrendNormalized = useMemo(() => normalizeTrend(monthlyTrend), [monthlyTrend]);
+  const effectiveGoal = useMemo(
+    () => (goal ? buildGoalFormDefaults(goal) : RECOMMENDED_GOALS),
+    [goal]
+  );
+
+  const pastSevenNormalized = useMemo(
+    () => toPercentTrend(pastSeven, effectiveGoal, () => 1),
+    [effectiveGoal, pastSeven]
+  );
+  const weeklyTrendNormalized = useMemo(
+    () => toPercentTrend(weeklyTrend, effectiveGoal, () => 7),
+    [effectiveGoal, weeklyTrend]
+  );
+  const monthlyTrendNormalized = useMemo(
+    () => toPercentTrend(monthlyTrend, effectiveGoal, (point) =>
+      getMonthDaysFromLabel(point.label)
+    ),
+    [effectiveGoal, monthlyTrend]
+  );
 
   if (loading) {
     return (
@@ -572,8 +606,26 @@ export default function NutrientsPage() {
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                <YAxis width={48} tick={{ fontSize: 12 }} />
-                <Tooltip />
+                <YAxis
+                  width={48}
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(v) => `${Math.round(Number(v) || 0)}%`}
+                  domain={[0, "dataMax + 20"]}
+                />
+                <Tooltip formatter={(value) => `${(value as number).toFixed(0)}%`} />
+                <ReferenceLine
+                  y={100}
+                  stroke="#000"
+                  strokeDasharray="6 6"
+                  strokeWidth={2}
+                  label={{
+                    value: "Goal",
+                    position: "insideTopRight",
+                    fill: "#000",
+                    fontSize: 12,
+                    fontWeight: 700,
+                  }}
+                />
                 <Legend />
                 <Line type="monotone" dataKey="calories" stroke="#f97316" strokeWidth={3} />
                 <Line type="monotone" dataKey="protein" stroke="#ef4444" strokeWidth={3} />
@@ -611,13 +663,31 @@ export default function NutrientsPage() {
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                  <YAxis width={48} tick={{ fontSize: 12 }} />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="calories" stroke="#f97316" strokeWidth={3} />
-                  <Line type="monotone" dataKey="protein" stroke="#ef4444" strokeWidth={3} />
-                  <Line type="monotone" dataKey="carbs" stroke="#eab308" strokeWidth={3} />
-                  <Line type="monotone" dataKey="fats" stroke="#22c55e" strokeWidth={3} />
+                <YAxis
+                  width={48}
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(v) => `${Math.round(Number(v) || 0)}%`}
+                  domain={[0, "dataMax + 20"]}
+                />
+                <Tooltip formatter={(value) => `${(value as number).toFixed(0)}%`} />
+                <ReferenceLine
+                  y={100}
+                  stroke="#000"
+                  strokeDasharray="6 6"
+                  strokeWidth={2}
+                  label={{
+                    value: "Goal",
+                    position: "insideTopRight",
+                    fill: "#000",
+                    fontSize: 12,
+                    fontWeight: 700,
+                  }}
+                />
+                <Legend />
+                <Line type="monotone" dataKey="calories" stroke="#f97316" strokeWidth={3} />
+                <Line type="monotone" dataKey="protein" stroke="#ef4444" strokeWidth={3} />
+                <Line type="monotone" dataKey="carbs" stroke="#eab308" strokeWidth={3} />
+                <Line type="monotone" dataKey="fats" stroke="#22c55e" strokeWidth={3} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
@@ -665,13 +735,31 @@ export default function NutrientsPage() {
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                  <YAxis width={48} tick={{ fontSize: 12 }} />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="calories" stroke="#fb7185" strokeWidth={3} />
-                  <Line type="monotone" dataKey="protein" stroke="#22c55e" strokeWidth={3} />
-                  <Line type="monotone" dataKey="carbs" stroke="#eab308" strokeWidth={3} />
-                  <Line type="monotone" dataKey="fats" stroke="#0ea5e9" strokeWidth={3} />
+                <YAxis
+                  width={48}
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(v) => `${Math.round(Number(v) || 0)}%`}
+                  domain={[0, "dataMax + 20"]}
+                />
+                <Tooltip formatter={(value) => `${(value as number).toFixed(0)}%`} />
+                <ReferenceLine
+                  y={100}
+                  stroke="#000"
+                  strokeDasharray="6 6"
+                  strokeWidth={2}
+                  label={{
+                    value: "Goal",
+                    position: "insideTopRight",
+                    fill: "#000",
+                    fontSize: 12,
+                    fontWeight: 700,
+                  }}
+                />
+                <Legend />
+                <Line type="monotone" dataKey="calories" stroke="#fb7185" strokeWidth={3} />
+                <Line type="monotone" dataKey="protein" stroke="#22c55e" strokeWidth={3} />
+                <Line type="monotone" dataKey="carbs" stroke="#eab308" strokeWidth={3} />
+                <Line type="monotone" dataKey="fats" stroke="#0ea5e9" strokeWidth={3} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
@@ -771,6 +859,16 @@ export default function NutrientsPage() {
           </DialogHeader>
 
           <form id="nutrient-goal-form" onSubmit={onSubmitGoal} className="space-y-4 p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => goalForm.reset(RECOMMENDED_GOALS)}
+                className="flex items-center gap-2 border-2 border-black bg-amber-200 px-3 py-2 text-sm font-bold uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:-translate-x-px hover:translate-y-px hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              >
+                <Wand2 className="size-4" />
+                Use Recommended
+              </button>
+            </div>
             <FieldGroup className="gap-4 md:grid md:grid-cols-2">
               {GOAL_FIELD_CONFIG.map(({ key, label, unit }) => (
                 <Controller
