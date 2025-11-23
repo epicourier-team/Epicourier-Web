@@ -1,4 +1,9 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import "@testing-library/jest-dom";
+import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import NutrientsPage from "../../src/app/dashboard/nutrients/page";
 
