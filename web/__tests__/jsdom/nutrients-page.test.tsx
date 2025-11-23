@@ -159,7 +159,7 @@ describe("NutrientsPage", () => {
     });
 
     const calls = (global.fetch as jest.Mock).mock.calls.map((c) => c[0]);
-    expect(calls.length).toBe(16);
+    expect(calls.length).toBe(15);
     expect(calls[0]).toBe("/api/nutrients/daily?period=day&date=2025-11-22");
     expect(calls.some((c) => c.includes("period=week"))).toBe(true);
     expect(calls.some((c) => c.includes("period=month"))).toBe(true);

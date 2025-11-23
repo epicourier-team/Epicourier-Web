@@ -1,19 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Area,
-  AreaChart,
-  Cell,
-  CartesianGrid,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Cell, CartesianGrid, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
   Activity,
   Apple,
@@ -43,6 +31,32 @@ type TrendPoint = {
 
 const formatDateInput = (date: Date) => date.toLocaleDateString("en-CA");
 
+const normalizeTrend = (trend: TrendPoint[]): TrendPoint[] => {
+  if (!trend.length) return [];
+  // Log compression to suppress very large values and lift smaller ones
+  const compress = (v: number) => Math.log1p(Math.max(0, v));
+  const compressed = trend.map((t) => ({
+    ...t,
+    calories: compress(t.calories),
+    protein: compress(t.protein),
+    carbs: compress(t.carbs),
+    fats: compress(t.fats),
+  }));
+
+  const maxVal = Math.max(
+    ...compressed.flatMap((t) => [t.calories, t.protein, t.carbs, t.fats].map((v) => Math.abs(v)))
+  );
+  if (maxVal === 0 || !Number.isFinite(maxVal)) return compressed;
+
+  return compressed.map((t) => ({
+    ...t,
+    calories: t.calories / maxVal,
+    protein: t.protein / maxVal,
+    carbs: t.carbs / maxVal,
+    fats: t.fats / maxVal,
+  }));
+};
+
 const emptyDaily: DailyNutrient = {
   date: "N/A",
   calories_kcal: 0,
@@ -65,6 +79,7 @@ export default function NutrientsPage() {
   const [pastSeven, setPastSeven] = useState<TrendPoint[]>([]);
   const [weekly, setWeekly] = useState<WeeklyNutrient[]>([]);
   const [monthly, setMonthly] = useState<MonthlyNutrient[]>([]);
+  const [monthRange, setMonthRange] = useState<3 | 6 | 12>(3);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -87,17 +102,22 @@ export default function NutrientsPage() {
     return dates;
   };
 
-  const getPastWeeks = (count: number, reference: Date): Date[] => {
-    const startOfWeek = new Date(reference);
-    const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
-    startOfWeek.setDate(diff);
+  const getCurrentMonthWeeks = (reference: Date): Date[] => {
+    const startOfMonth = new Date(reference.getFullYear(), reference.getMonth(), 1);
+    const endOfMonth = new Date(reference.getFullYear(), reference.getMonth() + 1, 0);
+
+    const startMonday = new Date(startOfMonth);
+    const day = startMonday.getDay();
+    const diff = startMonday.getDate() - day + (day === 0 ? -6 : 1);
+    startMonday.setDate(diff);
 
     const weeks: Date[] = [];
-    for (let i = count - 1; i >= 0; i--) {
-      const d = new Date(startOfWeek);
-      d.setDate(startOfWeek.getDate() - i * 7);
-      weeks.push(d);
+    const cursor = new Date(startMonday);
+    while (cursor <= endOfMonth) {
+      if (cursor.getMonth() === reference.getMonth()) {
+        weeks.push(new Date(cursor));
+      }
+      cursor.setDate(cursor.getDate() + 7);
     }
     return weeks;
   };
@@ -120,8 +140,8 @@ export default function NutrientsPage() {
       const todayStr = formatDateInput(todayDate);
 
       const dailyDates = getPastDates(7, todayDate).map((d) => formatDateInput(d));
-      const weeklyDates = getPastWeeks(4, todayDate).map((d) => formatDateInput(d));
-      const monthlyDates = getPastMonths(4, todayDate).map((d) => formatDateInput(d));
+      const weeklyDates = getCurrentMonthWeeks(todayDate).map((d) => formatDateInput(d));
+      const monthlyDates = getPastMonths(monthRange, todayDate).map((d) => formatDateInput(d));
 
       const [todaySummary, dailyTrendSummaries, weeklySummaries, monthlySummaries] =
         await Promise.all([
@@ -160,7 +180,7 @@ export default function NutrientsPage() {
     } finally {
       setLoading(false);
     }
-  }, [fetchSummary]);
+  }, [fetchSummary, monthRange]);
 
   useEffect(() => {
     fetchNutrientData();
@@ -200,6 +220,10 @@ export default function NutrientsPage() {
       })),
     [monthly]
   );
+
+  const pastSevenNormalized = useMemo(() => normalizeTrend(pastSeven), [pastSeven]);
+  const weeklyTrendNormalized = useMemo(() => normalizeTrend(weeklyTrend), [weeklyTrend]);
+  const monthlyTrendNormalized = useMemo(() => normalizeTrend(monthlyTrend), [monthlyTrend]);
 
   if (loading) {
     return (
@@ -369,37 +393,22 @@ export default function NutrientsPage() {
           </div>
         </div>
         <div className="h-72 w-full">
-          {pastSeven && pastSeven.length > 0 ? (
+          {pastSevenNormalized && pastSevenNormalized.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={pastSeven} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="dailyCal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="dailyPro" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="dailyCarb" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#eab308" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#eab308" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="dailyFat" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+              <LineChart
+                data={pastSevenNormalized}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <YAxis width={48} tick={{ fontSize: 12 }} />
                 <Tooltip />
                 <Legend />
-                <Area type="monotone" dataKey="calories" stroke="#f97316" fill="url(#dailyCal)" />
-                <Area type="monotone" dataKey="protein" stroke="#ef4444" fill="url(#dailyPro)" />
-                <Area type="monotone" dataKey="carbs" stroke="#eab308" fill="url(#dailyCarb)" />
-                <Area type="monotone" dataKey="fats" stroke="#22c55e" fill="url(#dailyFat)" />
-              </AreaChart>
+                <Line type="monotone" dataKey="calories" stroke="#f97316" strokeWidth={3} />
+                <Line type="monotone" dataKey="protein" stroke="#ef4444" strokeWidth={3} />
+                <Line type="monotone" dataKey="carbs" stroke="#eab308" strokeWidth={3} />
+                <Line type="monotone" dataKey="fats" stroke="#22c55e" strokeWidth={3} />
+              </LineChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex h-full items-center justify-center text-sm font-semibold text-gray-600">
@@ -423,61 +432,19 @@ export default function NutrientsPage() {
             </div>
           </div>
           <div className="h-72 w-full">
-            {weeklyTrend && weeklyTrend.length > 0 ? (
+            {weeklyTrendNormalized && weeklyTrendNormalized.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={weeklyTrend} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="weeklyCal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="weeklyPro" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="weeklyCarb" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#eab308" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#eab308" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="weeklyFat" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
+                <LineChart data={weeklyTrendNormalized} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
+                  <YAxis width={48} tick={{ fontSize: 12 }} />
                   <Tooltip />
                   <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="calories"
-                    stroke="#f97316"
-                    fillOpacity={1}
-                    fill="url(#weeklyCal)"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="protein"
-                    stroke="#ef4444"
-                    fillOpacity={1}
-                    fill="url(#weeklyPro)"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="carbs"
-                    stroke="#eab308"
-                    fillOpacity={1}
-                    fill="url(#weeklyCarb)"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="fats"
-                    stroke="#22c55e"
-                    fillOpacity={1}
-                    fill="url(#weeklyFat)"
-                  />
-                </AreaChart>
+                  <Line type="monotone" dataKey="calories" stroke="#f97316" strokeWidth={3} />
+                  <Line type="monotone" dataKey="protein" stroke="#ef4444" strokeWidth={3} />
+                  <Line type="monotone" dataKey="carbs" stroke="#eab308" strokeWidth={3} />
+                  <Line type="monotone" dataKey="fats" stroke="#22c55e" strokeWidth={3} />
+                </LineChart>
               </ResponsiveContainer>
             ) : (
               <div className="flex h-full items-center justify-center text-sm font-semibold text-gray-600">
@@ -495,65 +462,40 @@ export default function NutrientsPage() {
             <ChartArea className="size-5 text-emerald-700" />
             <div>
               <h3 className="brutalism-text-bold text-xl uppercase">Monthly Trend</h3>
-              <p className="text-sm font-semibold text-gray-600">Month-over-month smooth lines</p>
+              <p className="text-sm font-semibold text-gray-600">
+                Last {monthRange} month{monthRange > 1 ? "s" : ""}
+              </p>
+            </div>
+            <div className="ml-auto flex gap-2">
+              {[3, 6, 12].map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setMonthRange(range as 3 | 6 | 12)}
+                  className={`rounded-none border-2 px-2 py-1 text-xs font-bold uppercase transition ${
+                    monthRange === range
+                      ? "bg-black text-white"
+                      : "bg-white text-black hover:bg-yellow-200"
+                  }`}
+                >
+                  {range}m
+                </button>
+              ))}
             </div>
           </div>
           <div className="h-72 w-full">
-            {monthlyTrend && monthlyTrend.length > 0 ? (
+            {monthlyTrendNormalized && monthlyTrendNormalized.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={monthlyTrend} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="monthlyCal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#fb7185" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#fb7185" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="monthlyPro" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="monthlyCarb" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#eab308" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#eab308" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="monthlyFat" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
+                <LineChart data={monthlyTrendNormalized} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
+                  <YAxis width={48} tick={{ fontSize: 12 }} />
                   <Tooltip />
                   <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="calories"
-                    stroke="#fb7185"
-                    fillOpacity={1}
-                    fill="url(#monthlyCal)"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="protein"
-                    stroke="#22c55e"
-                    fillOpacity={1}
-                    fill="url(#monthlyPro)"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="carbs"
-                    stroke="#eab308"
-                    fillOpacity={1}
-                    fill="url(#monthlyCarb)"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="fats"
-                    stroke="#0ea5e9"
-                    fillOpacity={1}
-                    fill="url(#monthlyFat)"
-                  />
-                </AreaChart>
+                  <Line type="monotone" dataKey="calories" stroke="#fb7185" strokeWidth={3} />
+                  <Line type="monotone" dataKey="protein" stroke="#22c55e" strokeWidth={3} />
+                  <Line type="monotone" dataKey="carbs" stroke="#eab308" strokeWidth={3} />
+                  <Line type="monotone" dataKey="fats" stroke="#0ea5e9" strokeWidth={3} />
+                </LineChart>
               </ResponsiveContainer>
             ) : (
               <div className="flex h-full items-center justify-center text-sm font-semibold text-gray-600">
