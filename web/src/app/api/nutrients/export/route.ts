@@ -265,10 +265,12 @@ function generatePDF(data: NutrientRow[], startDate: string, endDate: string): s
  * 
  * Query parameters:
  * - format: "csv" or "pdf" (default: "csv")
+ *   Note: "pdf" format returns a text-based summary report, not a true PDF file.
+ *   The format parameter name is maintained for API consistency and simplicity.
  * - start: Start date in YYYY-MM-DD format (required)
  * - end: End date in YYYY-MM-DD format (required)
  * 
- * Returns nutrient data as downloadable CSV or PDF file.
+ * Returns nutrient data as downloadable CSV or text-based summary report.
  */
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -340,7 +342,9 @@ export async function GET(request: Request) {
         },
       });
     } else {
-      // PDF format (simple text-based report)
+      // PDF format - returns a text-based summary report
+      // Note: Uses "pdf" in format parameter for simplicity, but generates a .txt file
+      // Future enhancement: Could implement actual PDF generation with a library
       const pdfContent = generatePDF(data, startParam, endParam);
       const filename = `nutrition-report-${startParam}-to-${endParam}.txt`;
 

@@ -150,7 +150,7 @@ export default function NutrientsPage() {
               className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg border-2 border-black bg-white font-bold uppercase text-black transition-all hover:bg-blue-100"
             >
               <Download className="mr-2 size-4" />
-              {exporting ? "Exporting..." : "Export PDF"}
+              {exporting ? "Exporting..." : "Export Report"}
             </Button>
           </div>
         </div>

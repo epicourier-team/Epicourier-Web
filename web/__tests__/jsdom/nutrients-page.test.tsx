@@ -269,7 +269,7 @@ describe("NutrientsPage", () => {
       expect(screen.getByText("Export CSV")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("Export PDF")).toBeInTheDocument();
+    expect(screen.getByText("Export Report")).toBeInTheDocument();
   });
 
   it("calls export API when CSV button is clicked", async () => {
@@ -337,7 +337,7 @@ describe("NutrientsPage", () => {
     removeChildSpy.mockRestore();
   });
 
-  it("calls export API when PDF button is clicked", async () => {
+  it("calls export API when Report button is clicked", async () => {
     const mockData = {
       daily: {
         date: "2025-11-22",
@@ -370,7 +370,7 @@ describe("NutrientsPage", () => {
     render(<NutrientsPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Export PDF")).toBeInTheDocument();
+      expect(screen.getByText("Export Report")).toBeInTheDocument();
     });
 
     // Mock document methods after render
@@ -387,8 +387,8 @@ describe("NutrientsPage", () => {
     appendChildSpy.mockImplementation(() => mockLink as unknown as Node);
     removeChildSpy.mockImplementation(() => mockLink as unknown as Node);
 
-    const pdfButton = screen.getByText("Export PDF");
-    fireEvent.click(pdfButton);
+    const reportButton = screen.getByText("Export Report");
+    fireEvent.click(reportButton);
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
