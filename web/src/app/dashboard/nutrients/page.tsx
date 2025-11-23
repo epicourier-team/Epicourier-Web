@@ -20,7 +20,7 @@ export default function NutrientsPage() {
       try {
         setLoading(true);
         const response = await fetch("/api/nutrients/daily?period=day");
-        
+
         if (!response.ok) {
           throw new Error("Failed to fetch nutrient data");
         }
@@ -86,7 +86,9 @@ export default function NutrientsPage() {
               <Scale className="size-5 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="brutalism-text-bold text-3xl">{nutrients?.calories_kcal.toFixed(0) || 0}</div>
+              <div className="brutalism-text-bold text-3xl">
+                {nutrients?.calories_kcal.toFixed(0) || 0}
+              </div>
               <p className="text-xs font-semibold text-gray-600">kcal</p>
             </CardContent>
           </Card>
@@ -97,7 +99,9 @@ export default function NutrientsPage() {
               <Beef className="size-5 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="brutalism-text-bold text-3xl">{nutrients?.protein_g.toFixed(1) || 0}</div>
+              <div className="brutalism-text-bold text-3xl">
+                {nutrients?.protein_g.toFixed(1) || 0}
+              </div>
               <p className="text-xs font-semibold text-gray-600">grams</p>
             </CardContent>
           </Card>
@@ -108,7 +112,9 @@ export default function NutrientsPage() {
               <Apple className="size-5 text-yellow-600" />
             </CardHeader>
             <CardContent>
-              <div className="brutalism-text-bold text-3xl">{nutrients?.carbs_g.toFixed(1) || 0}</div>
+              <div className="brutalism-text-bold text-3xl">
+                {nutrients?.carbs_g.toFixed(1) || 0}
+              </div>
               <p className="text-xs font-semibold text-gray-600">grams</p>
             </CardContent>
           </Card>
@@ -119,7 +125,9 @@ export default function NutrientsPage() {
               <Activity className="size-5 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="brutalism-text-bold text-3xl">{nutrients?.fats_g.toFixed(1) || 0}</div>
+              <div className="brutalism-text-bold text-3xl">
+                {nutrients?.fats_g.toFixed(1) || 0}
+              </div>
               <p className="text-xs font-semibold text-gray-600">grams</p>
             </CardContent>
           </Card>
@@ -133,7 +141,9 @@ export default function NutrientsPage() {
           <Card className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="text-sm font-bold uppercase">Other Tracked Values</CardTitle>
-              <CardDescription className="font-semibold">Additional nutrient information</CardDescription>
+              <CardDescription className="font-semibold">
+                Additional nutrient information
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex justify-between border-b-2 border-gray-200 pb-1">
@@ -169,7 +179,9 @@ export default function NutrientsPage() {
           <Card className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg bg-amber-50 transition-shadow">
             <CardHeader>
               <CardTitle className="text-sm font-bold uppercase">Coming Soon</CardTitle>
-              <CardDescription className="font-semibold">More features in development</CardDescription>
+              <CardDescription className="font-semibold">
+                More features in development
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="rounded-none border-2 border-dashed border-gray-400 bg-white p-3 text-center">
@@ -189,7 +201,8 @@ export default function NutrientsPage() {
       {/* Info Footer */}
       <div className="brutalism-card brutalism-shadow bg-blue-50 p-6">
         <p className="text-center font-semibold text-gray-700">
-          💡 Tip: Your nutrient data is calculated from the meals you&apos;ve logged in your calendar
+          💡 Tip: Your nutrient data is calculated from the meals you&apos;ve logged in your
+          calendar
         </p>
       </div>
     </div>

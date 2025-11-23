@@ -228,7 +228,9 @@ describe("NutrientsPage", () => {
     render(<NutrientsPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Your nutrient data is calculated from the meals/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Your nutrient data is calculated from the meals/i)
+      ).toBeInTheDocument();
     });
   });
 });
