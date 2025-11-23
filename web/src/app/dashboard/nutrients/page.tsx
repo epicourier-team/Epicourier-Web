@@ -7,8 +7,6 @@ import {
   Cell,
   CartesianGrid,
   Legend,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -175,7 +173,7 @@ export default function NutrientsPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-0">
       {/* Page Header */}
-      <div className="brutalism-card brutalism-shadow-lg bg-gradient-to-r from-emerald-100 to-teal-100 p-6">
+      <div className="brutalism-card brutalism-shadow-lg bg-linear-to-r from-emerald-100 to-teal-100 p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="brutalism-text-bold mb-2 text-4xl uppercase">Nutrient Tracking</h1>
@@ -309,17 +307,59 @@ export default function NutrientsPage() {
           <div className="h-72 w-full">
             {weeklyTrend && weeklyTrend.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={weeklyTrend}>
-                  <CartesianGrid strokeDasharray="4 4" stroke="#000" />
+                <AreaChart data={weeklyTrend} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="weeklyCal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="weeklyPro" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="weeklyCarb" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#eab308" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#eab308" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="weeklyFat" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                   <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="calories" stroke="#f97316" strokeWidth={3} />
-                  <Line type="monotone" dataKey="protein" stroke="#ef4444" strokeWidth={3} />
-                  <Line type="monotone" dataKey="carbs" stroke="#eab308" strokeWidth={3} />
-                  <Line type="monotone" dataKey="fats" stroke="#22c55e" strokeWidth={3} />
-                </LineChart>
+                  <Area
+                    type="monotone"
+                    dataKey="calories"
+                    stroke="#f97316"
+                    fillOpacity={1}
+                    fill="url(#weeklyCal)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="protein"
+                    stroke="#ef4444"
+                    fillOpacity={1}
+                    fill="url(#weeklyPro)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="carbs"
+                    stroke="#eab308"
+                    fillOpacity={1}
+                    fill="url(#weeklyCarb)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="fats"
+                    stroke="#22c55e"
+                    fillOpacity={1}
+                    fill="url(#weeklyFat)"
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             ) : (
               <div className="flex h-full items-center justify-center text-sm font-semibold text-gray-600">
@@ -343,16 +383,58 @@ export default function NutrientsPage() {
           <div className="h-72 w-full">
             {monthlyTrend && monthlyTrend.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={monthlyTrend}>
-                  <CartesianGrid strokeDasharray="4 4" stroke="#000" />
+                <AreaChart data={monthlyTrend} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="monthlyCal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#fb7185" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#fb7185" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="monthlyPro" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="monthlyCarb" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#eab308" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#eab308" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="monthlyFat" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                   <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip />
                   <Legend />
-                  <Area type="monotone" dataKey="calories" stroke="#fb7185" fill="#fecdd3" />
-                  <Area type="monotone" dataKey="protein" stroke="#22c55e" fill="#bbf7d0" />
-                  <Area type="monotone" dataKey="carbs" stroke="#eab308" fill="#fef08a" />
-                  <Area type="monotone" dataKey="fats" stroke="#0ea5e9" fill="#bae6fd" />
+                  <Area
+                    type="monotone"
+                    dataKey="calories"
+                    stroke="#fb7185"
+                    fillOpacity={1}
+                    fill="url(#monthlyCal)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="protein"
+                    stroke="#22c55e"
+                    fillOpacity={1}
+                    fill="url(#monthlyPro)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="carbs"
+                    stroke="#eab308"
+                    fillOpacity={1}
+                    fill="url(#monthlyCarb)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="fats"
+                    stroke="#0ea5e9"
+                    fillOpacity={1}
+                    fill="url(#monthlyFat)"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (

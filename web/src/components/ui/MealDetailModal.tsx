@@ -167,15 +167,14 @@ export default function MealDetailModal({
             </p>
           )}
 
-          {/* one data  */}
-          {isPast && !selected.status ? (
-            <button
-              disabled
-              className="brutalism-border mb-3 w-full cursor-not-allowed rounded-none bg-gray-400 px-4 py-2 font-bold text-white shadow-none"
-            >
-              ❌ Expired Meal
-            </button>
-          ) : selected.status ? (
+          {isPast && (
+            <p className="mb-2 w-full text-center text-xs font-semibold text-gray-600">
+              Past meal — status can still be updated.
+            </p>
+          )}
+
+          {/* status controls */}
+          {selected.status ? (
             <button
               onClick={() => handleSingleUpdate(selected.id, false)}
               disabled={busy}

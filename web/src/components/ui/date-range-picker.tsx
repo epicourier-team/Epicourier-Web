@@ -16,7 +16,7 @@ export default function DateRangePicker({ value, onChange, onApply }: Props) {
     <div className="flex flex-wrap items-end gap-3 rounded-none border-2 border-black bg-white px-3 py-2 shadow-[6px_6px_0_0_#000]">
       <div className="flex items-center gap-2">
         <CalendarDays className="size-4 text-indigo-700" />
-        <label className="text-xs font-bold uppercase text-gray-700" htmlFor="date-range-start">
+        <label className="text-xs font-bold text-gray-700 uppercase" htmlFor="date-range-start">
           Start
         </label>
         <input
@@ -28,7 +28,7 @@ export default function DateRangePicker({ value, onChange, onApply }: Props) {
         />
       </div>
       <div className="flex items-center gap-2">
-        <label className="text-xs font-bold uppercase text-gray-700" htmlFor="date-range-end">
+        <label className="text-xs font-bold text-gray-700 uppercase" htmlFor="date-range-end">
           End
         </label>
         <input
