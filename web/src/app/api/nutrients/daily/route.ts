@@ -1,46 +1,10 @@
 import { createClient } from "@/utils/supabase/server";
+import { getPublicUserId } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import type { DailyNutrient, WeeklyNutrient, MonthlyNutrient, NutrientSummaryResponse } from "@/types/data";
-
-/**
- * Helper function:
- * Get numeric ID (bigint) from public."User" table.
- */
-async function getPublicUserId(supabase: SupabaseClient<Database>): Promise<number> {
-  const {
-    data: { user: authUser },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !authUser) {
-    throw new Error("User not authenticated");
-  }
-
-  if (!authUser.email) {
-    throw new Error("Authenticated user does not have an email.");
-  }
-
-  const { data: publicUsers, error: profileError } = await supabase
-    .from("User")
-    .select("id")
-    .eq("email", authUser.email)
-    .limit(1);
-
-  if (profileError) {
-    console.error("Error fetching public user profile:", profileError.message);
-    throw new Error("Error fetching user profile.");
-  }
-
-  if (!publicUsers || publicUsers.length === 0) {
-    throw new Error("Public user profile not found.");
-  }
-
-  const publicUser = publicUsers[0];
-  return publicUser.id;
-}
 
 /**
  * GET /api/nutrients/daily?period=day|week|month&date=YYYY-MM-DD

@@ -71,8 +71,8 @@ export default function NutrientsPage() {
       
       // Get filename from Content-Disposition header or use default
       const contentDisposition = response.headers.get("Content-Disposition");
-      const filenameMatch = contentDisposition?.match(/filename="?(.+)"?/);
-      const filename = filenameMatch ? filenameMatch[1] : `nutrition-export.${format === "csv" ? "csv" : "txt"}`;
+      const filenameMatch = contentDisposition?.match(/filename="?([^"]+)"?/);
+      const filename = filenameMatch ? filenameMatch[1] : `nutrition-export.${format}`;
       
       link.download = filename;
       document.body.appendChild(link);

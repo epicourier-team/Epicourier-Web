@@ -258,7 +258,7 @@ describe("GET /api/nutrients/export", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toBe("text/plain");
     expect(res.headers.get("Content-Disposition")).toContain("attachment");
-    expect(res.headers.get("Content-Disposition")).toContain("nutrition-2025-01-01-to-2025-01-31.txt");
+    expect(res.headers.get("Content-Disposition")).toContain("nutrition-report-2025-01-01-to-2025-01-31.txt");
     
     // Check PDF content
     expect(text).toContain("NUTRITION SUMMARY REPORT");

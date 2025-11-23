@@ -1,45 +1,9 @@
 import { createClient } from "@/utils/supabase/server";
+import { getPublicUserId } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
-
-/**
- * Helper function:
- * Get numeric ID (bigint) from public."User" table.
- */
-async function getPublicUserId(supabase: SupabaseClient<Database>): Promise<number> {
-  const {
-    data: { user: authUser },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !authUser) {
-    throw new Error("User not authenticated");
-  }
-
-  if (!authUser.email) {
-    throw new Error("Authenticated user does not have an email.");
-  }
-
-  const { data: publicUsers, error: profileError } = await supabase
-    .from("User")
-    .select("id")
-    .eq("email", authUser.email)
-    .limit(1);
-
-  if (profileError) {
-    console.error("Error fetching public user profile:", profileError.message);
-    throw new Error("Error fetching user profile.");
-  }
-
-  if (!publicUsers || publicUsers.length === 0) {
-    throw new Error("Public user profile not found.");
-  }
-
-  const publicUser = publicUsers[0];
-  return publicUser.id;
-}
 
 interface NutrientRow {
   date: string;
@@ -213,12 +177,12 @@ function generatePDF(data: NutrientRow[], startDate: string, endDate: string): s
   const lines: string[] = [];
   
   lines.push("NUTRITION SUMMARY REPORT");
-  lines.push("=" .repeat(50));
+  lines.push("=".repeat(50));
   lines.push("");
   lines.push(`Period: ${startDate} to ${endDate}`);
   lines.push(`Generated: ${new Date().toLocaleDateString()}`);
   lines.push("");
-  lines.push("=" .repeat(50));
+  lines.push("=".repeat(50));
   lines.push("");
 
   if (data.length === 0) {
@@ -376,9 +340,9 @@ export async function GET(request: Request) {
         },
       });
     } else {
-      // PDF format (simple text-based)
+      // PDF format (simple text-based report)
       const pdfContent = generatePDF(data, startParam, endParam);
-      const filename = `nutrition-${startParam}-to-${endParam}.txt`;
+      const filename = `nutrition-report-${startParam}-to-${endParam}.txt`;
 
       return new NextResponse(pdfContent, {
         status: 200,
