@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 
 interface CalendarApiResponse {
   id: number;
@@ -91,11 +92,12 @@ export default function MealDetailModal({
         setBusy(true);
         await onUpdateStatus(entryId, newStatus);
         await reloadEvents();
+        onClose();
       } finally {
         setBusy(false);
       }
     },
-    [busy, onUpdateStatus, reloadEvents]
+    [busy, onUpdateStatus, reloadEvents, onClose]
   );
 
   // update all
@@ -117,34 +119,37 @@ export default function MealDetailModal({
   if (!isOpen || len === 0 || !selected) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl rounded-xl bg-white p-6 shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="brutalism-card brutalism-shadow-xl relative w-full max-w-2xl rounded-none p-8">
         <div className="flex flex-col items-center">
           {!!selected.Recipe?.image_url && (
-            <img
-              src={selected.Recipe.image_url}
-              alt={selected.Recipe.name ?? "meal"}
-              className="mb-4 h-48 w-full rounded-lg object-cover"
-            />
+            <div className="brutalism-border relative mb-4 h-48 w-full">
+              <Image
+                src={selected.Recipe.image_url}
+                alt={selected.Recipe.name ?? "meal"}
+                fill
+                className="rounded-none object-cover"
+              />
+            </div>
           )}
 
           {/* title and arrow */}
           <div className="mb-2 flex w-full items-center justify-between">
             <button
               onClick={handlePrev}
-              className={`rounded-full p-2 hover:bg-gray-100 ${len <= 1 ? "invisible" : ""}`}
+              className={`brutalism-border brutalism-shadow-sm brutalism-hover brutalism-active rounded-none bg-white p-2 ${len <= 1 ? "invisible" : ""}`}
               aria-label="Previous meal"
             >
               <ChevronLeft className="h-6 w-6" />
             </button>
 
-            <h3 className="flex-1 truncate px-2 text-center text-2xl font-bold capitalize">
+            <h3 className="brutalism-heading flex-1 truncate px-2 text-center text-2xl capitalize">
               {selected.Recipe?.name ?? selected.meal_type}
             </h3>
 
             <button
               onClick={handleNext}
-              className={`rounded-full p-2 hover:bg-gray-100 ${len <= 1 ? "invisible" : ""}`}
+              className={`brutalism-border brutalism-shadow-sm brutalism-hover brutalism-active rounded-none bg-white p-2 ${len <= 1 ? "invisible" : ""}`}
               aria-label="Next meal"
             >
               <ChevronRight className="h-6 w-6" />
@@ -166,7 +171,7 @@ export default function MealDetailModal({
           {isPast && !selected.status ? (
             <button
               disabled
-              className="mb-3 w-full cursor-not-allowed rounded-lg bg-gray-400 px-4 py-2 text-white"
+              className="brutalism-border mb-3 w-full cursor-not-allowed rounded-none bg-gray-400 px-4 py-2 font-bold text-white shadow-none"
             >
               ❌ Expired Meal
             </button>
@@ -174,7 +179,7 @@ export default function MealDetailModal({
             <button
               onClick={() => handleSingleUpdate(selected.id, false)}
               disabled={busy}
-              className="mb-3 w-full rounded-lg bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600 disabled:opacity-60"
+              className="brutalism-border brutalism-shadow brutalism-hover brutalism-active mb-3 w-full rounded-none bg-yellow-300 px-4 py-2 font-bold disabled:opacity-60"
             >
               Mark as Incomplete
             </button>
@@ -182,7 +187,7 @@ export default function MealDetailModal({
             <button
               onClick={() => handleSingleUpdate(selected.id, true)}
               disabled={busy}
-              className="mb-3 w-full rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-60"
+              className="brutalism-button-primary mb-3 w-full rounded-none px-4 py-2 disabled:opacity-60"
             >
               ✅ Mark as Completed
             </button>
@@ -194,8 +199,8 @@ export default function MealDetailModal({
           <button
             onClick={() => handleBulkUpdate(!allCompleted)}
             disabled={busy}
-            className={`rounded-lg px-4 py-2 text-white ${
-              allCompleted ? "bg-yellow-500 hover:bg-yellow-600" : "bg-green-600 hover:bg-green-700"
+            className={`brutalism-border brutalism-shadow brutalism-hover brutalism-active rounded-none px-4 py-2 font-bold ${
+              allCompleted ? "bg-yellow-300" : "bg-emerald-400"
             } disabled:opacity-60`}
           >
             {allCompleted ? "Mark All as Incomplete" : "✅ Mark All as Completed"}
@@ -204,7 +209,7 @@ export default function MealDetailModal({
           <button
             onClick={onClose}
             disabled={busy}
-            className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300 disabled:opacity-60"
+            className="brutalism-button-neutral rounded-none px-4 py-2 disabled:opacity-60"
           >
             Close
           </button>

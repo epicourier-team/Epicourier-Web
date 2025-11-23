@@ -65,9 +65,7 @@ describe("useRecipes", () => {
   });
 
   it("passes ingredientIds parameter to fetch", async () => {
-    renderHook(() =>
-      useRecipes({ ingredientIds: [1, 2, 3], page: 1, limit: 20 })
-    );
+    renderHook(() => useRecipes({ ingredientIds: [1, 2, 3], page: 1, limit: 20 }));
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
@@ -125,12 +123,9 @@ describe("useRecipes", () => {
   });
 
   it("aborts previous request when filters change", async () => {
-    const { rerender } = renderHook(
-      ({ filters }) => useRecipes(filters),
-      {
-        initialProps: { filters: { page: 1, limit: 20 } },
-      }
-    );
+    const { rerender } = renderHook(({ filters }) => useRecipes(filters), {
+      initialProps: { filters: { page: 1, limit: 20 } },
+    });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -192,12 +187,9 @@ describe("useRecipes", () => {
   });
 
   it("refetches when ingredientIds change", async () => {
-    const { rerender } = renderHook(
-      ({ filters }) => useRecipes(filters),
-      {
-        initialProps: { filters: { ingredientIds: [1], page: 1, limit: 20 } },
-      }
-    );
+    const { rerender } = renderHook(({ filters }) => useRecipes(filters), {
+      initialProps: { filters: { ingredientIds: [1], page: 1, limit: 20 } },
+    });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -211,12 +203,9 @@ describe("useRecipes", () => {
   });
 
   it("refetches when tagIds change", async () => {
-    const { rerender } = renderHook(
-      ({ filters }) => useRecipes(filters),
-      {
-        initialProps: { filters: { tagIds: [5], page: 1, limit: 20 } },
-      }
-    );
+    const { rerender } = renderHook(({ filters }) => useRecipes(filters), {
+      initialProps: { filters: { tagIds: [5], page: 1, limit: 20 } },
+    });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(1);

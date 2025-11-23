@@ -12,14 +12,14 @@ describe("MealDetailModal – full coverage", () => {
   const baseEntries = [
     {
       id: 1,
-      date: "2025-11-07",
+      date: "2030-01-01",
       meal_type: "lunch",
       status: false,
       Recipe: { id: 11, name: "Pasta", description: "Creamy pasta" },
     },
     {
       id: 2,
-      date: "2025-11-07",
+      date: "2030-01-01",
       meal_type: "dinner",
       status: false,
       Recipe: { id: 12, name: "Salad", description: "Fresh veggies" },
