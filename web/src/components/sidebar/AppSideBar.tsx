@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { createClient } from "@/utils/supabase/client";
-import { Calendar, ChefHat, ChevronUp, HelpCircle, Lightbulb, LogOut, User } from "lucide-react";
+import { Activity, Calendar, ChefHat, ChevronUp, HelpCircle, Lightbulb, LogOut, User } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -27,6 +27,7 @@ const menuItems = [
   { title: "Recipes", url: "/dashboard/recipes", icon: ChefHat },
   { title: "Calendar", url: "/dashboard/calendar", icon: Calendar },
   { title: "Recommender", url: "/dashboard/recommender", icon: Lightbulb },
+  { title: "Nutrients", url: "/dashboard/nutrients", icon: Activity },
 ];
 
 export function AppSidebar({ onLogout }: { onLogout: () => void }) {
