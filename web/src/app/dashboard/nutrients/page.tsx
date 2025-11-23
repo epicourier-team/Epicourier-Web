@@ -1,7 +1,9 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Apple, Beef, Scale } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { Activity, Apple, Beef, Download, Scale } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import type { DailyNutrient } from "@/types/data";
@@ -14,6 +16,8 @@ export default function NutrientsPage() {
   const [dailyData, setDailyData] = useState<DailyNutrient | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchNutrientData = async () => {
@@ -37,6 +41,60 @@ export default function NutrientsPage() {
 
     fetchNutrientData();
   }, []);
+
+  const handleExport = async (format: "csv" | "pdf") => {
+    try {
+      setExporting(true);
+
+      // Calculate date range - last 30 days
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+
+      const startParam = startDate.toISOString().split("T")[0];
+      const endParam = endDate.toISOString().split("T")[0];
+
+      const url = `/api/nutrients/export?format=${format}&start=${startParam}&end=${endParam}`;
+      
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Export failed");
+      }
+
+      // Get the blob and create a download link
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      
+      // Get filename from Content-Disposition header or use default
+      const contentDisposition = response.headers.get("Content-Disposition");
+      const filenameMatch = contentDisposition?.match(/filename="?(.+)"?/);
+      const filename = filenameMatch ? filenameMatch[1] : `nutrition-export.${format === "csv" ? "csv" : "txt"}`;
+      
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+
+      toast({
+        title: "Export Successful",
+        description: `Your nutrition data has been exported as ${format.toUpperCase()}.`,
+      });
+    } catch (err) {
+      console.error("Export error:", err);
+      toast({
+        variant: "destructive",
+        title: "Export Failed",
+        description: err instanceof Error ? err.message : "Failed to export data",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -70,10 +128,32 @@ export default function NutrientsPage() {
     <div className="mx-auto max-w-7xl space-y-8">
       {/* Page Header */}
       <div className="brutalism-card brutalism-shadow-lg bg-gradient-to-r from-emerald-100 to-teal-100 p-6">
-        <h1 className="brutalism-text-bold mb-2 text-4xl uppercase">Nutrient Tracking</h1>
-        <p className="text-lg font-semibold text-gray-700">
-          Monitor your daily nutritional intake from meals
-        </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="brutalism-text-bold mb-2 text-4xl uppercase">Nutrient Tracking</h1>
+            <p className="text-lg font-semibold text-gray-700">
+              Monitor your daily nutritional intake from meals
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => handleExport("csv")}
+              disabled={exporting}
+              className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg border-2 border-black bg-white font-bold uppercase text-black transition-all hover:bg-emerald-100"
+            >
+              <Download className="mr-2 size-4" />
+              {exporting ? "Exporting..." : "Export CSV"}
+            </Button>
+            <Button
+              onClick={() => handleExport("pdf")}
+              disabled={exporting}
+              className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg border-2 border-black bg-white font-bold uppercase text-black transition-all hover:bg-blue-100"
+            >
+              <Download className="mr-2 size-4" />
+              {exporting ? "Exporting..." : "Export PDF"}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Macronutrients Section */}

@@ -4,11 +4,22 @@
 
 import "@testing-library/jest-dom";
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import NutrientsPage from "../../src/app/dashboard/nutrients/page";
 
 // Mock fetch
 global.fetch = jest.fn();
+
+// Mock URL.createObjectURL and revokeObjectURL
+global.URL.createObjectURL = jest.fn(() => "blob:mock-url");
+global.URL.revokeObjectURL = jest.fn();
+
+// Mock toast hook
+jest.mock("../../src/hooks/use-toast", () => ({
+  useToast: () => ({
+    toast: jest.fn(),
+  }),
+}));
 
 describe("NutrientsPage", () => {
   beforeEach(() => {
@@ -229,6 +240,219 @@ describe("NutrientsPage", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Your nutrient data is calculated from the meals/i)).toBeInTheDocument();
+    });
+  });
+
+  it("renders export buttons", async () => {
+    const mockData = {
+      daily: {
+        date: "2025-11-22",
+        calories_kcal: 2000,
+        protein_g: 75,
+        carbs_g: 250,
+        fats_g: 65,
+        meal_count: 3,
+        user_id: "123",
+      },
+      weekly: [],
+      monthly: [],
+    };
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => mockData,
+    });
+
+    render(<NutrientsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Export CSV")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Export PDF")).toBeInTheDocument();
+  });
+
+  it("calls export API when CSV button is clicked", async () => {
+    const mockData = {
+      daily: {
+        date: "2025-11-22",
+        calories_kcal: 2000,
+        protein_g: 75,
+        carbs_g: 250,
+        fats_g: 65,
+        meal_count: 3,
+        user_id: "123",
+      },
+      weekly: [],
+      monthly: [],
+    };
+
+    const mockBlob = new Blob(["test,csv,data"], { type: "text/csv" });
+
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        blob: async () => mockBlob,
+        headers: new Headers({
+          "Content-Disposition": 'attachment; filename="nutrition-export.csv"',
+        }),
+      });
+
+    render(<NutrientsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Export CSV")).toBeInTheDocument();
+    });
+
+    // Mock document methods after render
+    const mockLink = {
+      href: "",
+      download: "",
+      click: jest.fn(),
+    };
+    const createElementSpy = jest.spyOn(document, "createElement");
+    const appendChildSpy = jest.spyOn(document.body, "appendChild");
+    const removeChildSpy = jest.spyOn(document.body, "removeChild");
+    
+    createElementSpy.mockReturnValue(mockLink as unknown as HTMLElement);
+    appendChildSpy.mockImplementation(() => mockLink as unknown as Node);
+    removeChildSpy.mockImplementation(() => mockLink as unknown as Node);
+
+    const csvButton = screen.getByText("Export CSV");
+    fireEvent.click(csvButton);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/nutrients/export?format=csv")
+      );
+    });
+
+    // Clean up spies
+    createElementSpy.mockRestore();
+    appendChildSpy.mockRestore();
+    removeChildSpy.mockRestore();
+  });
+
+  it("calls export API when PDF button is clicked", async () => {
+    const mockData = {
+      daily: {
+        date: "2025-11-22",
+        calories_kcal: 2000,
+        protein_g: 75,
+        carbs_g: 250,
+        fats_g: 65,
+        meal_count: 3,
+        user_id: "123",
+      },
+      weekly: [],
+      monthly: [],
+    };
+
+    const mockBlob = new Blob(["test pdf data"], { type: "text/plain" });
+
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        blob: async () => mockBlob,
+        headers: new Headers({
+          "Content-Disposition": 'attachment; filename="nutrition-export.txt"',
+        }),
+      });
+
+    render(<NutrientsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Export PDF")).toBeInTheDocument();
+    });
+
+    // Mock document methods after render
+    const mockLink = {
+      href: "",
+      download: "",
+      click: jest.fn(),
+    };
+    const createElementSpy = jest.spyOn(document, "createElement");
+    const appendChildSpy = jest.spyOn(document.body, "appendChild");
+    const removeChildSpy = jest.spyOn(document.body, "removeChild");
+    
+    createElementSpy.mockReturnValue(mockLink as unknown as HTMLElement);
+    appendChildSpy.mockImplementation(() => mockLink as unknown as Node);
+    removeChildSpy.mockImplementation(() => mockLink as unknown as Node);
+
+    const pdfButton = screen.getByText("Export PDF");
+    fireEvent.click(pdfButton);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/nutrients/export?format=pdf")
+      );
+    });
+
+    // Clean up spies
+    createElementSpy.mockRestore();
+    appendChildSpy.mockRestore();
+    removeChildSpy.mockRestore();
+  });
+
+  it("disables export buttons while exporting", async () => {
+    const mockData = {
+      daily: {
+        date: "2025-11-22",
+        calories_kcal: 2000,
+        protein_g: 75,
+        carbs_g: 250,
+        fats_g: 65,
+        meal_count: 3,
+        user_id: "123",
+      },
+      weekly: [],
+      monthly: [],
+    };
+
+    let resolveExport: (value: unknown) => void;
+    const exportPromise = new Promise((resolve) => {
+      resolveExport = resolve;
+    });
+
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData,
+      })
+      .mockReturnValueOnce(exportPromise);
+
+    render(<NutrientsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Export CSV")).toBeInTheDocument();
+    });
+
+    const csvButton = screen.getByText("Export CSV");
+    fireEvent.click(csvButton);
+
+    await waitFor(() => {
+      const exportingButtons = screen.getAllByText("Exporting...");
+      expect(exportingButtons.length).toBeGreaterThan(0);
+    });
+
+    // Resolve the export
+    const mockBlob = new Blob(["test"], { type: "text/csv" });
+    resolveExport({
+      ok: true,
+      blob: async () => mockBlob,
+      headers: new Headers(),
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Export CSV")).toBeInTheDocument();
     });
   });
 });
