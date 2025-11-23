@@ -254,7 +254,7 @@ function generatePDF(data: NutrientRow[], startDate: string, endDate: string): s
     }
   }
   
-  lines.push("=" .repeat(50));
+  lines.push("=".repeat(50));
   lines.push("End of Report");
   
   return lines.join("\n");
