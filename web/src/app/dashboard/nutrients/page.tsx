@@ -1,7 +1,22 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Cell, CartesianGrid, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Controller, type Resolver, useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Cell,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import {
   Activity,
   Apple,
@@ -10,12 +25,30 @@ import {
   PieChart as PieIcon,
   RefreshCcw,
   Scale,
+  Target,
 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group";
+import { useToast } from "@/hooks/use-toast";
 
 import type {
   DailyNutrient,
+  NutrientGoal,
   NutrientSummaryResponse,
   WeeklyNutrient,
   MonthlyNutrient,
@@ -28,6 +61,52 @@ type TrendPoint = {
   carbs: number;
   fats: number;
 };
+
+type GoalField = "calories_kcal" | "protein_g" | "carbs_g" | "fats_g" | "sodium_mg" | "fiber_g";
+
+const numericField = (label: string) =>
+  z.preprocess(
+    (val) => {
+      if (val === "" || val === null || typeof val === "undefined") {
+        return 0;
+      }
+      const num = typeof val === "number" ? val : Number(val);
+      return Number.isNaN(num) ? val : num;
+    },
+    z
+      .number()
+      .refine((val) => Number.isFinite(val), `${label} must be a number`)
+      .nonnegative({ message: `${label} must be 0 or greater` })
+  );
+
+const goalSchema = z.object({
+  calories_kcal: numericField("Calories"),
+  protein_g: numericField("Protein"),
+  carbs_g: numericField("Carbs"),
+  fats_g: numericField("Fats"),
+  sodium_mg: numericField("Sodium"),
+  fiber_g: numericField("Fiber"),
+});
+
+type GoalFormValues = z.infer<typeof goalSchema>;
+
+const GOAL_FIELD_CONFIG: { key: GoalField; label: string; unit: string }[] = [
+  { key: "calories_kcal", label: "Calories", unit: "kcal" },
+  { key: "protein_g", label: "Protein", unit: "g" },
+  { key: "carbs_g", label: "Carbs", unit: "g" },
+  { key: "fats_g", label: "Fats", unit: "g" },
+  { key: "sodium_mg", label: "Sodium", unit: "mg" },
+  { key: "fiber_g", label: "Fiber", unit: "g" },
+];
+
+const buildGoalFormDefaults = (goal?: NutrientGoal | null): GoalFormValues => ({
+  calories_kcal: goal?.calories_kcal ?? 0,
+  protein_g: goal?.protein_g ?? 0,
+  carbs_g: goal?.carbs_g ?? 0,
+  fats_g: goal?.fats_g ?? 0,
+  sodium_mg: goal?.sodium_mg ?? 0,
+  fiber_g: goal?.fiber_g ?? 0,
+});
 
 const formatDateInput = (date: Date) => date.toLocaleDateString("en-CA");
 
@@ -75,6 +154,7 @@ const emptyDaily: DailyNutrient = {
  * Displays daily snapshot plus weekly/monthly trends.
  */
 export default function NutrientsPage() {
+  const { toast } = useToast();
   const [daily, setDaily] = useState<DailyNutrient | null>(null);
   const [pastSeven, setPastSeven] = useState<TrendPoint[]>([]);
   const [weekly, setWeekly] = useState<WeeklyNutrient[]>([]);
@@ -82,6 +162,15 @@ export default function NutrientsPage() {
   const [monthRange, setMonthRange] = useState<3 | 6 | 12>(3);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [goal, setGoal] = useState<NutrientGoal | null>(null);
+  const [goalModalOpen, setGoalModalOpen] = useState(false);
+  const [goalLoading, setGoalLoading] = useState(false);
+  const [goalSaving, setGoalSaving] = useState(false);
+  const [goalError, setGoalError] = useState<string | null>(null);
+  const goalForm = useForm<GoalFormValues>({
+    resolver: zodResolver(goalSchema) as Resolver<GoalFormValues>,
+    defaultValues: buildGoalFormDefaults(goal),
+  });
 
   const fetchSummary = useCallback(async (period: "day" | "week" | "month", date: string) => {
     const response = await fetch(`/api/nutrients/daily?period=${period}&date=${date}`);
@@ -186,6 +275,73 @@ export default function NutrientsPage() {
     fetchNutrientData();
   }, [fetchNutrientData]);
 
+  const fetchGoal = useCallback(async () => {
+    try {
+      setGoalLoading(true);
+      setGoalError(null);
+      const response = await fetch("/api/nutrients/goals");
+      if (!response.ok) {
+        throw new Error("Failed to fetch nutrient goal");
+      }
+      const data: { goal: NutrientGoal | null } = await response.json();
+      setGoal(data.goal);
+      if (data.goal) {
+        goalForm.reset(buildGoalFormDefaults(data.goal));
+      }
+    } catch (err) {
+      console.error("Error fetching nutrient goal:", err);
+      setGoalError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setGoalLoading(false);
+    }
+  }, [goalForm]);
+
+  useEffect(() => {
+    fetchGoal();
+  }, [fetchGoal]);
+
+  const handleOpenGoalModal = () => {
+    setGoalModalOpen(true);
+  };
+
+  useEffect(() => {
+    if (goalModalOpen) {
+      goalForm.reset(buildGoalFormDefaults(goal));
+    }
+  }, [goal, goalForm, goalModalOpen]);
+
+  const onSubmitGoal = goalForm.handleSubmit(async (values) => {
+    try {
+      setGoalSaving(true);
+      const response = await fetch("/api/nutrients/goals", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error ?? "Failed to save goal");
+      }
+
+      setGoal(data.goal ?? null);
+      toast({
+        title: "Goal saved",
+        description: "Daily nutrient target updated",
+      });
+      setGoalModalOpen(false);
+    } catch (err) {
+      console.error("Error saving nutrient goal:", err);
+      toast({
+        title: "Save failed",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setGoalSaving(false);
+    }
+  });
+
   const dailyData = daily ?? emptyDaily;
 
   const dailyPieData = useMemo(
@@ -268,14 +424,29 @@ export default function NutrientsPage() {
               Today&apos;s intake plus weekly &amp; monthly trends
             </p>
           </div>
-          <button
-            className="brutalism-button inline-flex items-center gap-2 rounded-none px-4 py-2"
-            onClick={fetchNutrientData}
-            data-testid="refresh-button"
-          >
-            <RefreshCcw className="size-4" /> Refresh Data
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              className="brutalism-button inline-flex items-center gap-2 rounded-none px-4 py-2"
+              onClick={handleOpenGoalModal}
+              disabled={goalLoading}
+            >
+              <Target className="size-4" />
+              {goal ? "Edit Goal" : "Set Goal"}
+            </button>
+            <button
+              className="brutalism-button inline-flex items-center gap-2 rounded-none px-4 py-2"
+              onClick={fetchNutrientData}
+              data-testid="refresh-button"
+            >
+              <RefreshCcw className="size-4" /> Refresh Data
+            </button>
+          </div>
         </div>
+        {goalError && (
+          <p className="mt-3 text-sm font-semibold text-red-700">
+            Unable to load your goal: {goalError}
+          </p>
+        )}
       </div>
 
       {/* Macronutrients Section */}
@@ -434,7 +605,10 @@ export default function NutrientsPage() {
           <div className="h-72 w-full">
             {weeklyTrendNormalized && weeklyTrendNormalized.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={weeklyTrendNormalized} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <LineChart
+                  data={weeklyTrendNormalized}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                   <YAxis width={48} tick={{ fontSize: 12 }} />
@@ -485,7 +659,10 @@ export default function NutrientsPage() {
           <div className="h-72 w-full">
             {monthlyTrendNormalized && monthlyTrendNormalized.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={monthlyTrendNormalized} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <LineChart
+                  data={monthlyTrendNormalized}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                   <YAxis width={48} tick={{ fontSize: 12 }} />
@@ -577,6 +754,92 @@ export default function NutrientsPage() {
           calendar
         </div>
       </div>
+
+      <Dialog open={goalModalOpen} onOpenChange={setGoalModalOpen}>
+        <DialogContent
+          className="brutalism-card brutalism-shadow-lg border-4 border-black bg-white p-0 sm:max-w-xl"
+          showCloseButton={false}
+        >
+          <DialogHeader className="border-b-4 border-black bg-yellow-200 p-6">
+            <DialogTitle className="brutalism-text-bold flex items-center gap-2 text-2xl uppercase">
+              <Target className="size-5" />
+              {goal ? "Edit Daily Goals" : "Set Daily Goals"}
+            </DialogTitle>
+            <DialogDescription className="font-semibold text-gray-800">
+              Define how many calories and macros you aim for each day.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form id="nutrient-goal-form" onSubmit={onSubmitGoal} className="space-y-4 p-6">
+            <FieldGroup className="gap-4 md:grid md:grid-cols-2">
+              {GOAL_FIELD_CONFIG.map(({ key, label, unit }) => (
+                <Controller
+                  key={key}
+                  name={key}
+                  control={goalForm.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel
+                        htmlFor={`goal-${key}`}
+                        className="text-sm font-bold tracking-tight uppercase"
+                      >
+                        {label}
+                      </FieldLabel>
+                      <InputGroup>
+                        <InputGroupInput
+                          id={`goal-${key}`}
+                          type="number"
+                          inputMode="decimal"
+                          value={field.value ?? 0}
+                          onChange={(e) =>
+                            field.onChange(e.target.value === "" ? 0 : Number(e.target.value))
+                          }
+                          aria-invalid={fieldState.invalid}
+                          className="font-semibold"
+                        />
+                        <InputGroupAddon align="inline-end">
+                          <InputGroupText className="brutalism-text-bold text-xs uppercase">
+                            {unit}
+                          </InputGroupText>
+                        </InputGroupAddon>
+                      </InputGroup>
+                      <FieldDescription className="text-xs font-medium text-gray-600">
+                        Daily target for {label.toLowerCase()}
+                      </FieldDescription>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+              ))}
+            </FieldGroup>
+            {goalError && (
+              <p className="rounded-none border-2 border-red-600 bg-red-50 p-3 text-sm font-semibold text-red-700">
+                {goalError}
+              </p>
+            )}
+          </form>
+
+          <DialogFooter className="border-t-4 border-black bg-gray-100 p-6">
+            <div className="flex w-full gap-3">
+              <button
+                onClick={() => setGoalModalOpen(false)}
+                className="flex-1 border-2 border-black bg-white px-4 py-2 font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:-translate-x-px hover:translate-y-px hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none"
+                disabled={goalSaving}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="nutrient-goal-form"
+                className="flex-1 border-2 border-black bg-emerald-400 px-4 py-2 font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:-translate-x-px hover:translate-y-px hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none disabled:cursor-not-allowed disabled:opacity-80"
+                disabled={goalSaving}
+              >
+                {goalSaving ? "Saving..." : goal ? "Update Goal" : "Save Goal"}
+              </button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

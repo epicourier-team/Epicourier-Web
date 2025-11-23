@@ -69,6 +69,18 @@ export interface MonthlyNutrient extends NutrientData {
   days_tracked: number;
 }
 
+export interface NutrientGoal {
+  user_id: string;
+  calories_kcal: number | null;
+  protein_g: number | null;
+  carbs_g: number | null;
+  fats_g: number | null;
+  sodium_mg: number | null;
+  fiber_g: number | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
 /**
  * API response structure for nutrient summary endpoint
  */
