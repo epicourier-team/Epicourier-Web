@@ -1,7 +1,7 @@
 # Epicourier Sprint Tasks & Milestones
 
 **Document Version**: 1.0  
-**Last Updated**: November 17, 2025  
+**Last Updated**: November 23, 2025  
 **Current Phase**: Phase 1 Complete - Planning Phase 2
 
 ---
@@ -24,8 +24,8 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 ### 📊 Phase 2 Status Overview
 
 **Active Phase**: Phase 2 - Advanced Features (v1.1.0 - v1.3.0)  
-**Total Planned Issues**: 1  
-**Completed**: 1  
+**Total Planned Issues**: 2  
+**Completed**: 2  
 **In Progress**: 0  
 **Planned**: All Phase 2 features below
 
@@ -289,6 +289,7 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 | #7    | fix(backend): Refactor Calendar API & DB              | Backend  | P1       | @zhanyang | ✅ Complete |
 | #9    | chore(database): Build local Supabase with migrations | Database | P1       | @zhanyang | ✅ Complete |
 | #11   | fix(frontend): responsive design issues               | Frontend | P1       | @sdxshuai | ✅ Complete |
+| #23   | fix(database): IMMUTABLE index on nutrient_tracking   | Database | P0       | @zhanyang | ✅ Complete |
 
 ### v1.1.0: Monthly Nutrient Summary
 
