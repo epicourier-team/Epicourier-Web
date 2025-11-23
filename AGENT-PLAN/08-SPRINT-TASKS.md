@@ -24,10 +24,10 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 ### 📊 Phase 2 Status Overview
 
 **Active Phase**: Phase 2 - Advanced Features (v1.1.0 - v1.3.0)  
-**Total Planned Issues**: 6  
+**Total Planned Issues**: 10  
 **Completed**: 6  
 **In Progress**: 0  
-**Planned**: Charting & exports to be ticketed
+**Planned**: 4 nutrient follow-ups (charts/history/export/goals)
 
 ---
 
@@ -46,25 +46,27 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 - ✅ #23 fix(database): Make monthly index immutable via `month_start` generated column (PR #24)
 - ✅ #13 chore(types): Add TypeScript nutrient tracking types
 
-| Issue | Title                                                              | Type       | Priority | Assignee     | Status       |
-| ----- | ------------------------------------------------------------------ | ---------- | -------- | ------------ | ------------ |
-| #16   | feat(frontend): Create nutrient dashboard page                     | Frontend   | P1       | -            | ✅ Complete  |
-| #15   | feat(backend): Nutrient Aggregation API                            | Backend    | P1       | -            | ✅ Complete  |
-| #14   | chore(database): Add nutrient_tracking table migration             | Database   | P1       | -            | ✅ Complete  |
-| #23   | fix(database): IMMUTABLE index function error for month aggregates | Database   | P1       | Yang Zhan    | ✅ Complete  |
-| #13   | chore(types): Add TypeScript types for nutrient tracking           | Frontend   | P2       | -            | ✅ Complete  |
-| #17   | test(frontend): Add unit tests for nutrient dashboard page         | Testing    | P2       | Zhendong Liu | ✅ Complete  |
-| TBD   | feat(frontend): Chart Components for Nutrition                     | Frontend   | P1       | -            | 📝 To Create |
-| TBD   | feat(backend): Historical Data Query Endpoints                     | Backend    | P1       | -            | 📝 To Create |
-| TBD   | feat: Export Nutrition Data (CSV/PDF)                              | Full-Stack | P2       | -            | 📝 To Create |
+| Issue | Title                                                              | Type       | Priority | Assignee     | Status      |
+| ----- | ------------------------------------------------------------------ | ---------- | -------- | ------------ | ----------- |
+| #16   | feat(frontend): Create nutrient dashboard page                     | Frontend   | P1       | -            | ✅ Complete |
+| #15   | feat(backend): Nutrient Aggregation API                            | Backend    | P1       | -            | ✅ Complete |
+| #14   | chore(database): Add nutrient_tracking table migration             | Database   | P1       | -            | ✅ Complete |
+| #23   | fix(database): IMMUTABLE index function error for month aggregates | Database   | P1       | Yang Zhan    | ✅ Complete |
+| #13   | chore(types): Add TypeScript types for nutrient tracking           | Frontend   | P2       | -            | ✅ Complete |
+| #17   | test(frontend): Add unit tests for nutrient dashboard page         | Testing    | P2       | Zhendong Liu | ✅ Complete |
+| #25   | feat(frontend): Nutrient charts & date-range picker                | Frontend   | P1       | -            | 🆕 Open     |
+| #26   | feat(backend): Historical nutrient summary endpoints               | Backend    | P1       | -            | 🆕 Open     |
+| #27   | feat(full-stack): Nutrition data export (CSV/PDF)                  | Full-Stack | P2       | -            | 🆕 Open     |
+| #28   | feat(database): User nutrient goal preferences                     | Database   | P2       | -            | 🆕 Open     |
 
 **Expected Deliverables**:
 
 - [x] Nutrient tracking schema + API with immutable month index (#14, #15, #23)
 - [x] Basic nutrient dashboard page + Jest coverage (#16, #17)
 - [x] TypeScript types for nutrient tracking (#13)
-- [ ] Visualization dashboard with charts
-- [ ] Historical/monthly aggregation UI & exports
+- [ ] Visualization dashboard with charts (#25)
+- [ ] Historical/monthly aggregation UI & exports (#26, #27)
+- [ ] Goal persistence to compare intake vs targets (#28)
 - [ ] > 85% test coverage across nutrient workflows
 
 ---
