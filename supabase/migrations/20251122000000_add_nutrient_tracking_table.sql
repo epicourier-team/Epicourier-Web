@@ -1,8 +1,18 @@
+-- Helper to generate immutable month start dates for indexes/generated columns
+CREATE OR REPLACE FUNCTION immutable_month_start(d DATE)
+RETURNS DATE
+LANGUAGE sql
+IMMUTABLE
+AS $$
+  SELECT DATE_TRUNC('month', d)::DATE;
+$$;
+
 -- Create nutrient_tracking table for storing daily aggregated nutrient data
 CREATE TABLE IF NOT EXISTS nutrient_tracking (
   id SERIAL PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   date DATE NOT NULL,
+  month_start DATE GENERATED ALWAYS AS (immutable_month_start(date)) STORED,
   calories_kcal NUMERIC(10,2) DEFAULT 0,
   protein_g NUMERIC(10,2) DEFAULT 0,
   carbs_g NUMERIC(10,2) DEFAULT 0,
@@ -19,8 +29,8 @@ CREATE TABLE IF NOT EXISTS nutrient_tracking (
 -- Create index for efficient queries by user and date
 CREATE INDEX idx_nutrient_tracking_user_date ON nutrient_tracking(user_id, date DESC);
 
--- Create index for monthly aggregations
-CREATE INDEX idx_nutrient_tracking_user_month ON nutrient_tracking(user_id, DATE_TRUNC('month', date));
+-- Use generated month_start column to keep index expression immutable
+CREATE INDEX idx_nutrient_tracking_user_month ON nutrient_tracking(user_id, month_start);
 
 -- Enable Row Level Security
 ALTER TABLE nutrient_tracking ENABLE ROW LEVEL SECURITY;
