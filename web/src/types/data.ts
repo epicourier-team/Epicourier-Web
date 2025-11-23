@@ -31,22 +31,16 @@ export type RecipeDetail = {
 // Nutrient Tracking Types (v1.1.0)
 
 /**
- * Base nutrient data structure containing all tracked nutrients
+ * Base nutrient data structure containing essential macronutrients and micronutrients
  */
 export interface NutrientData {
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  cholesterol: number;
-  sugars: number;
-  minerals: number;
-  vitaminB: number;
-  vitaminA: number;
-  vitaminC: number;
-  vitaminD: number;
-  vitaminE: number;
-  vitaminK: number;
+  calories_kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fats_g: number;
+  fiber_g?: number;
+  sugar_g?: number;
+  sodium_mg?: number;
 }
 
 /**
@@ -54,14 +48,17 @@ export interface NutrientData {
  */
 export interface DailyNutrient extends NutrientData {
   date: string; // YYYY-MM-DD format
+  meal_count: number;
+  user_id: string;
 }
 
 /**
  * Weekly nutrient aggregation with date range
  */
 export interface WeeklyNutrient extends NutrientData {
-  weekStart: string; // YYYY-MM-DD format
-  weekEnd: string; // YYYY-MM-DD format
+  week_start: string; // YYYY-MM-DD format
+  week_end: string; // YYYY-MM-DD format
+  days_tracked: number;
 }
 
 /**
@@ -69,12 +66,14 @@ export interface WeeklyNutrient extends NutrientData {
  */
 export interface MonthlyNutrient extends NutrientData {
   month: string; // YYYY-MM format (e.g., "2025-11")
+  days_tracked: number;
 }
 
 /**
  * API response structure for nutrient summary endpoint
  */
 export interface NutrientSummaryResponse {
-  period: "day" | "week" | "month";
-  data: DailyNutrient | WeeklyNutrient | MonthlyNutrient;
+  daily: DailyNutrient | null;
+  weekly: WeeklyNutrient[];
+  monthly: MonthlyNutrient[];
 }

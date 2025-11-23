@@ -162,22 +162,20 @@ export async function GET(request: Request) {
 
     // Aggregate nutrients from all meals
     const aggregatedNutrients = {
-      calories: 0,
-      protein: 0,
-      carbs: 0,
-      fats: 0,
-      cholesterol: 0,
-      sugars: 0,
-      minerals: 0,
-      vitaminB: 0,
-      vitaminA: 0,
-      vitaminC: 0,
-      vitaminD: 0,
-      vitaminE: 0,
-      vitaminK: 0,
+      calories_kcal: 0,
+      protein_g: 0,
+      carbs_g: 0,
+      fats_g: 0,
+      fiber_g: 0,
+      sugar_g: 0,
+      sodium_mg: 0,
     };
 
+    let mealCount = 0;
+
     if (calendarData && calendarData.length > 0) {
+      mealCount = calendarData.length;
+      
       for (const meal of calendarData) {
         const recipe = meal.Recipe as {
           id: number;
@@ -186,18 +184,10 @@ export async function GET(request: Request) {
             relative_unit_100: number;
             Ingredient: {
               agg_fats_g: number | null;
-              agg_minerals_mg: number | null;
-              agg_vit_b_mg: number | null;
               calories_kcal: number | null;
               carbs_g: number | null;
-              cholesterol_mg: number | null;
               protein_g: number | null;
               sugars_g: number | null;
-              vit_a_microg: number | null;
-              vit_c_mg: number | null;
-              vit_d_microg: number | null;
-              vit_e_mg: number | null;
-              vit_k_microg: number | null;
             };
           }>;
         } | null;
@@ -211,19 +201,11 @@ export async function GET(request: Request) {
 
           const ratio = (map.relative_unit_100 || 100) / 100;
 
-          aggregatedNutrients.calories += Number(ingredient.calories_kcal || 0) * ratio;
-          aggregatedNutrients.protein += Number(ingredient.protein_g || 0) * ratio;
-          aggregatedNutrients.carbs += Number(ingredient.carbs_g || 0) * ratio;
-          aggregatedNutrients.fats += Number(ingredient.agg_fats_g || 0) * ratio;
-          aggregatedNutrients.cholesterol += Number(ingredient.cholesterol_mg || 0) * ratio;
-          aggregatedNutrients.sugars += Number(ingredient.sugars_g || 0) * ratio;
-          aggregatedNutrients.minerals += Number(ingredient.agg_minerals_mg || 0) * ratio;
-          aggregatedNutrients.vitaminB += Number(ingredient.agg_vit_b_mg || 0) * ratio;
-          aggregatedNutrients.vitaminA += Number(ingredient.vit_a_microg || 0) * ratio;
-          aggregatedNutrients.vitaminC += Number(ingredient.vit_c_mg || 0) * ratio;
-          aggregatedNutrients.vitaminD += Number(ingredient.vit_d_microg || 0) * ratio;
-          aggregatedNutrients.vitaminE += Number(ingredient.vit_e_mg || 0) * ratio;
-          aggregatedNutrients.vitaminK += Number(ingredient.vit_k_microg || 0) * ratio;
+          aggregatedNutrients.calories_kcal += Number(ingredient.calories_kcal || 0) * ratio;
+          aggregatedNutrients.protein_g += Number(ingredient.protein_g || 0) * ratio;
+          aggregatedNutrients.carbs_g += Number(ingredient.carbs_g || 0) * ratio;
+          aggregatedNutrients.fats_g += Number(ingredient.agg_fats_g || 0) * ratio;
+          aggregatedNutrients.sugar_g += Number(ingredient.sugars_g || 0) * ratio;
         }
       }
     }
@@ -234,39 +216,35 @@ export async function GET(request: Request) {
         key,
         Math.round(value * 100) / 100,
       ])
-    );
+    ) as NutrientData;
 
     // Build response based on period type
-    let response: NutrientSummaryResponse;
+    const response: NutrientSummaryResponse = {
+      daily: null,
+      weekly: [],
+      monthly: [],
+    };
 
     if (period === "day") {
-      const dailyData: DailyNutrient = {
+      response.daily = {
         ...roundedNutrients,
         date: targetDate.toISOString().split("T")[0],
-      } as DailyNutrient;
-      response = {
-        period: "day",
-        data: dailyData,
+        meal_count: mealCount,
+        user_id: String(publicUserId),
       };
     } else if (period === "week") {
-      const weeklyData: WeeklyNutrient = {
+      response.weekly = [{
         ...roundedNutrients,
-        weekStart: startDate.toISOString().split("T")[0],
-        weekEnd: endDate.toISOString().split("T")[0],
-      } as WeeklyNutrient;
-      response = {
-        period: "week",
-        data: weeklyData,
-      };
+        week_start: startDate.toISOString().split("T")[0],
+        week_end: endDate.toISOString().split("T")[0],
+        days_tracked: mealCount > 0 ? 1 : 0,
+      }];
     } else {
-      const monthlyData: MonthlyNutrient = {
+      response.monthly = [{
         ...roundedNutrients,
         month: `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, "0")}`,
-      } as MonthlyNutrient;
-      response = {
-        period: "month",
-        data: monthlyData,
-      };
+        days_tracked: mealCount > 0 ? 1 : 0,
+      }];
     }
 
     return NextResponse.json(response);
