@@ -1,13 +1,14 @@
 ## Requirements
 
 node.js >= 20.x.x
+
 - [Install Node.js](https://nodejs.org/en/download)
 
 TypeScript
+
 - [Install TypeScript](https://www.typescriptlang.org/download/)
 
 ## Getting Started
-
 
 ```bash
 npm install
@@ -21,7 +22,6 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ```bash
 npm test
 ```
-
 
 ## Deploy on Vercel
 

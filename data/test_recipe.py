@@ -78,7 +78,7 @@ class TestSafeJsonLoads(unittest.TestCase):
 
 
 class TestProcessRecipeRowWithMock(unittest.TestCase):
-    """Test the process_recipe_row function with mocked LLaMA calls"""
+    """Test the process_recipe_row function with mocked Gemini calls"""
     
     def setUp(self):
         """Set up test fixtures"""
@@ -115,7 +115,7 @@ class TestProcessRecipeRowWithMock(unittest.TestCase):
     
     # @patch('llama_recipe_pipeline.CACHE_DIR')
     # def test_process_recipe_cached(self, mock_cache_dir):
-    #     """Test processing a cached recipe (no LLaMA call needed)"""
+    #     """Test processing a cached recipe (no Gemini call needed)"""
     #     mock_cache_dir.__truediv__ = lambda self, other: self.cache_dir / other
         
     #     # Create a cached file
@@ -130,13 +130,13 @@ class TestProcessRecipeRowWithMock(unittest.TestCase):
     #     self.assertEqual(result["category"], "Italian")
     
     # @patch('llama_recipe_pipeline.CACHE_DIR')
-    # @patch('llama_recipe_pipeline.query_llama')
+    # @patch('llama_recipe_pipeline.query_gemini')
     # def test_process_recipe_new_valid_json(self, mock_query, mock_cache_dir):
     #     """Test processing a new recipe with valid JSON response"""
     #     mock_cache_dir.__truediv__ = lambda self, other: self.cache_dir / other
     #     mock_cache_dir.return_value = self.cache_dir
         
-    #     # Mock LLaMA to return valid JSON
+    #     # Mock Gemini to return valid JSON
     #     mock_query.return_value = json.dumps({
     #         "recipe": "Test Pasta",
     #         "category": "Italian",
@@ -155,13 +155,13 @@ class TestProcessRecipeRowWithMock(unittest.TestCase):
     #     self.assertTrue(cache_file.exists())
     
     # @patch('llama_recipe_pipeline.CACHE_DIR')
-    # @patch('llama_recipe_pipeline.query_llama')
+    # @patch('llama_recipe_pipeline.query_gemini')
     # def test_process_recipe_json_with_extra_text(self, mock_query, mock_cache_dir):
-    #     """Test processing when LLaMA returns JSON with extra text"""
+    #     """Test processing when Gemini returns JSON with extra text"""
     #     mock_cache_dir.__truediv__ = lambda self, other: self.cache_dir / other
     #     mock_cache_dir.return_value = self.cache_dir
         
-    #     # Mock LLaMA to return JSON with extra text
+    #     # Mock Gemini to return JSON with extra text
     #     mock_query.return_value = 'Here is your recipe data: {"recipe": "Test Pasta", "category": "Italian"} Hope this helps!'
         
     #     result = process_recipe_row(self.sample_row)
@@ -170,13 +170,13 @@ class TestProcessRecipeRowWithMock(unittest.TestCase):
     #     self.assertEqual(result["category"], "Italian")
     
     # @patch('llama_recipe_pipeline.CACHE_DIR')
-    # @patch('llama_recipe_pipeline.query_llama')
+    # @patch('llama_recipe_pipeline.query_gemini')
     # def test_process_recipe_invalid_json(self, mock_query, mock_cache_dir):
-    #     """Test processing when LLaMA returns invalid JSON"""
+    #     """Test processing when Gemini returns invalid JSON"""
     #     mock_cache_dir.__truediv__ = lambda self, other: self.cache_dir / other
     #     mock_cache_dir.return_value = self.cache_dir
         
-    #     # Mock LLaMA to return invalid JSON
+    #     # Mock Gemini to return invalid JSON
     #     invalid_response = 'This is not valid JSON at all, sorry!'
     #     mock_query.return_value = invalid_response
         

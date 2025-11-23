@@ -1,11 +1,11 @@
-name: 🧠 Python Syntax & Lint Check (on PR backend only)
+name: 🐍 Backend CI
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - "backend/**"
-      - ".github/workflows/pr-lint.yml"
+      - ".github/workflows/ci-pytest.yml"
 
 permissions:
   contents: read
@@ -14,46 +14,75 @@ permissions:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
         with:
-          python-version: "3.11"
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.11
 
       - name: Install dependencies
-        run: |
-          pip install ruff black
-
-      - name: Syntax Check
-        run: |
-          find backend -name "*.py" ! -name "*.ipynb" -print0 | xargs -0 python -m py_compile
+        run: uv sync
 
       - name: Lint with Ruff
-        continue-on-error: true 
-        run: ruff check backend --exclude "*.ipynb"
-
-      - name: Run Black and capture diff
-        id: format-check
+        id: ruff-lint
         continue-on-error: true
         run: |
           set +e
-          DIFF=$(black --check --diff backend --exclude "\.ipynb$" 2>&1)
-          echo "$DIFF"
-          DIFF="${DIFF//'%'/'%25'}"
-          DIFF="${DIFF//$'\n'/'%0A'}"
-          DIFF="${DIFF//$'\r'/'%0D'}"
-          echo "::set-output name=black_diff::$DIFF"
+          OUTPUT=$(uv run ruff check . --output-format=full 2>&1)
+          EXIT_CODE=$?
+          echo "$OUTPUT"
+          if [ $EXIT_CODE -ne 0 ]; then
+            {
+              echo "ruff_lint<<EOF"
+              echo "$OUTPUT"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
+          fi
+          # Also run with github format for annotations
+          uv run ruff check --output-format=github .
 
-      - name: Comment Black suggestions on PR
-        if: always()
+      - name: Comment Ruff lint errors
+        if: failure() || steps.ruff-lint.outputs.ruff_lint
         uses: marocchino/sticky-pull-request-comment@v2
         with:
-          header: "🖤 Black formatting suggestions"
+          header: "🐱 Ruff lint errors"
+          message: |
+            ```
+            ${{ steps.ruff-lint.outputs.ruff_lint }}
+            ```
+
+      - name: Check formatting with Ruff
+        id: ruff-format
+        continue-on-error: true
+        run: |
+          set +e
+          if ! uv run ruff format --check . > /dev/null 2>&1; then
+            DIFF=$(uv run ruff format --diff . 2>&1)
+            echo "$DIFF"
+            {
+              echo "ruff_diff<<EOF"
+              echo "$DIFF"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Comment Ruff formatting suggestions
+        if: steps.ruff-format.outputs.ruff_diff
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: "🐶 Ruff formatting suggestions"
           message: |
             ```diff
-            ${{ steps.format-check.outputs.black_diff }}
+            ${{ steps.ruff-format.outputs.ruff_diff }}
             ```

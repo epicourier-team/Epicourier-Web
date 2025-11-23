@@ -27,3 +27,53 @@ export type RecipeDetail = {
     | "vit_k_microg"
   >;
 };
+
+// Nutrient Tracking Types (v1.1.0)
+
+/**
+ * Base nutrient data structure containing essential macronutrients and micronutrients
+ */
+export interface NutrientData {
+  calories_kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fats_g: number;
+  fiber_g?: number;
+  sugar_g?: number;
+  sodium_mg?: number;
+}
+
+/**
+ * Daily nutrient summary for a specific date
+ */
+export interface DailyNutrient extends NutrientData {
+  date: string; // YYYY-MM-DD format
+  meal_count: number;
+  user_id: string;
+}
+
+/**
+ * Weekly nutrient aggregation with date range
+ */
+export interface WeeklyNutrient extends NutrientData {
+  week_start: string; // YYYY-MM-DD format
+  week_end: string; // YYYY-MM-DD format
+  days_tracked: number;
+}
+
+/**
+ * Monthly nutrient aggregation
+ */
+export interface MonthlyNutrient extends NutrientData {
+  month: string; // YYYY-MM format (e.g., "2025-11")
+  days_tracked: number;
+}
+
+/**
+ * API response structure for nutrient summary endpoint
+ */
+export interface NutrientSummaryResponse {
+  daily: DailyNutrient | null;
+  weekly: WeeklyNutrient[];
+  monthly: MonthlyNutrient[];
+}

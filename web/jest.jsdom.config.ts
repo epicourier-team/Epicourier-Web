@@ -6,9 +6,14 @@ const customJestConfig = {
   testEnvironment: "jsdom",
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   moduleNameMapper: {
+    "^@/lib/supabaseClient$": "<rootDir>/__mocks__/@/lib/supabaseClient.ts",
     "^@/(.*)$": "<rootDir>/src/$1",
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
   },
+  testEnvironmentOptions: {
+    customExportConditions: [""],
+  },
+  setupFiles: ["<rootDir>/jest.env.setup.js"],
   transform: {
     "^.+\\.(t|j)sx?$": [
       "@swc/jest",

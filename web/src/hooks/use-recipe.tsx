@@ -20,6 +20,9 @@ export function useRecipes(filters: RecipeFilter) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const ingredientIdsStr = JSON.stringify(filters.ingredientIds ?? []);
+  const tagIdsStr = JSON.stringify(filters.tagIds ?? []);
+
   useEffect(() => {
     const controller = new AbortController();
     const fetchRecipes = async () => {
@@ -31,8 +34,16 @@ export function useRecipes(filters: RecipeFilter) {
         if (filters.query) params.set("query", filters.query);
         if (filters.page) params.set("page", String(filters.page));
         if (filters.limit) params.set("limit", String(filters.limit));
-        filters.ingredientIds?.forEach((id) => params.append("ingredientIds", String(id)));
-        filters.tagIds?.forEach((id) => params.append("tagIds", String(id)));
+
+        const ingredientIds = JSON.parse(ingredientIdsStr);
+        const tagIds = JSON.parse(tagIdsStr);
+
+        if (Array.isArray(ingredientIds)) {
+          ingredientIds.forEach((id: number) => params.append("ingredientIds", String(id)));
+        }
+        if (Array.isArray(tagIds)) {
+          tagIds.forEach((id: number) => params.append("tagIds", String(id)));
+        }
 
         const res = await fetch(`/api/recipes?${params.toString()}`, {
           signal: controller.signal,
@@ -52,13 +63,7 @@ export function useRecipes(filters: RecipeFilter) {
 
     fetchRecipes();
     return () => controller.abort();
-  }, [
-    filters.query,
-    filters.page,
-    filters.limit,
-    JSON.stringify(filters.ingredientIds),
-    JSON.stringify(filters.tagIds),
-  ]);
+  }, [filters.query, filters.page, filters.limit, ingredientIdsStr, tagIdsStr]);
 
   return { recipes, pagination, isLoading, error };
 }

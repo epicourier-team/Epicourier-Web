@@ -14,12 +14,14 @@ describe("Separator component", () => {
     const { container } = render(<Separator />);
     const sep = container.querySelector("div");
     expect(sep).toBeInTheDocument();
-    expect(sep).toHaveClass("h-[1px]", "w-full", "bg-border", "shrink-0");
+    expect(sep).toHaveClass("bg-border", "shrink-0");
+    expect(sep).toHaveAttribute("data-orientation", "horizontal");
   });
 
   it("renders a vertical separator when orientation='vertical'", () => {
     const { container } = render(<Separator orientation="vertical" className="extra" />);
     const sep = container.querySelector("div");
-    expect(sep).toHaveClass("h-full", "w-[1px]", "extra");
+    expect(sep).toHaveClass("bg-border", "shrink-0", "extra");
+    expect(sep).toHaveAttribute("data-orientation", "vertical");
   });
 });
