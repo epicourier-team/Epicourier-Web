@@ -1,42 +1,144 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Apple, Beef, Scale } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Area,
+  AreaChart,
+  Cell,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
+  Activity,
+  Apple,
+  Beef,
+  ChartArea,
+  PieChart as PieIcon,
+  RefreshCcw,
+  Scale,
+} from "lucide-react";
 
-import type { DailyNutrient } from "@/types/data";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+import type {
+  DailyNutrient,
+  NutrientSummaryResponse,
+  WeeklyNutrient,
+  MonthlyNutrient,
+} from "@/types/data";
+
+type TrendPoint = {
+  label: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+};
+
+const formatDateInput = (date: Date) => date.toLocaleDateString("en-CA");
+
+const emptyDaily: DailyNutrient = {
+  date: "N/A",
+  calories_kcal: 0,
+  protein_g: 0,
+  carbs_g: 0,
+  fats_g: 0,
+  sugar_g: 0,
+  fiber_g: 0,
+  sodium_mg: 0,
+  meal_count: 0,
+  user_id: "",
+};
 
 /**
  * Nutrient Dashboard Page
- * Displays daily nutrient tracking data from user's meal logs
+ * Displays daily snapshot plus weekly/monthly trends.
  */
 export default function NutrientsPage() {
-  const [dailyData, setDailyData] = useState<DailyNutrient | null>(null);
+  const [daily, setDaily] = useState<DailyNutrient | null>(null);
+  const [weekly, setWeekly] = useState<WeeklyNutrient[]>([]);
+  const [monthly, setMonthly] = useState<MonthlyNutrient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchNutrientData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/nutrients/daily?period=day");
+  const fetchNutrientData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch nutrient data");
-        }
+      const today = formatDateInput(new Date());
+      const [dayRes, weekRes, monthRes] = await Promise.all([
+        fetch(`/api/nutrients/daily?period=day&date=${today}`),
+        fetch(`/api/nutrients/daily?period=week&date=${today}`),
+        fetch(`/api/nutrients/daily?period=month&date=${today}`),
+      ]);
 
-        const data = await response.json();
-        setDailyData(data.daily);
-      } catch (err) {
-        console.error("Error fetching nutrient data:", err);
-        setError(err instanceof Error ? err.message : "Unknown error");
-      } finally {
-        setLoading(false);
+      const responses = [dayRes, weekRes, monthRes];
+      if (responses.some((r) => !r.ok)) {
+        throw new Error("Failed to fetch nutrient data");
       }
-    };
 
-    fetchNutrientData();
+      const [dayData, weekData, monthData]: NutrientSummaryResponse[] = await Promise.all(
+        responses.map((r) => r.json())
+      );
+
+      setDaily(dayData.daily);
+      setWeekly(weekData.weekly || []);
+      setMonthly(monthData.monthly || []);
+    } catch (err) {
+      console.error("Error fetching nutrient data:", err);
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchNutrientData();
+  }, [fetchNutrientData]);
+
+  const dailyData = daily ?? emptyDaily;
+
+  const dailyPieData = useMemo(
+    () => [
+      { name: "Protein", value: dailyData.protein_g, color: "#ef4444" },
+      { name: "Carbs", value: dailyData.carbs_g, color: "#eab308" },
+      { name: "Fats", value: dailyData.fats_g, color: "#22c55e" },
+    ],
+    [dailyData.carbs_g, dailyData.fats_g, dailyData.protein_g]
+  );
+
+  const weeklyTrend: TrendPoint[] = useMemo(
+    () =>
+      (weekly || []).map((w) => ({
+        label: `${w.week_start} → ${w.week_end}`,
+        calories: w.calories_kcal,
+        protein: w.protein_g,
+        carbs: w.carbs_g,
+        fats: w.fats_g,
+      })),
+    [weekly]
+  );
+
+  const monthlyTrend: TrendPoint[] = useMemo(
+    () =>
+      (monthly || []).map((m) => ({
+        label: m.month,
+        calories: m.calories_kcal,
+        protein: m.protein_g,
+        carbs: m.carbs_g,
+        fats: m.fats_g,
+      })),
+    [monthly]
+  );
 
   if (loading) {
     return (
@@ -58,22 +160,37 @@ export default function NutrientsPage() {
           <div className="text-center">
             <h2 className="brutalism-text-bold mb-2 text-xl text-red-800">Error Loading Data</h2>
             <p className="text-red-600">{error}</p>
+            <button
+              className="brutalism-button mt-4 inline-flex items-center gap-2 rounded-none px-4 py-2"
+              onClick={fetchNutrientData}
+            >
+              <RefreshCcw className="size-4" /> Retry
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  const nutrients = dailyData;
-
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
+    <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-0">
       {/* Page Header */}
       <div className="brutalism-card brutalism-shadow-lg bg-gradient-to-r from-emerald-100 to-teal-100 p-6">
-        <h1 className="brutalism-text-bold mb-2 text-4xl uppercase">Nutrient Tracking</h1>
-        <p className="text-lg font-semibold text-gray-700">
-          Monitor your daily nutritional intake from meals
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="brutalism-text-bold mb-2 text-4xl uppercase">Nutrient Tracking</h1>
+            <p className="text-lg font-semibold text-gray-700">
+              Today&apos;s intake plus weekly &amp; monthly trends
+            </p>
+          </div>
+          <button
+            className="brutalism-button inline-flex items-center gap-2 rounded-none px-4 py-2"
+            onClick={fetchNutrientData}
+            data-testid="refresh-button"
+          >
+            <RefreshCcw className="size-4" /> Refresh Data
+          </button>
+        </div>
       </div>
 
       {/* Macronutrients Section */}
@@ -87,7 +204,7 @@ export default function NutrientsPage() {
             </CardHeader>
             <CardContent>
               <div className="brutalism-text-bold text-3xl">
-                {nutrients?.calories_kcal.toFixed(0) || 0}
+                {dailyData?.calories_kcal.toFixed(0) || 0}
               </div>
               <p className="text-xs font-semibold text-gray-600">kcal</p>
             </CardContent>
@@ -100,7 +217,7 @@ export default function NutrientsPage() {
             </CardHeader>
             <CardContent>
               <div className="brutalism-text-bold text-3xl">
-                {nutrients?.protein_g.toFixed(1) || 0}
+                {dailyData?.protein_g.toFixed(1) || 0}
               </div>
               <p className="text-xs font-semibold text-gray-600">grams</p>
             </CardContent>
@@ -113,7 +230,7 @@ export default function NutrientsPage() {
             </CardHeader>
             <CardContent>
               <div className="brutalism-text-bold text-3xl">
-                {nutrients?.carbs_g.toFixed(1) || 0}
+                {dailyData?.carbs_g.toFixed(1) || 0}
               </div>
               <p className="text-xs font-semibold text-gray-600">grams</p>
             </CardContent>
@@ -126,11 +243,124 @@ export default function NutrientsPage() {
             </CardHeader>
             <CardContent>
               <div className="brutalism-text-bold text-3xl">
-                {nutrients?.fats_g.toFixed(1) || 0}
+                {dailyData?.fats_g.toFixed(1) || 0}
               </div>
               <p className="text-xs font-semibold text-gray-600">grams</p>
             </CardContent>
           </Card>
+        </div>
+      </div>
+
+      {/* Daily Pie */}
+      <div
+        className="brutalism-card brutalism-shadow-lg bg-white p-4"
+        data-testid="daily-pie-chart"
+      >
+        <div className="mb-3 flex items-center gap-2">
+          <PieIcon className="size-5 text-rose-600" />
+          <div>
+            <h3 className="brutalism-text-bold text-xl uppercase">Today&apos;s Macro Split</h3>
+            <p className="text-sm font-semibold text-gray-600">
+              Visualize protein, carbs, and fats proportions
+            </p>
+          </div>
+        </div>
+        <div className="h-72 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={dailyPieData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                label
+              >
+                {dailyPieData.map((entry, index) => (
+                  <Cell
+                    key={`${entry.name}-${index}`}
+                    fill={entry.color}
+                    stroke="#000"
+                    strokeWidth={2}
+                  />
+                ))}
+              </Pie>
+              <Legend />
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Charts */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div
+          className="brutalism-card brutalism-shadow-lg bg-white p-4"
+          data-testid="weekly-line-chart"
+        >
+          <div className="mb-3 flex items-center gap-2">
+            <ChartArea className="size-5 text-indigo-700" />
+            <div>
+              <h3 className="brutalism-text-bold text-xl uppercase">Weekly Trend</h3>
+              <p className="text-sm font-semibold text-gray-600">Smooth line view of last weeks</p>
+            </div>
+          </div>
+          <div className="h-72 w-full">
+            {weeklyTrend && weeklyTrend.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={weeklyTrend}>
+                  <CartesianGrid strokeDasharray="4 4" stroke="#000" />
+                  <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="calories" stroke="#f97316" strokeWidth={3} />
+                  <Line type="monotone" dataKey="protein" stroke="#ef4444" strokeWidth={3} />
+                  <Line type="monotone" dataKey="carbs" stroke="#eab308" strokeWidth={3} />
+                  <Line type="monotone" dataKey="fats" stroke="#22c55e" strokeWidth={3} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm font-semibold text-gray-600">
+                No nutrient data available for this range.
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div
+          className="brutalism-card brutalism-shadow-lg bg-white p-4"
+          data-testid="monthly-line-chart"
+        >
+          <div className="mb-3 flex items-center gap-2">
+            <ChartArea className="size-5 text-emerald-700" />
+            <div>
+              <h3 className="brutalism-text-bold text-xl uppercase">Monthly Trend</h3>
+              <p className="text-sm font-semibold text-gray-600">Month-over-month smooth lines</p>
+            </div>
+          </div>
+          <div className="h-72 w-full">
+            {monthlyTrend && monthlyTrend.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={monthlyTrend}>
+                  <CartesianGrid strokeDasharray="4 4" stroke="#000" />
+                  <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Legend />
+                  <Area type="monotone" dataKey="calories" stroke="#fb7185" fill="#fecdd3" />
+                  <Area type="monotone" dataKey="protein" stroke="#22c55e" fill="#bbf7d0" />
+                  <Area type="monotone" dataKey="carbs" stroke="#eab308" fill="#fef08a" />
+                  <Area type="monotone" dataKey="fats" stroke="#0ea5e9" fill="#bae6fd" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm font-semibold text-gray-600">
+                Add meals to see charts for this period.
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -148,15 +378,15 @@ export default function NutrientsPage() {
             <CardContent className="space-y-2">
               <div className="flex justify-between border-b-2 border-gray-200 pb-1">
                 <span className="font-semibold">Sugars</span>
-                <span className="font-bold">{nutrients?.sugar_g?.toFixed(1) || 0} g</span>
+                <span className="font-bold">{dailyData?.sugar_g?.toFixed(1) || 0} g</span>
               </div>
               <div className="flex justify-between border-b-2 border-gray-200 pb-1">
                 <span className="font-semibold">Fiber</span>
-                <span className="font-bold">{nutrients?.fiber_g?.toFixed(1) || 0} g</span>
+                <span className="font-bold">{dailyData?.fiber_g?.toFixed(1) || 0} g</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-semibold">Sodium</span>
-                <span className="font-bold">{nutrients?.sodium_mg?.toFixed(1) || 0} mg</span>
+                <span className="font-bold">{dailyData?.sodium_mg?.toFixed(1) || 0} mg</span>
               </div>
             </CardContent>
           </Card>
@@ -164,12 +394,12 @@ export default function NutrientsPage() {
           <Card className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="text-sm font-bold uppercase">Meal Summary</CardTitle>
-              <CardDescription className="font-semibold">Today&apos;s meal count</CardDescription>
+              <CardDescription className="font-semibold">Today</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center">
                 <div className="brutalism-text-bold text-5xl text-emerald-600">
-                  {nutrients?.meal_count || 0}
+                  {dailyData?.meal_count || 0}
                 </div>
                 <p className="mt-2 font-semibold text-gray-600">Meals logged today</p>
               </div>
@@ -178,20 +408,20 @@ export default function NutrientsPage() {
 
           <Card className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg bg-amber-50 transition-shadow">
             <CardHeader>
-              <CardTitle className="text-sm font-bold uppercase">Coming Soon</CardTitle>
+              <CardTitle className="text-sm font-bold uppercase">Tips</CardTitle>
               <CardDescription className="font-semibold">
-                More features in development
+                Keep ranges short for sharper trends
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="rounded-none border-2 border-dashed border-gray-400 bg-white p-3 text-center">
-                <p className="font-semibold text-gray-600">📊 Weekly Trends</p>
+                <p className="font-semibold text-gray-600">📊 Weekly vs Monthly contrast intake</p>
               </div>
               <div className="rounded-none border-2 border-dashed border-gray-400 bg-white p-3 text-center">
-                <p className="font-semibold text-gray-600">📈 Monthly Reports</p>
+                <p className="font-semibold text-gray-600">📈 Adjust dates to replay past weeks</p>
               </div>
               <div className="rounded-none border-2 border-dashed border-gray-400 bg-white p-3 text-center">
-                <p className="font-semibold text-gray-600">🎯 Goal Tracking</p>
+                <p className="font-semibold text-gray-600">🎯 Align with your nutrient goals</p>
               </div>
             </CardContent>
           </Card>
@@ -200,10 +430,10 @@ export default function NutrientsPage() {
 
       {/* Info Footer */}
       <div className="brutalism-card brutalism-shadow bg-blue-50 p-6">
-        <p className="text-center font-semibold text-gray-700">
+        <div className="text-center font-semibold text-gray-700">
           💡 Tip: Your nutrient data is calculated from the meals you&apos;ve logged in your
           calendar
-        </p>
+        </div>
       </div>
     </div>
   );

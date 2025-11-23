@@ -10,22 +10,88 @@ import NutrientsPage from "../../src/app/dashboard/nutrients/page";
 // Mock fetch
 global.fetch = jest.fn();
 
+const buildMockResponse = (data: unknown) =>
+  Promise.resolve({
+    ok: true,
+    json: async () => data,
+  } as Response);
+
+const mockDaily = {
+  daily: {
+    date: "2025-11-22",
+    calories_kcal: 2000,
+    protein_g: 75,
+    carbs_g: 250,
+    fats_g: 65,
+    sugar_g: 50,
+    fiber_g: 30,
+    sodium_mg: 2300,
+    meal_count: 3,
+    user_id: "123",
+  },
+  weekly: [],
+  monthly: [],
+};
+
+const mockWeekly = {
+  daily: null,
+  weekly: [
+    {
+      week_start: "2025-11-17",
+      week_end: "2025-11-23",
+      calories_kcal: 14000,
+      protein_g: 525,
+      carbs_g: 1750,
+      fats_g: 455,
+      sugar_g: 350,
+      fiber_g: 210,
+      sodium_mg: 16100,
+      days_tracked: 6,
+    },
+  ],
+  monthly: [],
+};
+
+const mockMonthly = {
+  daily: null,
+  weekly: [],
+  monthly: [
+    {
+      month: "2025-11",
+      calories_kcal: 60000,
+      protein_g: 2100,
+      carbs_g: 7000,
+      fats_g: 1950,
+      sugar_g: 1400,
+      fiber_g: 900,
+      sodium_mg: 70000,
+      days_tracked: 22,
+    },
+  ],
+};
+
 describe("NutrientsPage", () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2025-11-22T12:00:00Z"));
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it("renders loading state initially", () => {
-    (global.fetch as jest.Mock).mockImplementation(
-      () => new Promise(() => {}) // Never resolves
-    );
-
+    (global.fetch as jest.Mock).mockImplementation(() => new Promise(() => {}));
     render(<NutrientsPage />);
 
     expect(screen.getByText(/Loading Nutrient Data/i)).toBeInTheDocument();
   });
 
-  it("renders error state when API fails", async () => {
+  it("renders error state when API rejects", async () => {
     (global.fetch as jest.Mock).mockRejectedValue(new Error("API Error"));
 
     render(<NutrientsPage />);
@@ -33,7 +99,6 @@ describe("NutrientsPage", () => {
     await waitFor(() => {
       expect(screen.getByText(/Error Loading Data/i)).toBeInTheDocument();
     });
-
     expect(screen.getByText(/API Error/i)).toBeInTheDocument();
   });
 
@@ -48,32 +113,14 @@ describe("NutrientsPage", () => {
     await waitFor(() => {
       expect(screen.getByText(/Error Loading Data/i)).toBeInTheDocument();
     });
-
     expect(screen.getByText(/Failed to fetch nutrient data/i)).toBeInTheDocument();
   });
 
-  it("renders nutrient data successfully", async () => {
-    const mockData = {
-      daily: {
-        date: "2025-11-22",
-        calories_kcal: 2000,
-        protein_g: 75,
-        carbs_g: 250,
-        fats_g: 65,
-        sugar_g: 50,
-        fiber_g: 30,
-        sodium_mg: 2300,
-        meal_count: 3,
-        user_id: "123",
-      },
-      weekly: [],
-      monthly: [],
-    };
-
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => mockData,
-    });
+  it("renders nutrient data and charts", async () => {
+    (global.fetch as jest.Mock)
+      .mockReturnValueOnce(buildMockResponse(mockDaily))
+      .mockReturnValueOnce(buildMockResponse(mockWeekly))
+      .mockReturnValueOnce(buildMockResponse(mockMonthly));
 
     render(<NutrientsPage />);
 
@@ -81,156 +128,36 @@ describe("NutrientsPage", () => {
       expect(screen.getByText("Nutrient Tracking")).toBeInTheDocument();
     });
 
-    // Check macronutrients display
-    await waitFor(() => {
-      expect(screen.getByText(/2000/)).toBeInTheDocument(); // Calories
-    });
-    expect(screen.getByText(/75\.0/)).toBeInTheDocument(); // Protein
-    expect(screen.getByText(/250\.0/)).toBeInTheDocument(); // Carbs
-    expect(screen.getByText(/65\.0/)).toBeInTheDocument(); // Fats
-
-    // Check additional nutrients
-    expect(screen.getByText(/50\.0.*g/)).toBeInTheDocument(); // Sugars
-    expect(screen.getByText(/30\.0.*g/)).toBeInTheDocument(); // Fiber
-    expect(screen.getByText(/2300\.0.*mg/)).toBeInTheDocument(); // Sodium
-
-    // Check meal count
-    expect(screen.getByText("Meals logged today")).toBeInTheDocument();
+    expect(screen.getByText(/2000/)).toBeInTheDocument(); // calories
+    expect(screen.getByText(/75\.0/)).toBeInTheDocument(); // protein
+    expect(screen.getByText(/250\.0/)).toBeInTheDocument(); // carbs
+    expect(screen.getByText(/65\.0/)).toBeInTheDocument(); // fats
+    expect(screen.getByTestId("daily-pie-chart")).toBeInTheDocument();
+    expect(screen.getByTestId("weekly-line-chart")).toBeInTheDocument();
+    expect(screen.getByTestId("monthly-line-chart")).toBeInTheDocument();
   });
 
-  it("renders zero values when no data is available", async () => {
-    const mockData = {
-      daily: null,
-      weekly: [],
-      monthly: [],
-    };
-
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => mockData,
-    });
+  it("calls API with day/week/month endpoints for today", async () => {
+    (global.fetch as jest.Mock)
+      .mockReturnValueOnce(buildMockResponse(mockDaily))
+      .mockReturnValueOnce(buildMockResponse(mockWeekly))
+      .mockReturnValueOnce(buildMockResponse(mockMonthly));
 
     render(<NutrientsPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Nutrient Tracking")).toBeInTheDocument();
-    });
-
-    // Check that zeros are rendered
-    const zeroValues = screen.getAllByText("0");
-    expect(zeroValues.length).toBeGreaterThan(0);
-  });
-
-  it("calls API with correct endpoint", async () => {
-    const mockData = {
-      daily: {
-        date: "2025-11-22",
-        calories_kcal: 1500,
-        protein_g: 60,
-        carbs_g: 180,
-        fats_g: 50,
-        meal_count: 2,
-        user_id: "123",
-      },
-      weekly: [],
-      monthly: [],
-    };
-
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => mockData,
-    });
-
-    render(<NutrientsPage />);
-
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith("/api/nutrients/daily?period=day");
-    });
-  });
-
-  it("renders page header correctly", async () => {
-    const mockData = {
-      daily: null,
-      weekly: [],
-      monthly: [],
-    };
-
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => mockData,
-    });
-
-    render(<NutrientsPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Nutrient Tracking")).toBeInTheDocument();
-    });
-
-    expect(screen.getByText(/Monitor your daily nutritional intake/i)).toBeInTheDocument();
-  });
-
-  it("renders section headers", async () => {
-    const mockData = {
-      daily: null,
-      weekly: [],
-      monthly: [],
-    };
-
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => mockData,
-    });
-
-    render(<NutrientsPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Macronutrients")).toBeInTheDocument();
-    });
-
-    expect(screen.getByText("Additional Nutrients")).toBeInTheDocument();
-    expect(screen.getByText("Coming Soon")).toBeInTheDocument();
-  });
-
-  it("renders coming soon features", async () => {
-    const mockData = {
-      daily: null,
-      weekly: [],
-      monthly: [],
-    };
-
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => mockData,
-    });
-
-    render(<NutrientsPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/Weekly Trends/i)).toBeInTheDocument();
-    });
-
-    expect(screen.getByText(/Monthly Reports/i)).toBeInTheDocument();
-    expect(screen.getByText(/Goal Tracking/i)).toBeInTheDocument();
-  });
-
-  it("renders info footer", async () => {
-    const mockData = {
-      daily: null,
-      weekly: [],
-      monthly: [],
-    };
-
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => mockData,
-    });
-
-    render(<NutrientsPage />);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(/Your nutrient data is calculated from the meals/i)
-      ).toBeInTheDocument();
+      expect(global.fetch).toHaveBeenNthCalledWith(
+        1,
+        "/api/nutrients/daily?period=day&date=2025-11-22"
+      );
+      expect(global.fetch).toHaveBeenNthCalledWith(
+        2,
+        "/api/nutrients/daily?period=week&date=2025-11-22"
+      );
+      expect(global.fetch).toHaveBeenNthCalledWith(
+        3,
+        "/api/nutrients/daily?period=month&date=2025-11-22"
+      );
     });
   });
 });
