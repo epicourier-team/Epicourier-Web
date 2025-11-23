@@ -62,42 +62,105 @@ const emptyDaily: DailyNutrient = {
  */
 export default function NutrientsPage() {
   const [daily, setDaily] = useState<DailyNutrient | null>(null);
+  const [pastSeven, setPastSeven] = useState<TrendPoint[]>([]);
   const [weekly, setWeekly] = useState<WeeklyNutrient[]>([]);
   const [monthly, setMonthly] = useState<MonthlyNutrient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchSummary = useCallback(async (period: "day" | "week" | "month", date: string) => {
+    const response = await fetch(`/api/nutrients/daily?period=${period}&date=${date}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch nutrient data");
+    }
+    const data: NutrientSummaryResponse = await response.json();
+    return data;
+  }, []);
+
+  const getPastDates = (count: number, reference: Date): Date[] => {
+    const dates: Date[] = [];
+    for (let i = count - 1; i >= 0; i--) {
+      const d = new Date(reference);
+      d.setDate(reference.getDate() - i);
+      dates.push(d);
+    }
+    return dates;
+  };
+
+  const getPastWeeks = (count: number, reference: Date): Date[] => {
+    const startOfWeek = new Date(reference);
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+    startOfWeek.setDate(diff);
+
+    const weeks: Date[] = [];
+    for (let i = count - 1; i >= 0; i--) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() - i * 7);
+      weeks.push(d);
+    }
+    return weeks;
+  };
+
+  const getPastMonths = (count: number, reference: Date): Date[] => {
+    const months: Date[] = [];
+    for (let i = count - 1; i >= 0; i--) {
+      const d = new Date(reference.getFullYear(), reference.getMonth() - i, 15);
+      months.push(d);
+    }
+    return months;
+  };
 
   const fetchNutrientData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const today = formatDateInput(new Date());
-      const [dayRes, weekRes, monthRes] = await Promise.all([
-        fetch(`/api/nutrients/daily?period=day&date=${today}`),
-        fetch(`/api/nutrients/daily?period=week&date=${today}`),
-        fetch(`/api/nutrients/daily?period=month&date=${today}`),
-      ]);
+      const todayDate = new Date();
+      const todayStr = formatDateInput(todayDate);
 
-      const responses = [dayRes, weekRes, monthRes];
-      if (responses.some((r) => !r.ok)) {
-        throw new Error("Failed to fetch nutrient data");
-      }
+      const dailyDates = getPastDates(7, todayDate).map((d) => formatDateInput(d));
+      const weeklyDates = getPastWeeks(4, todayDate).map((d) => formatDateInput(d));
+      const monthlyDates = getPastMonths(4, todayDate).map((d) => formatDateInput(d));
 
-      const [dayData, weekData, monthData]: NutrientSummaryResponse[] = await Promise.all(
-        responses.map((r) => r.json())
-      );
+      const [todaySummary, dailyTrendSummaries, weeklySummaries, monthlySummaries] =
+        await Promise.all([
+          fetchSummary("day", todayStr),
+          Promise.all(dailyDates.map((d) => fetchSummary("day", d))),
+          Promise.all(weeklyDates.map((d) => fetchSummary("week", d))),
+          Promise.all(monthlyDates.map((d) => fetchSummary("month", d))),
+        ]);
 
-      setDaily(dayData.daily);
-      setWeekly(weekData.weekly || []);
-      setMonthly(monthData.monthly || []);
+      setDaily(todaySummary.daily);
+
+      const sevenTrend: TrendPoint[] = dailyTrendSummaries
+        .map((res) => res.daily)
+        .filter((d): d is DailyNutrient => Boolean(d))
+        .map((d) => ({
+          label: d.date,
+          calories: d.calories_kcal,
+          protein: d.protein_g,
+          carbs: d.carbs_g,
+          fats: d.fats_g,
+        }));
+      setPastSeven(sevenTrend);
+
+      const weeklyTrendData: WeeklyNutrient[] = weeklySummaries
+        .map((res) => res.weekly?.[0])
+        .filter((w): w is WeeklyNutrient => Boolean(w));
+      setWeekly(weeklyTrendData);
+
+      const monthlyTrendData: MonthlyNutrient[] = monthlySummaries
+        .map((res) => res.monthly?.[0])
+        .filter((m): m is MonthlyNutrient => Boolean(m));
+      setMonthly(monthlyTrendData);
     } catch (err) {
       console.error("Error fetching nutrient data:", err);
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchSummary]);
 
   useEffect(() => {
     fetchNutrientData();
@@ -288,6 +351,61 @@ export default function NutrientsPage() {
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Past 7 Days Trend */}
+      <div
+        className="brutalism-card brutalism-shadow-lg bg-white p-4"
+        data-testid="daily-trend-chart"
+      >
+        <div className="mb-3 flex items-center gap-2">
+          <ChartArea className="size-5 text-blue-700" />
+          <div>
+            <h3 className="brutalism-text-bold text-xl uppercase">Past 7 Days</h3>
+            <p className="text-sm font-semibold text-gray-600">
+              Daily macros trend (calories, protein, carbs, fats)
+            </p>
+          </div>
+        </div>
+        <div className="h-72 w-full">
+          {pastSeven && pastSeven.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={pastSeven} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="dailyCal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="dailyPro" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="dailyCarb" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#eab308" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#eab308" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="dailyFat" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Legend />
+                <Area type="monotone" dataKey="calories" stroke="#f97316" fill="url(#dailyCal)" />
+                <Area type="monotone" dataKey="protein" stroke="#ef4444" fill="url(#dailyPro)" />
+                <Area type="monotone" dataKey="carbs" stroke="#eab308" fill="url(#dailyCarb)" />
+                <Area type="monotone" dataKey="fats" stroke="#22c55e" fill="url(#dailyFat)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm font-semibold text-gray-600">
+              No daily trend data yet. Add meals to see the last 7 days.
+            </div>
+          )}
         </div>
       </div>
 

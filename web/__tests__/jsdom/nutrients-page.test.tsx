@@ -70,6 +70,21 @@ const mockMonthly = {
   ],
 };
 
+const enqueueSuccessResponses = () => {
+  const queue = [
+    buildMockResponse(mockDaily),
+    ...Array.from({ length: 7 }, () => buildMockResponse(mockDaily)),
+    ...Array.from({ length: 4 }, () => buildMockResponse(mockWeekly)),
+    ...Array.from({ length: 4 }, () => buildMockResponse(mockMonthly)),
+  ];
+
+  (global.fetch as jest.Mock).mockImplementation(() => {
+    const next = queue.shift();
+    if (!next) return Promise.reject(new Error("No more responses"));
+    return next;
+  });
+};
+
 describe("NutrientsPage", () => {
   beforeAll(() => {
     jest.useFakeTimers();
@@ -117,10 +132,7 @@ describe("NutrientsPage", () => {
   });
 
   it("renders nutrient data and charts", async () => {
-    (global.fetch as jest.Mock)
-      .mockReturnValueOnce(buildMockResponse(mockDaily))
-      .mockReturnValueOnce(buildMockResponse(mockWeekly))
-      .mockReturnValueOnce(buildMockResponse(mockMonthly));
+    enqueueSuccessResponses();
 
     render(<NutrientsPage />);
 
@@ -137,27 +149,19 @@ describe("NutrientsPage", () => {
     expect(screen.getByTestId("monthly-line-chart")).toBeInTheDocument();
   });
 
-  it("calls API with day/week/month endpoints for today", async () => {
-    (global.fetch as jest.Mock)
-      .mockReturnValueOnce(buildMockResponse(mockDaily))
-      .mockReturnValueOnce(buildMockResponse(mockWeekly))
-      .mockReturnValueOnce(buildMockResponse(mockMonthly));
+  it("calls API with expected day/week/month endpoints for today and history", async () => {
+    enqueueSuccessResponses();
 
     render(<NutrientsPage />);
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenNthCalledWith(
-        1,
-        "/api/nutrients/daily?period=day&date=2025-11-22"
-      );
-      expect(global.fetch).toHaveBeenNthCalledWith(
-        2,
-        "/api/nutrients/daily?period=week&date=2025-11-22"
-      );
-      expect(global.fetch).toHaveBeenNthCalledWith(
-        3,
-        "/api/nutrients/daily?period=month&date=2025-11-22"
-      );
+      expect(screen.getByText("Nutrient Tracking")).toBeInTheDocument();
     });
+
+    const calls = (global.fetch as jest.Mock).mock.calls.map((c) => c[0]);
+    expect(calls.length).toBe(16);
+    expect(calls[0]).toBe("/api/nutrients/daily?period=day&date=2025-11-22");
+    expect(calls.some((c) => c.includes("period=week"))).toBe(true);
+    expect(calls.some((c) => c.includes("period=month"))).toBe(true);
   });
 });
