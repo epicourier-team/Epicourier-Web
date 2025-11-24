@@ -9,13 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
@@ -87,7 +81,7 @@ export function GoalDialog({
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel
                       htmlFor={`goal-${key}`}
-                      className="text-sm font-bold uppercase tracking-tight"
+                      className="text-sm font-bold tracking-tight uppercase"
                     >
                       {label}
                     </FieldLabel>
@@ -141,7 +135,11 @@ export function GoalDialog({
               className="flex-1 border-2 border-black bg-emerald-400 px-4 py-2 font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:-translate-x-px hover:translate-y-px hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none disabled:cursor-not-allowed disabled:opacity-80"
               disabled={goalSaving}
             >
-              {goalSaving ? "Saving..." : goalForm.getValues().calories_kcal ? "Update Goal" : "Save Goal"}
+              {goalSaving
+                ? "Saving..."
+                : goalForm.getValues().calories_kcal
+                  ? "Update Goal"
+                  : "Save Goal"}
             </button>
           </div>
         </DialogFooter>

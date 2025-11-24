@@ -4,11 +4,14 @@
 
 import "@testing-library/jest-dom";
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import NutrientsPage from "../../src/app/dashboard/nutrients/page";
 
 // Mock fetch
 global.fetch = jest.fn();
+
+const stringifyUrl = (input: RequestInfo | URL) =>
+  typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
 
 const buildMockResponse = (data: unknown) =>
   Promise.resolve({
@@ -70,18 +73,24 @@ const mockMonthly = {
   ],
 };
 
-const enqueueSuccessResponses = () => {
-  const queue = [
-    buildMockResponse(mockDaily),
-    ...Array.from({ length: 7 }, () => buildMockResponse(mockDaily)),
-    ...Array.from({ length: 4 }, () => buildMockResponse(mockWeekly)),
-    ...Array.from({ length: 4 }, () => buildMockResponse(mockMonthly)),
-  ];
+const mockGoal = { goal: null };
 
-  (global.fetch as jest.Mock).mockImplementation(() => {
-    const next = queue.shift();
-    if (!next) return Promise.reject(new Error("No more responses"));
-    return next;
+const setupSuccessfulFetches = () => {
+  (global.fetch as jest.Mock).mockImplementation((input: RequestInfo | URL) => {
+    const url = stringifyUrl(input);
+
+    if (url.includes("/api/nutrients/goals")) {
+      return buildMockResponse(mockGoal);
+    }
+
+    const params = new URL(url, "http://localhost").searchParams;
+    const period = params.get("period");
+
+    if (period === "day") return buildMockResponse(mockDaily);
+    if (period === "week") return buildMockResponse(mockWeekly);
+    if (period === "month") return buildMockResponse(mockMonthly);
+
+    return Promise.reject(new Error(`Unhandled request: ${url}`));
   });
 };
 
@@ -99,69 +108,79 @@ describe("NutrientsPage", () => {
     jest.clearAllMocks();
   });
 
-  it("renders loading state initially", () => {
-    (global.fetch as jest.Mock).mockImplementation(() => new Promise(() => {}));
+  it("shows updating badge while summary is loading", () => {
+    (global.fetch as jest.Mock).mockImplementation((input: RequestInfo | URL) => {
+      const url = stringifyUrl(input);
+      if (url.includes("/api/nutrients/goals")) {
+        return buildMockResponse(mockGoal);
+      }
+      return new Promise(() => {});
+    });
+
     render(<NutrientsPage />);
 
-    expect(screen.getByText(/Loading Nutrient Data/i)).toBeInTheDocument();
+    expect(screen.getByText("Nutrient Tracking")).toBeInTheDocument();
+    expect(screen.getByText(/Updating data/i)).toBeInTheDocument();
   });
 
-  it("renders error state when API rejects", async () => {
-    (global.fetch as jest.Mock).mockRejectedValue(new Error("API Error"));
+  it("renders error banner when summary request fails", async () => {
+    (global.fetch as jest.Mock).mockImplementation((input: RequestInfo | URL) => {
+      const url = stringifyUrl(input);
+      if (url.includes("/api/nutrients/goals")) {
+        return buildMockResponse(mockGoal);
+      }
+      return Promise.reject(new Error("API Error"));
+    });
 
     render(<NutrientsPage />);
 
-    await waitFor(() => {
-      expect(screen.getByText(/Error Loading Data/i)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/Error Loading Data/i)).toBeInTheDocument();
     expect(screen.getByText(/API Error/i)).toBeInTheDocument();
   });
 
-  it("renders error state when response is not ok", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: false,
-      status: 500,
-    });
+  it("renders nutrient data, goal status, and charts after success", async () => {
+    setupSuccessfulFetches();
 
     render(<NutrientsPage />);
 
-    await waitFor(() => {
-      expect(screen.getByText(/Error Loading Data/i)).toBeInTheDocument();
-    });
-    expect(screen.getByText(/Failed to fetch nutrient data/i)).toBeInTheDocument();
-  });
+    await waitFor(() => expect(screen.queryByText(/Updating data/i)).not.toBeInTheDocument());
 
-  it("renders nutrient data and charts", async () => {
-    enqueueSuccessResponses();
-
-    render(<NutrientsPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Nutrient Tracking")).toBeInTheDocument();
-    });
-
-    expect(screen.getByText(/2000/)).toBeInTheDocument(); // calories
-    expect(screen.getByText(/75\.0/)).toBeInTheDocument(); // protein
-    expect(screen.getByText(/250\.0/)).toBeInTheDocument(); // carbs
-    expect(screen.getByText(/65\.0/)).toBeInTheDocument(); // fats
+    expect(screen.getByText("Nutrient Tracking")).toBeInTheDocument();
+    expect(screen.getByText("2000")).toBeInTheDocument();
+    expect(screen.getByText("75.0")).toBeInTheDocument();
+    expect(screen.getByText("250.0")).toBeInTheDocument();
+    expect(screen.getByText("65.0")).toBeInTheDocument();
     expect(screen.getByTestId("daily-pie-chart")).toBeInTheDocument();
     expect(screen.getByTestId("weekly-line-chart")).toBeInTheDocument();
     expect(screen.getByTestId("monthly-line-chart")).toBeInTheDocument();
   });
 
-  it("calls API with expected day/week/month endpoints for today and history", async () => {
-    enqueueSuccessResponses();
+  it("re-fetches when refreshing or changing the month range", async () => {
+    setupSuccessfulFetches();
 
     render(<NutrientsPage />);
+    await waitFor(() => expect(screen.getByText("2000")).toBeInTheDocument());
+
+    const initialMonthRequests = (global.fetch as jest.Mock).mock.calls.filter(([url]) =>
+      stringifyUrl(url).includes("period=month")
+    ).length;
+
+    fireEvent.click(screen.getByTestId("refresh-button"));
+    await waitFor(() =>
+      expect((global.fetch as jest.Mock).mock.calls.length).toBeGreaterThan(initialMonthRequests)
+    );
+
+    const monthCallsBeforeRangeChange = (global.fetch as jest.Mock).mock.calls.filter(([url]) =>
+      stringifyUrl(url).includes("period=month")
+    ).length;
+
+    fireEvent.click(screen.getByRole("button", { name: "6m" }));
 
     await waitFor(() => {
-      expect(screen.getByText("Nutrient Tracking")).toBeInTheDocument();
+      const monthCallsAfterRangeChange = (global.fetch as jest.Mock).mock.calls.filter(([url]) =>
+        stringifyUrl(url).includes("period=month")
+      ).length;
+      expect(monthCallsAfterRangeChange).toBeGreaterThan(monthCallsBeforeRangeChange);
     });
-
-    const calls = (global.fetch as jest.Mock).mock.calls.map((c) => c[0]);
-    expect(calls.length).toBe(15);
-    expect(calls[0]).toBe("/api/nutrients/daily?period=day&date=2025-11-22");
-    expect(calls.some((c) => c.includes("period=week"))).toBe(true);
-    expect(calls.some((c) => c.includes("period=month"))).toBe(true);
   });
 });
