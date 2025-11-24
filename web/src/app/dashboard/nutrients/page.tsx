@@ -16,18 +16,21 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GoalDialog } from "./components/GoalDialog";
 import { PercentLineChart } from "./components/PercentLineChart";
+import { ExportActions } from "./components/ExportActions";
 import {
   GOAL_FIELD_CONFIG,
   MACRO_COLORS,
   RECOMMENDED_GOALS,
   useNutrientDashboard,
 } from "./useNutrientDashboard";
+import { useNutrientExport } from "./useNutrientExport";
 
 /**
  * Nutrient Dashboard Page
  * Displays daily snapshot plus weekly/monthly trends.
  */
 export default function NutrientsPage() {
+  const { exporting, exportData } = useNutrientExport();
   const {
     summaryLoading,
     error,
@@ -101,6 +104,7 @@ export default function NutrientsPage() {
             >
               <RefreshCcw className="size-4" /> Refresh Data
             </button>
+            <ExportActions exporting={exporting} onExport={exportData} />
           </div>
         </div>
         {goalError && (
