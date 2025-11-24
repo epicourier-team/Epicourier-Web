@@ -118,7 +118,7 @@ export function useNutrientDashboard() {
   const [weekly, setWeekly] = useState<WeeklyNutrient[]>([]);
   const [monthly, setMonthly] = useState<MonthlyNutrient[]>([]);
   const [monthRange, setMonthRange] = useState<3 | 6 | 12>(3);
-  const [loading, setLoading] = useState(true);
+  const [summaryLoading, setSummaryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [goal, setGoal] = useState<NutrientGoal | null>(null);
   const [goalModalOpen, setGoalModalOpen] = useState(false);
@@ -180,7 +180,7 @@ export function useNutrientDashboard() {
 
   const fetchNutrientData = useCallback(async () => {
     try {
-      setLoading(true);
+      setSummaryLoading(true);
       setError(null);
 
       const todayDate = new Date();
@@ -225,7 +225,7 @@ export function useNutrientDashboard() {
       console.error("Error fetching nutrient data:", err);
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
-      setLoading(false);
+      setSummaryLoading(false);
     }
   }, [fetchSummary, monthRange]);
 
@@ -371,7 +371,8 @@ export function useNutrientDashboard() {
     [effectiveGoal, weeklyTrend]
   );
   const monthlyTrendNormalized = useMemo(
-    () => toPercentTrend(monthlyTrend, effectiveGoal, (point) => getMonthDaysFromLabel(point.label)),
+    () =>
+      toPercentTrend(monthlyTrend, effectiveGoal, (point) => getMonthDaysFromLabel(point.label)),
     [effectiveGoal, monthlyTrend]
   );
 
@@ -384,7 +385,7 @@ export function useNutrientDashboard() {
   };
 
   return {
-    loading,
+    summaryLoading,
     error,
     dailyData,
     dailyPieData,

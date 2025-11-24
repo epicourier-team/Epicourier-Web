@@ -3,6 +3,7 @@
 import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ReactNode } from "react";
 import type { NameType, Payload, ValueType } from "recharts/types/component/DefaultTooltipContent";
+import { Loader2 } from "lucide-react";
 import type { TrendPoint } from "../types";
 
 type MacroColorMap = {
@@ -25,6 +26,7 @@ type PercentLineChartProps = {
     label: string | number,
     payload: ReadonlyArray<Payload<ValueType, NameType>>
   ) => React.ReactNode;
+  loading?: boolean;
 };
 
 export function PercentLineChart({
@@ -37,6 +39,7 @@ export function PercentLineChart({
   actions,
   colors,
   labelFormatter,
+  loading = false,
 }: PercentLineChartProps) {
   return (
     <div className="brutalism-card brutalism-shadow-lg bg-white p-4" data-testid={dataTestId}>
@@ -49,7 +52,12 @@ export function PercentLineChart({
         {actions && <div className="ml-auto flex gap-2">{actions}</div>}
       </div>
       <div className="h-72 w-full">
-        {data && data.length > 0 ? (
+        {loading ? (
+          <div className="flex h-full items-center justify-center text-sm font-semibold text-gray-600">
+            <Loader2 className="mr-2 size-5 animate-spin" />
+            Loading chart...
+          </div>
+        ) : data && data.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />

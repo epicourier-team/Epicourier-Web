@@ -6,6 +6,7 @@ import {
   Apple,
   Beef,
   ChartArea,
+  Loader2,
   PieChart as PieIcon,
   RefreshCcw,
   Scale,
@@ -28,7 +29,7 @@ import {
  */
 export default function NutrientsPage() {
   const {
-    loading,
+    summaryLoading,
     error,
     dailyData,
     dailyPieData,
@@ -50,40 +51,25 @@ export default function NutrientsPage() {
     formatTooltipLabel,
   } = useNutrientDashboard();
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="brutalism-card brutalism-shadow-lg p-8">
-          <div className="text-center">
-            <Activity className="mx-auto mb-4 size-12 animate-pulse" />
-            <h2 className="brutalism-text-bold text-xl">Loading Nutrient Data...</h2>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="brutalism-card brutalism-shadow-lg border-4 border-red-500 bg-red-50 p-8">
-          <div className="text-center">
-            <h2 className="brutalism-text-bold mb-2 text-xl text-red-800">Error Loading Data</h2>
-            <p className="text-red-600">{error}</p>
+  return (
+    <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-0">
+      {error && (
+        <div className="brutalism-card brutalism-shadow-lg border-4 border-red-500 bg-red-50 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="brutalism-text-bold text-lg text-red-800">Error Loading Data</h2>
+              <p className="text-sm font-semibold text-red-700">{error}</p>
+            </div>
             <button
-              className="brutalism-button mt-4 inline-flex items-center gap-2 rounded-none px-4 py-2"
+              className="brutalism-button inline-flex items-center gap-2 rounded-none px-4 py-2"
               onClick={fetchNutrientData}
             >
               <RefreshCcw className="size-4" /> Retry
             </button>
           </div>
         </div>
-      </div>
-    );
-  }
+      )}
 
-  return (
-    <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-0">
       {/* Page Header */}
       <div className="brutalism-card brutalism-shadow-lg bg-linear-to-r from-emerald-100 to-teal-100 p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -92,6 +78,12 @@ export default function NutrientsPage() {
             <p className="text-lg font-semibold text-gray-700">
               Today&apos;s intake plus weekly &amp; monthly trends
             </p>
+            {summaryLoading && (
+              <div className="mt-2 inline-flex items-center gap-2 rounded-none border-2 border-black bg-white px-3 py-1 text-xs font-bold uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                <Loader2 className="size-4 animate-spin" />
+                Updating data...
+              </div>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -129,7 +121,11 @@ export default function NutrientsPage() {
             </CardHeader>
             <CardContent>
               <div className="brutalism-text-bold text-3xl">
-                {dailyData?.calories_kcal.toFixed(0) || 0}
+                {summaryLoading ? (
+                  <Loader2 className="size-6 animate-spin" />
+                ) : (
+                  dailyData?.calories_kcal.toFixed(0) || 0
+                )}
               </div>
               <p className="text-xs font-semibold text-gray-600">kcal</p>
             </CardContent>
@@ -142,7 +138,11 @@ export default function NutrientsPage() {
             </CardHeader>
             <CardContent>
               <div className="brutalism-text-bold text-3xl">
-                {dailyData?.protein_g.toFixed(1) || 0}
+                {summaryLoading ? (
+                  <Loader2 className="size-6 animate-spin" />
+                ) : (
+                  dailyData?.protein_g.toFixed(1) || 0
+                )}
               </div>
               <p className="text-xs font-semibold text-gray-600">grams</p>
             </CardContent>
@@ -155,7 +155,11 @@ export default function NutrientsPage() {
             </CardHeader>
             <CardContent>
               <div className="brutalism-text-bold text-3xl">
-                {dailyData?.carbs_g.toFixed(1) || 0}
+                {summaryLoading ? (
+                  <Loader2 className="size-6 animate-spin" />
+                ) : (
+                  dailyData?.carbs_g.toFixed(1) || 0
+                )}
               </div>
               <p className="text-xs font-semibold text-gray-600">grams</p>
             </CardContent>
@@ -168,7 +172,11 @@ export default function NutrientsPage() {
             </CardHeader>
             <CardContent>
               <div className="brutalism-text-bold text-3xl">
-                {dailyData?.fats_g.toFixed(1) || 0}
+                {summaryLoading ? (
+                  <Loader2 className="size-6 animate-spin" />
+                ) : (
+                  dailyData?.fats_g.toFixed(1) || 0
+                )}
               </div>
               <p className="text-xs font-semibold text-gray-600">grams</p>
             </CardContent>
@@ -191,30 +199,37 @@ export default function NutrientsPage() {
           </div>
         </div>
         <div className="h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={dailyPieData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label
-              >
-                {dailyPieData.map((entry, index) => (
-                  <Cell
-                    key={`${entry.name}-${index}`}
-                    fill={entry.color}
-                    stroke="#000"
-                    strokeWidth={2}
-                  />
-                ))}
-              </Pie>
-              <Legend />
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          {summaryLoading ? (
+            <div className="flex h-full items-center justify-center text-sm font-semibold text-gray-600">
+              <Loader2 className="mr-2 size-5 animate-spin" />
+              Loading breakdown...
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={dailyPieData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label
+                >
+                  {dailyPieData.map((entry, index) => (
+                    <Cell
+                      key={`${entry.name}-${index}`}
+                      fill={entry.color}
+                      stroke="#000"
+                      strokeWidth={2}
+                    />
+                  ))}
+                </Pie>
+                <Legend />
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
 
@@ -226,6 +241,7 @@ export default function NutrientsPage() {
         emptyText="No daily trend data yet. Add meals to see the last 7 days."
         dataTestId="daily-trend-chart"
         colors={MACRO_COLORS}
+        loading={summaryLoading}
       />
 
       {/* Charts */}
@@ -239,6 +255,7 @@ export default function NutrientsPage() {
           dataTestId="weekly-line-chart"
           colors={MACRO_COLORS}
           labelFormatter={formatTooltipLabel}
+          loading={summaryLoading}
         />
 
         <PercentLineChart
@@ -267,6 +284,7 @@ export default function NutrientsPage() {
             </div>
           }
           labelFormatter={formatTooltipLabel}
+          loading={summaryLoading}
         />
       </div>
 
