@@ -14,34 +14,11 @@ const customJestConfig = {
     customExportConditions: [""],
   },
   setupFiles: ["<rootDir>/jest.env.setup.js"],
-  transform: {
-    "^.+\\.(t|j)sx?$": [
-      "@swc/jest",
-      {
-        jsc: {
-          target: "es2021",
-          parser: {
-            syntax: "typescript",
-            tsx: true,
-            decorators: true,
-          },
-          transform: {
-            react: {
-              runtime: "automatic",
-              useBuiltins: true,
-            },
-          },
-        },
-      },
-    ] as [string, unknown],
-  },
-
   transformIgnorePatterns: [
     "node_modules/(?!(lodash-es|@fullcalendar|lucide-react|@radix-ui|shadcn|react-icons|@supabase|next|@next|react|react-dom)/)",
   ],
 
   testMatch: ["**/__tests__/jsdom/**/*.[jt]s?(x)"],
-  watchPlugins: [],
 };
 
 export default createJestConfig(customJestConfig);

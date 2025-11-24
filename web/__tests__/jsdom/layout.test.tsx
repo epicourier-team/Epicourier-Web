@@ -1,6 +1,6 @@
 "use client";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/app/dashboard/layout";
 import { useToast } from "@/hooks/use-toast";

@@ -4,15 +4,80 @@ import { NextResponse } from "next/server";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
-import type { DailyNutrient, WeeklyNutrient, MonthlyNutrient, NutrientSummaryResponse } from "@/types/data";
+import type { NutrientData, NutrientSummaryResponse } from "@/types/data";
+
+/**
+ * Helper function:
+ * Get numeric ID (bigint) from public."User" table.
+ */
+async function getPublicUserId(supabase: SupabaseClient<Database>): Promise<number> {
+  const {
+    data: { user: authUser },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !authUser) {
+    throw new Error("User not authenticated");
+  }
+
+  if (!authUser.email) {
+    throw new Error("Authenticated user does not have an email.");
+  }
+
+  const { data: publicUsers, error: profileError } = await supabase
+    .from("User")
+    .select("id")
+    .eq("email", authUser.email)
+    .limit(1);
+
+  if (profileError) {
+    console.error("Error fetching public user profile:", profileError.message);
+    throw new Error("Error fetching user profile.");
+  }
+
+  if (!publicUsers || publicUsers.length === 0) {
+    throw new Error("Public user profile not found.");
+  }
+
+  const publicUser = publicUsers[0];
+  return publicUser.id;
+}
+
+/**
+ * Types for Supabase query response
+ */
+type IngredientRow = {
+  agg_fats_g: number | null;
+  calories_kcal: number | null;
+  carbs_g: number | null;
+  protein_g: number | null;
+  sugars_g: number | null;
+};
+
+type RecipeIngredientMapRow = {
+  relative_unit_100: number | null;
+  Ingredient: IngredientRow | null;
+};
+
+type CalendarMealRow = {
+  id: number;
+  date: string | null;
+  meal_type: string | null;
+  recipe_id: number | null;
+  Recipe: {
+    id: number;
+    name: string;
+    "Recipe-Ingredient_Map": RecipeIngredientMapRow[];
+  } | null;
+};
 
 /**
  * GET /api/nutrients/daily?period=day|week|month&date=YYYY-MM-DD
- * 
+ *
  * Query parameters:
  * - period: "day" (default), "week", or "month"
  * - date: Target date in YYYY-MM-DD format (defaults to today)
- * 
+ *
  * Returns aggregated nutrient data from user's meal logs.
  */
 export async function GET(request: Request) {
@@ -34,9 +99,9 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const period = searchParams.get("period") || "day";
   const dateParam = searchParams.get("date");
-  
+
   const targetDate = dateParam ? new Date(dateParam) : new Date();
-  
+
   if (isNaN(targetDate.getTime())) {
     return NextResponse.json({ error: "Invalid date format" }, { status: 400 });
   }
@@ -52,7 +117,7 @@ export async function GET(request: Request) {
       endDate = new Date(targetDate);
       endDate.setHours(23, 59, 59, 999);
       break;
-    
+
     case "week":
       // Get start of week (Monday)
       startDate = new Date(targetDate);
@@ -60,13 +125,13 @@ export async function GET(request: Request) {
       const diff = startDate.getDate() - day + (day === 0 ? -6 : 1);
       startDate.setDate(diff);
       startDate.setHours(0, 0, 0, 0);
-      
+
       // End of week (Sunday)
       endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + 6);
       endDate.setHours(23, 59, 59, 999);
       break;
-    
+
     case "month":
       // Start of month
       startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
@@ -74,7 +139,7 @@ export async function GET(request: Request) {
       endDate = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
       endDate.setHours(23, 59, 59, 999);
       break;
-    
+
     default:
       return NextResponse.json({ error: "Invalid period parameter" }, { status: 400 });
   }
@@ -96,18 +161,10 @@ export async function GET(request: Request) {
             relative_unit_100,
             Ingredient: ingredient_id(
               agg_fats_g,
-              agg_minerals_mg,
-              agg_vit_b_mg,
               calories_kcal,
               carbs_g,
-              cholesterol_mg,
               protein_g,
-              sugars_g,
-              vit_a_microg,
-              vit_c_mg,
-              vit_d_microg,
-              vit_e_mg,
-              vit_k_microg
+              sugars_g
             )
           )
         )
@@ -139,26 +196,13 @@ export async function GET(request: Request) {
 
     if (calendarData && calendarData.length > 0) {
       mealCount = calendarData.length;
-      
-      for (const meal of calendarData) {
-        const recipe = meal.Recipe as {
-          id: number;
-          name: string;
-          "Recipe-Ingredient_Map": Array<{
-            relative_unit_100: number;
-            Ingredient: {
-              agg_fats_g: number | null;
-              calories_kcal: number | null;
-              carbs_g: number | null;
-              protein_g: number | null;
-              sugars_g: number | null;
-            };
-          }>;
-        } | null;
+
+      for (const meal of calendarData as unknown as CalendarMealRow[]) {
+        const recipe = meal.Recipe;
         if (!recipe) continue;
 
         const ingredientMaps = recipe["Recipe-Ingredient_Map"] || [];
-        
+
         for (const map of ingredientMaps) {
           const ingredient = map.Ingredient;
           if (!ingredient) continue;
@@ -175,12 +219,15 @@ export async function GET(request: Request) {
     }
 
     // Round all values to 2 decimal places
-    const roundedNutrients = Object.fromEntries(
-      Object.entries(aggregatedNutrients).map(([key, value]) => [
-        key,
-        Math.round(value * 100) / 100,
-      ])
-    ) as NutrientData;
+    const roundedNutrients: NutrientData = {
+      calories_kcal: Math.round(aggregatedNutrients.calories_kcal * 100) / 100,
+      protein_g: Math.round(aggregatedNutrients.protein_g * 100) / 100,
+      carbs_g: Math.round(aggregatedNutrients.carbs_g * 100) / 100,
+      fats_g: Math.round(aggregatedNutrients.fats_g * 100) / 100,
+      fiber_g: Math.round(aggregatedNutrients.fiber_g * 100) / 100,
+      sugar_g: Math.round(aggregatedNutrients.sugar_g * 100) / 100,
+      sodium_mg: Math.round(aggregatedNutrients.sodium_mg * 100) / 100,
+    };
 
     // Build response based on period type
     const response: NutrientSummaryResponse = {
@@ -197,26 +244,27 @@ export async function GET(request: Request) {
         user_id: String(publicUserId),
       };
     } else if (period === "week") {
-      response.weekly = [{
-        ...roundedNutrients,
-        week_start: startDate.toISOString().split("T")[0],
-        week_end: endDate.toISOString().split("T")[0],
-        days_tracked: mealCount > 0 ? 1 : 0,
-      }];
+      response.weekly = [
+        {
+          ...roundedNutrients,
+          week_start: startDate.toISOString().split("T")[0],
+          week_end: endDate.toISOString().split("T")[0],
+          days_tracked: mealCount > 0 ? 1 : 0,
+        },
+      ];
     } else {
-      response.monthly = [{
-        ...roundedNutrients,
-        month: `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, "0")}`,
-        days_tracked: mealCount > 0 ? 1 : 0,
-      }];
+      response.monthly = [
+        {
+          ...roundedNutrients,
+          month: `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, "0")}`,
+          days_tracked: mealCount > 0 ? 1 : 0,
+        },
+      ];
     }
 
     return NextResponse.json(response);
   } catch (error) {
     console.error("Error calculating nutrients:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

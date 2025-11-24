@@ -1,46 +1,62 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, Apple, Beef, Download, Scale } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import {
+  Activity,
+  Apple,
+  Beef,
+  ChartArea,
+  Loader2,
+  PieChart as PieIcon,
+  RefreshCcw,
+  Scale,
+  Target,
+  Download,
+} from "lucide-react";
 
-import type { DailyNutrient } from "@/types/data";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { GoalDialog } from "./components/GoalDialog";
+import { PercentLineChart } from "./components/PercentLineChart";
+import {
+  GOAL_FIELD_CONFIG,
+  MACRO_COLORS,
+  RECOMMENDED_GOALS,
+  useNutrientDashboard,
+} from "./useNutrientDashboard";
 
 /**
  * Nutrient Dashboard Page
- * Displays daily nutrient tracking data from user's meal logs
+ * Displays daily snapshot plus weekly/monthly trends.
  */
 export default function NutrientsPage() {
-  const [dailyData, setDailyData] = useState<DailyNutrient | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    summaryLoading,
+    error,
+    dailyData,
+    dailyPieData,
+    pastSevenNormalized,
+    weeklyTrendNormalized,
+    monthlyTrendNormalized,
+    monthRange,
+    setMonthRange,
+    goal,
+    goalModalOpen,
+    setGoalModalOpen,
+    goalLoading,
+    goalSaving,
+    goalError,
+    handleOpenGoalModal,
+    onSubmitGoal,
+    fetchNutrientData,
+    goalForm,
+    formatTooltipLabel,
+  } = useNutrientDashboard();
+
   const [exporting, setExporting] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchNutrientData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/nutrients/daily?period=day");
-        
-        if (!response.ok) {
-          throw new Error("Failed to fetch nutrient data");
-        }
-
-        const data = await response.json();
-        setDailyData(data.daily);
-      } catch (err) {
-        console.error("Error fetching nutrient data:", err);
-        setError(err instanceof Error ? err.message : "Unknown error");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNutrientData();
-  }, []);
 
   const handleExport = async (format: "csv" | "pdf") => {
     try {
@@ -55,7 +71,7 @@ export default function NutrientsPage() {
       const endParam = endDate.toISOString().split("T")[0];
 
       const url = `/api/nutrients/export?format=${format}&start=${startParam}&end=${endParam}`;
-      
+
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -68,12 +84,12 @@ export default function NutrientsPage() {
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = downloadUrl;
-      
+
       // Get filename from Content-Disposition header or use default
       const contentDisposition = response.headers.get("Content-Disposition");
       const filenameMatch = contentDisposition?.match(/filename="?([^"]+)"?/);
       const filename = filenameMatch ? filenameMatch[1] : `nutrition-export.${format}`;
-      
+
       link.download = filename;
       document.body.appendChild(link);
       link.click();
@@ -96,50 +112,60 @@ export default function NutrientsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="brutalism-card brutalism-shadow-lg p-8">
-          <div className="text-center">
-            <Activity className="mx-auto mb-4 size-12 animate-pulse" />
-            <h2 className="brutalism-text-bold text-xl">Loading Nutrient Data...</h2>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="brutalism-card brutalism-shadow-lg border-4 border-red-500 bg-red-50 p-8">
-          <div className="text-center">
-            <h2 className="brutalism-text-bold mb-2 text-xl text-red-800">Error Loading Data</h2>
-            <p className="text-red-600">{error}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const nutrients = dailyData;
-
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
+    <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-0">
+      {error && (
+        <div className="brutalism-card brutalism-shadow-lg border-4 border-red-500 bg-red-50 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="brutalism-text-bold text-lg text-red-800">Error Loading Data</h2>
+              <p className="text-sm font-semibold text-red-700">{error}</p>
+            </div>
+            <button
+              className="brutalism-button inline-flex items-center gap-2 rounded-none px-4 py-2"
+              onClick={fetchNutrientData}
+            >
+              <RefreshCcw className="size-4" /> Retry
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Page Header */}
-      <div className="brutalism-card brutalism-shadow-lg bg-gradient-to-r from-emerald-100 to-teal-100 p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="brutalism-card brutalism-shadow-lg bg-linear-to-r from-emerald-100 to-teal-100 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="brutalism-text-bold mb-2 text-4xl uppercase">Nutrient Tracking</h1>
             <p className="text-lg font-semibold text-gray-700">
-              Monitor your daily nutritional intake from meals
+              Today&apos;s intake plus weekly &amp; monthly trends
             </p>
+            {summaryLoading && (
+              <div className="mt-2 inline-flex items-center gap-2 rounded-none border-2 border-black bg-white px-3 py-1 text-xs font-bold uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                <Loader2 className="size-4 animate-spin" />
+                Updating data...
+              </div>
+            )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              className="brutalism-button inline-flex items-center gap-2 rounded-none px-4 py-2"
+              onClick={handleOpenGoalModal}
+              disabled={goalLoading}
+            >
+              <Target className="size-4" />
+              {goal ? "Edit Goal" : "Set Goal"}
+            </button>
+            <button
+              className="brutalism-button inline-flex items-center gap-2 rounded-none px-4 py-2"
+              onClick={fetchNutrientData}
+              data-testid="refresh-button"
+            >
+              <RefreshCcw className="size-4" /> Refresh Data
+            </button>
             <Button
               onClick={() => handleExport("csv")}
               disabled={exporting}
-              className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg border-2 border-black bg-white font-bold uppercase text-black transition-all hover:bg-emerald-100"
+              className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg border-2 border-black bg-white font-bold text-black uppercase transition-all hover:bg-emerald-100"
             >
               <Download className="mr-2 size-4" />
               {exporting ? "Exporting..." : "Export CSV"}
@@ -147,13 +173,18 @@ export default function NutrientsPage() {
             <Button
               onClick={() => handleExport("pdf")}
               disabled={exporting}
-              className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg border-2 border-black bg-white font-bold uppercase text-black transition-all hover:bg-blue-100"
+              className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg border-2 border-black bg-white font-bold text-black uppercase transition-all hover:bg-blue-100"
             >
               <Download className="mr-2 size-4" />
               {exporting ? "Exporting..." : "Export Report"}
             </Button>
           </div>
         </div>
+        {goalError && (
+          <p className="mt-3 text-sm font-semibold text-red-700">
+            Unable to load your goal: {goalError}
+          </p>
+        )}
       </div>
 
       {/* Macronutrients Section */}
@@ -166,7 +197,13 @@ export default function NutrientsPage() {
               <Scale className="size-5 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="brutalism-text-bold text-3xl">{nutrients?.calories_kcal.toFixed(0) || 0}</div>
+              <div className="brutalism-text-bold text-3xl">
+                {summaryLoading ? (
+                  <Loader2 className="size-6 animate-spin" />
+                ) : (
+                  dailyData?.calories_kcal.toFixed(0) || 0
+                )}
+              </div>
               <p className="text-xs font-semibold text-gray-600">kcal</p>
             </CardContent>
           </Card>
@@ -177,7 +214,13 @@ export default function NutrientsPage() {
               <Beef className="size-5 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="brutalism-text-bold text-3xl">{nutrients?.protein_g.toFixed(1) || 0}</div>
+              <div className="brutalism-text-bold text-3xl">
+                {summaryLoading ? (
+                  <Loader2 className="size-6 animate-spin" />
+                ) : (
+                  dailyData?.protein_g.toFixed(1) || 0
+                )}
+              </div>
               <p className="text-xs font-semibold text-gray-600">grams</p>
             </CardContent>
           </Card>
@@ -188,7 +231,13 @@ export default function NutrientsPage() {
               <Apple className="size-5 text-yellow-600" />
             </CardHeader>
             <CardContent>
-              <div className="brutalism-text-bold text-3xl">{nutrients?.carbs_g.toFixed(1) || 0}</div>
+              <div className="brutalism-text-bold text-3xl">
+                {summaryLoading ? (
+                  <Loader2 className="size-6 animate-spin" />
+                ) : (
+                  dailyData?.carbs_g.toFixed(1) || 0
+                )}
+              </div>
               <p className="text-xs font-semibold text-gray-600">grams</p>
             </CardContent>
           </Card>
@@ -199,11 +248,121 @@ export default function NutrientsPage() {
               <Activity className="size-5 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="brutalism-text-bold text-3xl">{nutrients?.fats_g.toFixed(1) || 0}</div>
+              <div className="brutalism-text-bold text-3xl">
+                {summaryLoading ? (
+                  <Loader2 className="size-6 animate-spin" />
+                ) : (
+                  dailyData?.fats_g.toFixed(1) || 0
+                )}
+              </div>
               <p className="text-xs font-semibold text-gray-600">grams</p>
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Daily Pie */}
+      <div
+        className="brutalism-card brutalism-shadow-lg bg-white p-4"
+        data-testid="daily-pie-chart"
+      >
+        <div className="mb-3 flex items-center gap-2">
+          <PieIcon className="size-5 text-rose-600" />
+          <div>
+            <h3 className="brutalism-text-bold text-xl uppercase">Today&apos;s Macro Split</h3>
+            <p className="text-sm font-semibold text-gray-600">
+              Visualize protein, carbs, and fats proportions
+            </p>
+          </div>
+        </div>
+        <div className="h-72 w-full">
+          {summaryLoading ? (
+            <div className="flex h-full items-center justify-center text-sm font-semibold text-gray-600">
+              <Loader2 className="mr-2 size-5 animate-spin" />
+              Loading breakdown...
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={dailyPieData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label
+                >
+                  {dailyPieData.map((entry, index) => (
+                    <Cell
+                      key={`${entry.name}-${index}`}
+                      fill={entry.color}
+                      stroke="#000"
+                      strokeWidth={2}
+                    />
+                  ))}
+                </Pie>
+                <Legend />
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+
+      <PercentLineChart
+        title="Past 7 Days"
+        subtitle="Daily macros trend (percent of goal)"
+        icon={<ChartArea className="size-5 text-blue-700" />}
+        data={pastSevenNormalized}
+        emptyText="No daily trend data yet. Add meals to see the last 7 days."
+        dataTestId="daily-trend-chart"
+        colors={MACRO_COLORS}
+        loading={summaryLoading}
+      />
+
+      {/* Charts */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <PercentLineChart
+          title="Weekly Trend"
+          subtitle="Smooth line view of last weeks"
+          icon={<ChartArea className="size-5 text-indigo-700" />}
+          data={weeklyTrendNormalized}
+          emptyText="No nutrient data available for this range."
+          dataTestId="weekly-line-chart"
+          colors={MACRO_COLORS}
+          labelFormatter={formatTooltipLabel}
+          loading={summaryLoading}
+        />
+
+        <PercentLineChart
+          title="Monthly Trend"
+          subtitle={`Last ${monthRange} month${monthRange > 1 ? "s" : ""}`}
+          icon={<ChartArea className="size-5 text-emerald-700" />}
+          data={monthlyTrendNormalized}
+          emptyText="Add meals to see charts for this period."
+          dataTestId="monthly-line-chart"
+          colors={MACRO_COLORS}
+          actions={
+            <div className="flex gap-2">
+              {[3, 6, 12].map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setMonthRange(range as 3 | 6 | 12)}
+                  className={`rounded-none border-2 px-2 py-1 text-xs font-bold uppercase transition ${
+                    monthRange === range
+                      ? "bg-black text-white"
+                      : "bg-white text-black hover:bg-yellow-200"
+                  }`}
+                >
+                  {range}m
+                </button>
+              ))}
+            </div>
+          }
+          labelFormatter={formatTooltipLabel}
+          loading={summaryLoading}
+        />
       </div>
 
       {/* Additional Nutrients Section */}
@@ -213,20 +372,22 @@ export default function NutrientsPage() {
           <Card className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="text-sm font-bold uppercase">Other Tracked Values</CardTitle>
-              <CardDescription className="font-semibold">Additional nutrient information</CardDescription>
+              <CardDescription className="font-semibold">
+                Additional nutrient information
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex justify-between border-b-2 border-gray-200 pb-1">
                 <span className="font-semibold">Sugars</span>
-                <span className="font-bold">{nutrients?.sugar_g?.toFixed(1) || 0} g</span>
+                <span className="font-bold">{dailyData?.sugar_g?.toFixed(1) || 0} g</span>
               </div>
               <div className="flex justify-between border-b-2 border-gray-200 pb-1">
                 <span className="font-semibold">Fiber</span>
-                <span className="font-bold">{nutrients?.fiber_g?.toFixed(1) || 0} g</span>
+                <span className="font-bold">{dailyData?.fiber_g?.toFixed(1) || 0} g</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-semibold">Sodium</span>
-                <span className="font-bold">{nutrients?.sodium_mg?.toFixed(1) || 0} mg</span>
+                <span className="font-bold">{dailyData?.sodium_mg?.toFixed(1) || 0} mg</span>
               </div>
             </CardContent>
           </Card>
@@ -234,32 +395,14 @@ export default function NutrientsPage() {
           <Card className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="text-sm font-bold uppercase">Meal Summary</CardTitle>
-              <CardDescription className="font-semibold">Today&apos;s meal count</CardDescription>
+              <CardDescription className="font-semibold">Today</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center">
                 <div className="brutalism-text-bold text-5xl text-emerald-600">
-                  {nutrients?.meal_count || 0}
+                  {dailyData?.meal_count || 0}
                 </div>
                 <p className="mt-2 font-semibold text-gray-600">Meals logged today</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg bg-amber-50 transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-sm font-bold uppercase">Coming Soon</CardTitle>
-              <CardDescription className="font-semibold">More features in development</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="rounded-none border-2 border-dashed border-gray-400 bg-white p-3 text-center">
-                <p className="font-semibold text-gray-600">📊 Weekly Trends</p>
-              </div>
-              <div className="rounded-none border-2 border-dashed border-gray-400 bg-white p-3 text-center">
-                <p className="font-semibold text-gray-600">📈 Monthly Reports</p>
-              </div>
-              <div className="rounded-none border-2 border-dashed border-gray-400 bg-white p-3 text-center">
-                <p className="font-semibold text-gray-600">🎯 Goal Tracking</p>
               </div>
             </CardContent>
           </Card>
@@ -268,10 +411,22 @@ export default function NutrientsPage() {
 
       {/* Info Footer */}
       <div className="brutalism-card brutalism-shadow bg-blue-50 p-6">
-        <p className="text-center font-semibold text-gray-700">
-          💡 Tip: Your nutrient data is calculated from the meals you&apos;ve logged in your calendar
-        </p>
+        <div className="text-center font-semibold text-gray-700">
+          💡 Tip: Your nutrient data is calculated from the meals you&apos;ve logged in your
+          calendar
+        </div>
       </div>
+
+      <GoalDialog
+        open={goalModalOpen}
+        onOpenChange={setGoalModalOpen}
+        goalForm={goalForm}
+        goalError={goalError}
+        goalSaving={goalSaving}
+        onUseRecommended={() => goalForm.reset(RECOMMENDED_GOALS)}
+        onSubmit={onSubmitGoal}
+        fields={GOAL_FIELD_CONFIG}
+      />
     </div>
   );
 }
