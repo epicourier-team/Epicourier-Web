@@ -369,7 +369,7 @@ describe("NutrientsPage", () => {
       monthly: [],
     };
 
-    let resolveExport: (value: unknown) => void;
+    let resolveExport!: (value: unknown) => void;
     const exportPromise = new Promise((resolve) => {
       resolveExport = resolve;
     });
