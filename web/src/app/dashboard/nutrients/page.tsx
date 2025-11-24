@@ -1,8 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import {
   Activity,
@@ -14,24 +11,26 @@ import {
   RefreshCcw,
   Scale,
   Target,
-  Download,
 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GoalDialog } from "./components/GoalDialog";
 import { PercentLineChart } from "./components/PercentLineChart";
+import { ExportActions } from "./components/ExportActions";
 import {
   GOAL_FIELD_CONFIG,
   MACRO_COLORS,
   RECOMMENDED_GOALS,
   useNutrientDashboard,
 } from "./useNutrientDashboard";
+import { useNutrientExport } from "./useNutrientExport";
 
 /**
  * Nutrient Dashboard Page
  * Displays daily snapshot plus weekly/monthly trends.
  */
 export default function NutrientsPage() {
+  const { exporting, exportData } = useNutrientExport();
   const {
     summaryLoading,
     error,
@@ -54,63 +53,6 @@ export default function NutrientsPage() {
     goalForm,
     formatTooltipLabel,
   } = useNutrientDashboard();
-
-  const [exporting, setExporting] = useState(false);
-  const { toast } = useToast();
-
-  const handleExport = async (format: "csv" | "pdf") => {
-    try {
-      setExporting(true);
-
-      // Calculate date range - last 30 days
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30);
-
-      const startParam = startDate.toISOString().split("T")[0];
-      const endParam = endDate.toISOString().split("T")[0];
-
-      const url = `/api/nutrients/export?format=${format}&start=${startParam}&end=${endParam}`;
-
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Export failed");
-      }
-
-      // Get the blob and create a download link
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-
-      // Get filename from Content-Disposition header or use default
-      const contentDisposition = response.headers.get("Content-Disposition");
-      const filenameMatch = contentDisposition?.match(/filename="?([^"]+)"?/);
-      const filename = filenameMatch ? filenameMatch[1] : `nutrition-export.${format}`;
-
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
-
-      toast({
-        title: "Export Successful",
-        description: `Your nutrition data has been exported as ${format.toUpperCase()}.`,
-      });
-    } catch (err) {
-      console.error("Export error:", err);
-      toast({
-        variant: "destructive",
-        title: "Export Failed",
-        description: err instanceof Error ? err.message : "Failed to export data",
-      });
-    } finally {
-      setExporting(false);
-    }
-  };
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-0">
@@ -155,31 +97,16 @@ export default function NutrientsPage() {
               <Target className="size-4" />
               {goal ? "Edit Goal" : "Set Goal"}
             </button>
-            <button
-              className="brutalism-button inline-flex items-center gap-2 rounded-none px-4 py-2"
-              onClick={fetchNutrientData}
-              data-testid="refresh-button"
-            >
-              <RefreshCcw className="size-4" /> Refresh Data
-            </button>
-            <Button
-              onClick={() => handleExport("csv")}
-              disabled={exporting}
-              className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg border-2 border-black bg-white font-bold text-black uppercase transition-all hover:bg-emerald-100"
-            >
-              <Download className="mr-2 size-4" />
-              {exporting ? "Exporting..." : "Export CSV"}
-            </Button>
-            <Button
-              onClick={() => handleExport("pdf")}
-              disabled={exporting}
-              className="brutalism-card brutalism-shadow hover:brutalism-shadow-lg border-2 border-black bg-white font-bold text-black uppercase transition-all hover:bg-blue-100"
-            >
-              <Download className="mr-2 size-4" />
-              {exporting ? "Exporting..." : "Export Report"}
-            </Button>
-          </div>
+          <button
+            className="brutalism-button inline-flex items-center gap-2 rounded-none px-4 py-2"
+            onClick={fetchNutrientData}
+            data-testid="refresh-button"
+          >
+            <RefreshCcw className="size-4" /> Refresh Data
+          </button>
+          <ExportActions exporting={exporting} onExport={exportData} />
         </div>
+      </div>
         {goalError && (
           <p className="mt-3 text-sm font-semibold text-red-700">
             Unable to load your goal: {goalError}

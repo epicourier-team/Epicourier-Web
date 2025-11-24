@@ -11,11 +11,42 @@ interface NutrientRow {
   protein_g: number;
   carbs_g: number;
   fats_g: number;
-  fiber_g: number;
-  sugar_g: number;
-  sodium_mg: number;
   meal_count: number;
+  sugar_g: number;
+  fiber_g: number;
+  sodium_mg: number;
 }
+
+// Normalize a Date to UTC midnight and return YYYY-MM-DD
+const toDateKey = (date: Date) => date.toISOString().split("T")[0];
+
+const normalizeDate = (input: Date) => {
+  return new Date(Date.UTC(input.getFullYear(), input.getMonth(), input.getDate()));
+};
+
+const buildDateRange = (start: Date, end: Date) => {
+  const days: string[] = [];
+  const cursor = new Date(start);
+
+  while (cursor <= end) {
+    days.push(toDateKey(cursor));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+
+  return days;
+};
+
+const createEmptyRow = (date: string): NutrientRow => ({
+  date,
+  calories_kcal: 0,
+  protein_g: 0,
+  carbs_g: 0,
+  fats_g: 0,
+  meal_count: 0,
+  sugar_g: 0,
+  fiber_g: 0,
+  sodium_mg: 0,
+});
 
 /**
  * Fetch nutrient data for a date range
@@ -26,6 +57,15 @@ async function fetchNutrientData(
   startDate: Date,
   endDate: Date
 ): Promise<NutrientRow[]> {
+  const normalizedStart = normalizeDate(startDate);
+  const normalizedEnd = normalizeDate(endDate);
+
+  // Pre-fill map with every day in the range to avoid missing rows in CSV/PDF
+  const allDays = buildDateRange(normalizedStart, normalizedEnd);
+  const nutrientsByDate = new Map<string, NutrientRow>(
+    allDays.map((dateKey) => [dateKey, createEmptyRow(dateKey)])
+  );
+
   // Query Calendar table to get meal logs within date range
   const { data: calendarData, error: calendarError } = await supabase
     .from("Calendar")
@@ -53,8 +93,8 @@ async function fetchNutrientData(
     )
     .eq("user_id", publicUserId)
     .eq("status", true)
-    .gte("date", startDate.toISOString().split("T")[0])
-    .lte("date", endDate.toISOString().split("T")[0])
+    .gte("date", toDateKey(normalizedStart))
+    .lte("date", toDateKey(normalizedEnd))
     .order("date", { ascending: true });
 
   if (calendarError) {
@@ -62,25 +102,13 @@ async function fetchNutrientData(
     throw new Error(calendarError.message);
   }
 
-  // Aggregate nutrients by date
-  const nutrientsByDate = new Map<string, NutrientRow>();
-
   if (calendarData && calendarData.length > 0) {
     for (const meal of calendarData) {
-      const dateKey = meal.date as string;
-      
+      if (!meal.date) continue;
+
+      const dateKey = toDateKey(normalizeDate(new Date(meal.date)));
       if (!nutrientsByDate.has(dateKey)) {
-        nutrientsByDate.set(dateKey, {
-          date: dateKey,
-          calories_kcal: 0,
-          protein_g: 0,
-          carbs_g: 0,
-          fats_g: 0,
-          fiber_g: 0,
-          sugar_g: 0,
-          sodium_mg: 0,
-          meal_count: 0,
-        });
+        continue;
       }
 
       const dayData = nutrientsByDate.get(dateKey)!;
@@ -97,6 +125,8 @@ async function fetchNutrientData(
             carbs_g: number | null;
             protein_g: number | null;
             sugars_g: number | null;
+            fiber_g?: number | null;
+            sodium_mg?: number | null;
           };
         }>;
       } | null;
@@ -116,21 +146,25 @@ async function fetchNutrientData(
         dayData.carbs_g += Number(ingredient.carbs_g || 0) * ratio;
         dayData.fats_g += Number(ingredient.agg_fats_g || 0) * ratio;
         dayData.sugar_g += Number(ingredient.sugars_g || 0) * ratio;
+        dayData.fiber_g += Number(ingredient.fiber_g || 0) * ratio;
+        dayData.sodium_mg += Number(ingredient.sodium_mg || 0) * ratio;
       }
     }
   }
 
   // Convert map to array and round values
-  return Array.from(nutrientsByDate.values()).map(row => ({
-    ...row,
-    calories_kcal: Math.round(row.calories_kcal * 100) / 100,
-    protein_g: Math.round(row.protein_g * 100) / 100,
-    carbs_g: Math.round(row.carbs_g * 100) / 100,
-    fats_g: Math.round(row.fats_g * 100) / 100,
-    fiber_g: Math.round(row.fiber_g * 100) / 100,
-    sugar_g: Math.round(row.sugar_g * 100) / 100,
-    sodium_mg: Math.round(row.sodium_mg * 100) / 100,
-  }));
+  return Array.from(nutrientsByDate.values())
+    .map((row) => ({
+      ...row,
+      calories_kcal: Math.round(row.calories_kcal * 100) / 100,
+      protein_g: Math.round(row.protein_g * 100) / 100,
+      carbs_g: Math.round(row.carbs_g * 100) / 100,
+      fats_g: Math.round(row.fats_g * 100) / 100,
+      sugar_g: Math.round(row.sugar_g * 100) / 100,
+      fiber_g: Math.round(row.fiber_g * 100) / 100,
+      sodium_mg: Math.round(row.sodium_mg * 100) / 100,
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 /**
@@ -194,8 +228,8 @@ function generatePDF(data: NutrientRow[], startDate: string, endDate: string): s
       protein_g: acc.protein_g + row.protein_g,
       carbs_g: acc.carbs_g + row.carbs_g,
       fats_g: acc.fats_g + row.fats_g,
-      fiber_g: acc.fiber_g + row.fiber_g,
       sugar_g: acc.sugar_g + row.sugar_g,
+      fiber_g: acc.fiber_g + row.fiber_g,
       sodium_mg: acc.sodium_mg + row.sodium_mg,
       meal_count: acc.meal_count + row.meal_count,
     }), {
@@ -203,8 +237,8 @@ function generatePDF(data: NutrientRow[], startDate: string, endDate: string): s
       protein_g: 0,
       carbs_g: 0,
       fats_g: 0,
-      fiber_g: 0,
       sugar_g: 0,
+      fiber_g: 0,
       sodium_mg: 0,
       meal_count: 0,
     });
@@ -249,6 +283,9 @@ function generatePDF(data: NutrientRow[], startDate: string, endDate: string): s
       lines.push(`  Protein: ${Math.round(row.protein_g * 10) / 10} g`);
       lines.push(`  Carbs: ${Math.round(row.carbs_g * 10) / 10} g`);
       lines.push(`  Fats: ${Math.round(row.fats_g * 10) / 10} g`);
+      lines.push(`  Fiber: ${Math.round(row.fiber_g * 10) / 10} g`);
+      lines.push(`  Sugar: ${Math.round(row.sugar_g * 10) / 10} g`);
+      lines.push(`  Sodium: ${Math.round(row.sodium_mg * 10) / 10} mg`);
       lines.push(`  Meals: ${row.meal_count}`);
       lines.push("");
     }
