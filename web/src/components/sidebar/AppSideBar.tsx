@@ -19,7 +19,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { createClient } from "@/utils/supabase/client";
-import { Activity, Calendar, ChefHat, ChevronUp, HelpCircle, Lightbulb, LogOut, User } from "lucide-react";
+import {
+  Activity,
+  Calendar,
+  ChefHat,
+  ChevronUp,
+  HelpCircle,
+  Lightbulb,
+  LogOut,
+  User,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 

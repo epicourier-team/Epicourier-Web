@@ -4,9 +4,14 @@
 
 import { PATCH } from "@/app/api/events/[id]/route";
 import { createClient } from "@/utils/supabase/server";
+import { syncDailyNutrientTracking } from "@/app/api/nutrients/tracking";
 
 jest.mock("@/utils/supabase/server", () => ({
   createClient: jest.fn(),
+}));
+
+jest.mock("@/app/api/nutrients/tracking", () => ({
+  syncDailyNutrientTracking: jest.fn(),
 }));
 
 // ------------------------------
@@ -26,6 +31,8 @@ const mockAuthGetUser = jest.fn();
 const mockFrom = jest.fn();
 const mockEq = jest.fn();
 const mockUpdate = jest.fn();
+
+const mockSyncDailyNutrientTracking = syncDailyNutrientTracking as jest.Mock;
 
 // 工具：建立 Request
 const makeRequest = (body: Record<string, unknown>): Request =>
@@ -48,7 +55,7 @@ beforeEach(() => {
 
   // 預設授權成功
   mockAuthGetUser.mockResolvedValue({
-    data: { user: { email: "test@example.com" } },
+    data: { user: { email: "test@example.com", id: "auth-user-1" } },
     error: null,
   });
 
@@ -83,6 +90,10 @@ beforeEach(() => {
 // 測試案例
 // ------------------------------
 describe("PATCH /api/events/[id]", () => {
+  beforeEach(() => {
+    mockSyncDailyNutrientTracking.mockResolvedValue(undefined);
+  });
+
   it("returns 401 if user not authenticated", async () => {
     mockAuthGetUser.mockResolvedValueOnce({
       data: { user: null },
@@ -96,6 +107,7 @@ describe("PATCH /api/events/[id]", () => {
 
     expect(res.status).toBe(401);
     expect(json.error).toMatch(/User not authenticated/i);
+    expect(mockSyncDailyNutrientTracking).not.toHaveBeenCalled();
   });
 
   it("returns 400 if status is not boolean", async () => {
@@ -106,6 +118,7 @@ describe("PATCH /api/events/[id]", () => {
 
     expect(res.status).toBe(400);
     expect(json.error).toMatch(/Invalid 'status'/i);
+    expect(mockSyncDailyNutrientTracking).not.toHaveBeenCalled();
   });
 
   it("returns 200 when update succeeds", async () => {
@@ -128,6 +141,12 @@ describe("PATCH /api/events/[id]", () => {
 
     expect(res.status).toBe(200);
     expect(json[0]).toEqual(expect.objectContaining({ id: 1, status: true }));
+    expect(mockSyncDailyNutrientTracking).toHaveBeenCalledWith({
+      authUserId: "auth-user-1",
+      date: "2025-11-06",
+      publicUserId: 99,
+      supabase: expect.any(Object),
+    });
   });
 
   it("returns 500 when supabase update fails", async () => {
@@ -146,6 +165,7 @@ describe("PATCH /api/events/[id]", () => {
 
     expect(res.status).toBe(500);
     expect(json.error).toBe("DB update failed");
+    expect(mockSyncDailyNutrientTracking).not.toHaveBeenCalled();
   });
 
   it("returns 404 when no data is returned", async () => {
@@ -161,5 +181,30 @@ describe("PATCH /api/events/[id]", () => {
 
     expect(res.status).toBe(404);
     expect(json.error).toMatch(/Entry not found/i);
+    expect(mockSyncDailyNutrientTracking).not.toHaveBeenCalled();
+  });
+
+  it("returns 500 when nutrient tracking sync fails", async () => {
+    const updatedData: CalendarEntry[] = [
+      { id: 1, date: "2025-11-06", meal_type: "dinner", status: true },
+    ];
+
+    mockUpdate.mockReturnValueOnce({
+      eq: jest.fn().mockReturnThis(),
+      select: jest.fn().mockResolvedValue({
+        data: updatedData,
+        error: null,
+      }),
+    });
+
+    mockSyncDailyNutrientTracking.mockRejectedValueOnce(new Error("sync failed"));
+
+    const res = await PATCH(makeRequest({ status: true }), {
+      params: Promise.resolve({ id: "1" }),
+    });
+    const json = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(json.error).toBe("sync failed");
   });
 });

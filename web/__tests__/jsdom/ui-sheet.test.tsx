@@ -7,7 +7,6 @@ import {
   SheetDescription,
   SheetFooter,
   SheetHeader,
-  SheetOverlay,
   SheetTitle,
 } from "@/components/ui/sheet";
 import { fireEvent, render, screen } from "@testing-library/react";

@@ -179,8 +179,8 @@ describe("MealDetailModal – full coverage", () => {
     expect(mockClose).toHaveBeenCalled();
   });
 
-  // ✅ isPast branch (expired meal)
-  test("shows expired button when meal is past date", () => {
+  // ✅ isPast branch (past meal notice)
+  test("shows past meal note when entry date is before today", () => {
     const pastEntry = [
       {
         id: 9,
@@ -199,7 +199,7 @@ describe("MealDetailModal – full coverage", () => {
         reloadEvents={mockReload}
       />
     );
-    expect(screen.getByText(/expired meal/i)).toBeInTheDocument();
+    expect(screen.getByText(/past meal — status can still be updated/i)).toBeInTheDocument();
   });
 
   // ✅ Close button disabled branch

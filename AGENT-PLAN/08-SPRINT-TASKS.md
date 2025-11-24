@@ -1,7 +1,7 @@
 # Epicourier Sprint Tasks & Milestones
 
-**Document Version**: 1.0  
-**Last Updated**: November 23, 2025 (nutrient-tracking sync)  
+**Document Version**: 1.1  
+**Last Updated**: December 05, 2025 (issues #25/#26 closed)  
 **Current Phase**: Phase 1 Complete - Planning Phase 2
 
 ---
@@ -25,16 +25,16 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 
 **Active Phase**: Phase 2 - Advanced Features (v1.1.0 - v1.3.0)  
 **Total Planned Issues**: 10  
-**Completed**: 6  
+**Completed**: 9  
 **In Progress**: 0  
-**Planned**: 4 nutrient follow-ups (charts/history/export/goals)
+**Planned**: 1 nutrient follow-ups (export/goals)
 
 ---
 
 ### 📋 v1.1.0: Nutrient Summary System
 
 **Milestone**: `v1.1.0-nutrient-tracking`  
-**Status**: 🚧 In Progress (core shipped; charts/exports pending)  
+**Status**: 🚧 In Progress (charts + historical API shipped; exports/goals pending)  
 **Target Release**: TBD
 
 **Recent nutrient updates (last 7 days)**:
@@ -54,19 +54,20 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 | #23   | fix(database): IMMUTABLE index function error for month aggregates | Database   | P1       | Yang Zhan    | ✅ Complete |
 | #13   | chore(types): Add TypeScript types for nutrient tracking           | Frontend   | P2       | -            | ✅ Complete |
 | #17   | test(frontend): Add unit tests for nutrient dashboard page         | Testing    | P2       | Zhendong Liu | ✅ Complete |
-| #25   | feat(frontend): Nutrient charts & date-range picker                | Frontend   | P1       | -            | 🆕 Open     |
-| #26   | feat(backend): Historical nutrient summary endpoints               | Backend    | P1       | -            | 🆕 Open     |
+| #25   | feat(frontend): Nutrient charts & date-range picker                | Frontend   | P1       | -            | ✅ Complete |
+| #26   | feat(backend): Historical nutrient summary endpoints               | Backend    | P1       | -            | ✅ Complete |
 | #27   | feat(full-stack): Nutrition data export (CSV/PDF)                  | Full-Stack | P2       | -            | 🆕 Open     |
-| #28   | feat(database): User nutrient goal preferences                     | Database   | P2       | -            | 🆕 Open     |
+| #28   | feat(database): User nutrient goal preferences                     | Database   | P2       | -            | ✅ Complete |
 
 **Expected Deliverables**:
 
 - [x] Nutrient tracking schema + API with immutable month index (#14, #15, #23)
 - [x] Basic nutrient dashboard page + Jest coverage (#16, #17)
 - [x] TypeScript types for nutrient tracking (#13)
-- [ ] Visualization dashboard with charts (#25)
-- [ ] Historical/monthly aggregation UI & exports (#26, #27)
-- [ ] Goal persistence to compare intake vs targets (#28)
+- [x] Visualization dashboard with charts + date range picker (#25)
+- [x] Historical nutrient aggregation endpoints (week/month) (#26)
+- [ ] Nutrition data export flows (CSV/PDF) (#27)
+- [x] Goal persistence to compare intake vs targets (#28)
 - [ ] > 85% test coverage across nutrient workflows
 
 ---
@@ -308,7 +309,7 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 
 ### v1.1.0: Monthly Nutrient Summary
 
-**Status**: 🚧 In Progress (core shipped; charts/exports pending)  
+**Status**: 🚧 In Progress (charts + historical endpoints shipped; exports/goals pending)  
 **Priority**: P1  
 **Milestone**: `v1.1.0-nutrient-tracking`
 **Target Release**: TBD
@@ -318,10 +319,10 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 | Feature           | Description                                | Complexity | Issue #             |
 | ----------------- | ------------------------------------------ | ---------- | ------------------- |
 | Nutrient Tracking | Track daily/weekly/monthly nutrient intake | Medium     | #13/#14/#15/#16/#17 |
-| Visualization     | Charts and graphs for nutrition trends     | Medium     | TBD                 |
-| Goal Setting      | Set personal nutrition goals               | Low        | TBD                 |
-| Progress Reports  | Weekly/monthly nutrition reports           | Medium     | TBD                 |
-| Export Data       | Export nutrition data (CSV/PDF)            | Low        | TBD                 |
+| Visualization     | Charts and graphs for nutrition trends     | Medium     | #25                 |
+| Goal Setting      | Set personal nutrition goals               | Low        | #28                 |
+| Progress Reports  | Weekly/monthly nutrition reports           | Medium     | #26                 |
+| Export Data       | Export nutrition data (CSV/PDF)            | Low        | #27                 |
 
 #### Technical Requirements
 
@@ -329,14 +330,14 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 
 - [x] Nutrient dashboard page (`/dashboard/nutrients`)
 - [x] Basic nutrient dashboard tests (Jest, >85% target)
-- [ ] Chart components (Chart.js or Recharts)
-- [ ] Date range picker for historical data
+- [x] Chart components (Recharts)
+- [x] Date range picker for historical data
 - [ ] Export functionality
 
 **Backend Tasks**:
 
 - [x] Nutrient calculation aggregation API (`/api/nutrients/daily`)
-- [ ] Historical data query endpoints
+- [x] Historical data query endpoints (week/month summaries)
 - [ ] Report generation service
 - [ ] Data export endpoints
 

@@ -108,14 +108,15 @@ export default function CalendarPage() {
 
       const recipeNames = items.map((x) => x.Recipe?.name ?? "Meal").join(", ");
 
+      // Past entries should look muted even when completed so they don't compete with current items.
       let bgColor = "#3b82f6";
       let borderColor = "#2563eb";
-      if (isCompleted) {
+      if (isPast) {
+        bgColor = "#e5e7eb";
+        borderColor = "#9ca3af";
+      } else if (isCompleted) {
         bgColor = "#22c55e";
         borderColor = "#16a34a";
-      } else if (isPast) {
-        bgColor = "#9ca3af";
-        borderColor = "#6b7280";
       }
 
       return {
@@ -154,22 +155,12 @@ export default function CalendarPage() {
   // click handle
   // ------------------------------
   const handleEventClick = (clickInfo: EventClickArg) => {
-    const { calendarData, isPast } = clickInfo.event.extendedProps as {
+    const { calendarData } = clickInfo.event.extendedProps as {
       calendarData: CalendarApiResponse | CalendarApiResponse[];
-      isPast: boolean;
     };
     const entries: CalendarApiResponse[] = Array.isArray(calendarData)
       ? calendarData
       : [calendarData];
-
-    if (isPast && entries.every((x) => x.status === false)) {
-      toast({
-        title: "❌ Expired Meal",
-        description: "This meal is expired and cannot be modified.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     setSelectedCalendarEntry(entries);
     setIsDetailModalOpen(true);
