@@ -20,11 +20,11 @@ beforeEach(() => {
   });
 
   mockAuthGetUser.mockResolvedValue({
-    data: { 
-      user: { 
-        id: "auth-user-1", 
-        email: "test@example.com" 
-      } 
+    data: {
+      user: {
+        id: "auth-user-1",
+        email: "test@example.com",
+      },
     },
     error: null,
   });
@@ -35,9 +35,9 @@ describe("GET /api/nutrients/export", () => {
     new Request(`http://localhost/api/nutrients/export?${params}`);
 
   it("returns 401 when authentication fails", async () => {
-    mockAuthGetUser.mockResolvedValue({ 
-      data: { user: null }, 
-      error: new Error("No session") 
+    mockAuthGetUser.mockResolvedValue({
+      data: { user: null },
+      error: new Error("No session"),
     });
 
     const res = await GET(createRequest("format=csv&start=2025-01-01&end=2025-01-31"));
@@ -51,9 +51,9 @@ describe("GET /api/nutrients/export", () => {
     const mockUserQuery = {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({ 
-        data: [{ id: 1 }], 
-        error: null 
+      limit: jest.fn().mockResolvedValue({
+        data: [{ id: 1 }],
+        error: null,
       }),
     };
     mockFrom.mockImplementationOnce(() => mockUserQuery);
@@ -69,9 +69,9 @@ describe("GET /api/nutrients/export", () => {
     const mockUserQuery = {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({ 
-        data: [{ id: 1 }], 
-        error: null 
+      limit: jest.fn().mockResolvedValue({
+        data: [{ id: 1 }],
+        error: null,
       }),
     };
     mockFrom.mockImplementationOnce(() => mockUserQuery);
@@ -87,9 +87,9 @@ describe("GET /api/nutrients/export", () => {
     const mockUserQuery = {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({ 
-        data: [{ id: 1 }], 
-        error: null 
+      limit: jest.fn().mockResolvedValue({
+        data: [{ id: 1 }],
+        error: null,
       }),
     };
     mockFrom.mockImplementationOnce(() => mockUserQuery);
@@ -105,9 +105,9 @@ describe("GET /api/nutrients/export", () => {
     const mockUserQuery = {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({ 
-        data: [{ id: 1 }], 
-        error: null 
+      limit: jest.fn().mockResolvedValue({
+        data: [{ id: 1 }],
+        error: null,
       }),
     };
     mockFrom.mockImplementationOnce(() => mockUserQuery);
@@ -123,9 +123,9 @@ describe("GET /api/nutrients/export", () => {
     const mockUserQuery = {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({ 
-        data: [{ id: 1 }], 
-        error: null 
+      limit: jest.fn().mockResolvedValue({
+        data: [{ id: 1 }],
+        error: null,
       }),
     };
     mockFrom.mockImplementationOnce(() => mockUserQuery);
@@ -141,9 +141,9 @@ describe("GET /api/nutrients/export", () => {
     const mockUserQuery = {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({ 
-        data: [{ id: 1 }], 
-        error: null 
+      limit: jest.fn().mockResolvedValue({
+        data: [{ id: 1 }],
+        error: null,
       }),
     };
 
@@ -152,7 +152,8 @@ describe("GET /api/nutrients/export", () => {
       eq: jest.fn().mockReturnThis(),
       gte: jest.fn().mockReturnThis(),
       lte: jest.fn().mockReturnThis(),
-      order: jest.fn().mockResolvedValue({
+      order: jest.fn().mockReturnThis(),
+      returns: jest.fn().mockResolvedValue({
         data: [
           {
             id: 1,
@@ -191,11 +192,15 @@ describe("GET /api/nutrients/export", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toBe("text/csv");
     expect(res.headers.get("Content-Disposition")).toContain("attachment");
-    expect(res.headers.get("Content-Disposition")).toContain("nutrition-2025-01-01-to-2025-01-31.csv");
-    
+    expect(res.headers.get("Content-Disposition")).toContain(
+      "nutrition-2025-01-01-to-2025-01-31.csv"
+    );
+
     // Check CSV headers
-    expect(text).toContain("Date,Calories (kcal),Protein (g),Carbs (g),Fats (g),Fiber (g),Sugar (g),Sodium (mg),Meal Count");
-    
+    expect(text).toContain(
+      "Date,Calories (kcal),Protein (g),Carbs (g),Fats (g),Fiber (g),Sugar (g),Sodium (mg),Meal Count"
+    );
+
     // Check CSV content
     expect(text).toContain("2025-01-15");
     expect(text).toContain("300");
@@ -208,9 +213,9 @@ describe("GET /api/nutrients/export", () => {
     const mockUserQuery = {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({ 
-        data: [{ id: 1 }], 
-        error: null 
+      limit: jest.fn().mockResolvedValue({
+        data: [{ id: 1 }],
+        error: null,
       }),
     };
 
@@ -219,7 +224,8 @@ describe("GET /api/nutrients/export", () => {
       eq: jest.fn().mockReturnThis(),
       gte: jest.fn().mockReturnThis(),
       lte: jest.fn().mockReturnThis(),
-      order: jest.fn().mockResolvedValue({
+      order: jest.fn().mockReturnThis(),
+      returns: jest.fn().mockResolvedValue({
         data: [
           {
             id: 1,
@@ -258,8 +264,10 @@ describe("GET /api/nutrients/export", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toBe("text/plain");
     expect(res.headers.get("Content-Disposition")).toContain("attachment");
-    expect(res.headers.get("Content-Disposition")).toContain("nutrition-report-2025-01-01-to-2025-01-31.txt");
-    
+    expect(res.headers.get("Content-Disposition")).toContain(
+      "nutrition-report-2025-01-01-to-2025-01-31.txt"
+    );
+
     // Check PDF content
     expect(text).toContain("NUTRITION SUMMARY REPORT");
     expect(text).toContain("Period: 2025-01-01 to 2025-01-31");
@@ -273,9 +281,9 @@ describe("GET /api/nutrients/export", () => {
     const mockUserQuery = {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue({ 
-        data: [{ id: 1 }], 
-        error: null 
+      limit: jest.fn().mockResolvedValue({
+        data: [{ id: 1 }],
+        error: null,
       }),
     };
 
@@ -284,7 +292,8 @@ describe("GET /api/nutrients/export", () => {
       eq: jest.fn().mockReturnThis(),
       gte: jest.fn().mockReturnThis(),
       lte: jest.fn().mockReturnThis(),
-      order: jest.fn().mockResolvedValue({
+      order: jest.fn().mockReturnThis(),
+      returns: jest.fn().mockResolvedValue({
         data: [],
         error: null,
       }),

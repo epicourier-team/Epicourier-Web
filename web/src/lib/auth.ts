@@ -4,7 +4,7 @@ import type { Database } from "@/types/supabase";
 /**
  * Helper function to get the numeric user ID from public."User" table
  * based on the authenticated user's email.
- * 
+ *
  * @param supabase - Supabase client instance
  * @returns The numeric user ID from the public User table
  * @throws Error if user is not authenticated or user profile is not found

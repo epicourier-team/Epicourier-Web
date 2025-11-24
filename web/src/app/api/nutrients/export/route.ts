@@ -17,6 +17,28 @@ interface NutrientRow {
   sodium_mg: number;
 }
 
+type IngredientRow = {
+  agg_fats_g: number | null;
+  calories_kcal: number | null;
+  carbs_g: number | null;
+  protein_g: number | null;
+  sugars_g: number | null;
+  fiber_g?: number | null;
+  sodium_mg?: number | null;
+};
+
+type RecipeIngredientMapRow = {
+  relative_unit_100: number | null;
+  Ingredient: IngredientRow | null;
+};
+
+type CalendarMealRow = {
+  date: string | null;
+  Recipe: {
+    "Recipe-Ingredient_Map": RecipeIngredientMapRow[];
+  } | null;
+};
+
 // Normalize a Date to UTC midnight and return YYYY-MM-DD
 const toDateKey = (date: Date) => date.toISOString().split("T")[0];
 
@@ -95,7 +117,8 @@ async function fetchNutrientData(
     .eq("status", true)
     .gte("date", toDateKey(normalizedStart))
     .lte("date", toDateKey(normalizedEnd))
-    .order("date", { ascending: true });
+    .order("date", { ascending: true })
+    .returns<CalendarMealRow[]>();
 
   if (calendarError) {
     console.error("Error fetching calendar data:", calendarError.message);
@@ -103,8 +126,8 @@ async function fetchNutrientData(
   }
 
   if (calendarData && calendarData.length > 0) {
-    for (const meal of calendarData) {
-      if (!meal.date) continue;
+    for (const meal of calendarData as CalendarMealRow[]) {
+      if (!meal?.date) continue;
 
       const dateKey = toDateKey(normalizeDate(new Date(meal.date)));
       if (!nutrientsByDate.has(dateKey)) {
@@ -134,7 +157,7 @@ async function fetchNutrientData(
       if (!recipe) continue;
 
       const ingredientMaps = recipe["Recipe-Ingredient_Map"] || [];
-      
+
       for (const map of ingredientMaps) {
         const ingredient = map.Ingredient;
         if (!ingredient) continue;
@@ -180,10 +203,10 @@ function generateCSV(data: NutrientRow[]): string {
     "Fiber (g)",
     "Sugar (g)",
     "Sodium (mg)",
-    "Meal Count"
+    "Meal Count",
   ];
 
-  const rows = data.map(row => [
+  const rows = data.map((row) => [
     row.date,
     row.calories_kcal.toString(),
     row.protein_g.toString(),
@@ -192,13 +215,10 @@ function generateCSV(data: NutrientRow[]): string {
     row.fiber_g.toString(),
     row.sugar_g.toString(),
     row.sodium_mg.toString(),
-    row.meal_count.toString()
+    row.meal_count.toString(),
   ]);
 
-  const csvContent = [
-    headers.join(","),
-    ...rows.map(row => row.join(","))
-  ].join("\n");
+  const csvContent = [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");
 
   return csvContent;
 }
@@ -209,7 +229,7 @@ function generateCSV(data: NutrientRow[]): string {
 function generatePDF(data: NutrientRow[], startDate: string, endDate: string): string {
   // Simple text-based PDF-like report
   const lines: string[] = [];
-  
+
   lines.push("NUTRITION SUMMARY REPORT");
   lines.push("=".repeat(50));
   lines.push("");
@@ -223,34 +243,37 @@ function generatePDF(data: NutrientRow[], startDate: string, endDate: string): s
     lines.push("No nutrition data available for this period.");
   } else {
     // Calculate totals
-    const totals = data.reduce((acc, row) => ({
-      calories_kcal: acc.calories_kcal + row.calories_kcal,
-      protein_g: acc.protein_g + row.protein_g,
-      carbs_g: acc.carbs_g + row.carbs_g,
-      fats_g: acc.fats_g + row.fats_g,
-      sugar_g: acc.sugar_g + row.sugar_g,
-      fiber_g: acc.fiber_g + row.fiber_g,
-      sodium_mg: acc.sodium_mg + row.sodium_mg,
-      meal_count: acc.meal_count + row.meal_count,
-    }), {
-      calories_kcal: 0,
-      protein_g: 0,
-      carbs_g: 0,
-      fats_g: 0,
-      sugar_g: 0,
-      fiber_g: 0,
-      sodium_mg: 0,
-      meal_count: 0,
-    });
+    const totals = data.reduce(
+      (acc, row) => ({
+        calories_kcal: acc.calories_kcal + row.calories_kcal,
+        protein_g: acc.protein_g + row.protein_g,
+        carbs_g: acc.carbs_g + row.carbs_g,
+        fats_g: acc.fats_g + row.fats_g,
+        sugar_g: acc.sugar_g + row.sugar_g,
+        fiber_g: acc.fiber_g + row.fiber_g,
+        sodium_mg: acc.sodium_mg + row.sodium_mg,
+        meal_count: acc.meal_count + row.meal_count,
+      }),
+      {
+        calories_kcal: 0,
+        protein_g: 0,
+        carbs_g: 0,
+        fats_g: 0,
+        sugar_g: 0,
+        fiber_g: 0,
+        sodium_mg: 0,
+        meal_count: 0,
+      }
+    );
 
     const avgDays = data.length;
-    
+
     lines.push("SUMMARY STATISTICS");
     lines.push("-".repeat(50));
     lines.push(`Total Days: ${avgDays}`);
     lines.push(`Total Meals: ${totals.meal_count}`);
     lines.push("");
-    
+
     lines.push("TOTAL NUTRIENTS");
     lines.push("-".repeat(50));
     lines.push(`Calories: ${Math.round(totals.calories_kcal)} kcal`);
@@ -261,7 +284,7 @@ function generatePDF(data: NutrientRow[], startDate: string, endDate: string): s
     lines.push(`Sugar: ${Math.round(totals.sugar_g * 10) / 10} g`);
     lines.push(`Sodium: ${Math.round(totals.sodium_mg * 10) / 10} mg`);
     lines.push("");
-    
+
     lines.push("DAILY AVERAGES");
     lines.push("-".repeat(50));
     lines.push(`Calories: ${Math.round(totals.calories_kcal / avgDays)} kcal/day`);
@@ -272,11 +295,11 @@ function generatePDF(data: NutrientRow[], startDate: string, endDate: string): s
     lines.push(`Sugar: ${Math.round((totals.sugar_g / avgDays) * 10) / 10} g/day`);
     lines.push(`Sodium: ${Math.round((totals.sodium_mg / avgDays) * 10) / 10} mg/day`);
     lines.push("");
-    
+
     lines.push("DAILY BREAKDOWN");
     lines.push("-".repeat(50));
     lines.push("");
-    
+
     for (const row of data) {
       lines.push(`Date: ${row.date}`);
       lines.push(`  Calories: ${Math.round(row.calories_kcal)} kcal`);
@@ -290,23 +313,23 @@ function generatePDF(data: NutrientRow[], startDate: string, endDate: string): s
       lines.push("");
     }
   }
-  
+
   lines.push("=".repeat(50));
   lines.push("End of Report");
-  
+
   return lines.join("\n");
 }
 
 /**
  * GET /api/nutrients/export?format=csv|pdf&start=YYYY-MM-DD&end=YYYY-MM-DD
- * 
+ *
  * Query parameters:
  * - format: "csv" or "pdf" (default: "csv")
  *   Note: "pdf" format returns a text-based summary report, not a true PDF file.
  *   The format parameter name is maintained for API consistency and simplicity.
  * - start: Start date in YYYY-MM-DD format (required)
  * - end: End date in YYYY-MM-DD format (required)
- * 
+ *
  * Returns nutrient data as downloadable CSV or text-based summary report.
  */
 export async function GET(request: Request) {
@@ -332,10 +355,7 @@ export async function GET(request: Request) {
 
   // Validate format
   if (format !== "csv" && format !== "pdf") {
-    return NextResponse.json(
-      { error: "Invalid format. Must be 'csv' or 'pdf'" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid format. Must be 'csv' or 'pdf'" }, { status: 400 });
   }
 
   // Validate date parameters
@@ -350,10 +370,7 @@ export async function GET(request: Request) {
   const endDate = new Date(endParam);
 
   if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-    return NextResponse.json(
-      { error: "Invalid date format. Use YYYY-MM-DD" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid date format. Use YYYY-MM-DD" }, { status: 400 });
   }
 
   if (startDate > endDate) {
@@ -395,9 +412,6 @@ export async function GET(request: Request) {
     }
   } catch (error) {
     console.error("Error generating export:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

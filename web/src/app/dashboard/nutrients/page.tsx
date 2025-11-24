@@ -97,16 +97,16 @@ export default function NutrientsPage() {
               <Target className="size-4" />
               {goal ? "Edit Goal" : "Set Goal"}
             </button>
-          <button
-            className="brutalism-button inline-flex items-center gap-2 rounded-none px-4 py-2"
-            onClick={fetchNutrientData}
-            data-testid="refresh-button"
-          >
-            <RefreshCcw className="size-4" /> Refresh Data
-          </button>
-          <ExportActions exporting={exporting} onExport={exportData} />
+            <button
+              className="brutalism-button inline-flex items-center gap-2 rounded-none px-4 py-2"
+              onClick={fetchNutrientData}
+              data-testid="refresh-button"
+            >
+              <RefreshCcw className="size-4" /> Refresh Data
+            </button>
+            <ExportActions exporting={exporting} onExport={exportData} />
+          </div>
         </div>
-      </div>
         {goalError && (
           <p className="mt-3 text-sm font-semibold text-red-700">
             Unable to load your goal: {goalError}
