@@ -90,31 +90,31 @@ export interface NutrientSummaryResponse {
   monthly: MonthlyNutrient[];
 }
 
-// Gamification / Achievement Types (v1.2.0)
+// Gamification / Achievement System Types (v1.2.0)
 
 /**
- * Achievement tier levels for badge rarity
+ * Badge tier levels for achievement system
  */
 export type BadgeTier = "bronze" | "silver" | "gold" | "platinum";
 
 /**
- * Achievement criteria type
+ * Type of criteria used to evaluate achievement progress
  */
 export type AchievementCriteriaType = "count" | "streak" | "threshold";
 
 /**
- * Achievement metrics that can be tracked
+ * Metric tracked for achievement progress
  */
-export type AchievementMetric = 
+export type AchievementMetric =
   | "meals_logged"
   | "green_recipes"
   | "days_tracked"
+  | "streak_days"
   | "dashboard_views"
-  | "calories_tracked"
-  | "nutrient_goals_met";
+  | "nutrient_aware_percentage";
 
 /**
- * Flexible achievement criteria structure
+ * Achievement criteria structure (stored as JSONB in database)
  */
 export interface AchievementCriteria {
   type: AchievementCriteriaType;
@@ -123,21 +123,32 @@ export interface AchievementCriteria {
 }
 
 /**
- * Achievement definition from database
+ * Achievement definition from achievement_definitions table
  */
 export interface Achievement {
   id: number;
-  name: string; // Unique identifier (e.g., 'first_meal')
-  title: string; // Display name (e.g., 'First Meal Logged')
-  description: string | null;
-  icon: string | null; // Icon identifier (e.g., 'utensils', 'leaf')
+  name: string;
+  title: string;
+  description: string;
+  icon: string;
   tier: BadgeTier;
   criteria: AchievementCriteria;
-  created_at: string;
 }
 
 /**
- * Progress toward an incomplete achievement
+ * User's earned achievement with optional joined Achievement data
+ */
+export interface UserAchievement {
+  id: number;
+  user_id: number;
+  achievement_id: number;
+  earned_at: string;
+  progress: Record<string, unknown> | null;
+  achievement?: Achievement;
+}
+
+/**
+ * Progress tracking for unearned achievements
  */
 export interface AchievementProgress {
   current: number;
@@ -147,19 +158,7 @@ export interface AchievementProgress {
 }
 
 /**
- * User's earned achievement record
- */
-export interface UserAchievement {
-  id: number;
-  user_id: string;
-  achievement_id: number;
-  earned_at: string;
-  progress: AchievementProgress | null;
-  Achievement?: Achievement; // Optional joined data
-}
-
-/**
- * API response for achievements endpoint
+ * API response structure for GET /api/achievements
  */
 export interface AchievementsResponse {
   earned: UserAchievement[];
@@ -168,16 +167,16 @@ export interface AchievementsResponse {
 }
 
 /**
- * Request body for achievement check endpoint
+ * API request structure for POST /api/achievements/check
  */
 export interface AchievementCheckRequest {
   trigger: "meal_logged" | "nutrient_viewed" | "manual";
 }
 
 /**
- * Response from achievement check endpoint
+ * API response structure for POST /api/achievements/check
  */
 export interface AchievementCheckResponse {
-  newly_earned: UserAchievement[];
-  updated_progress: Record<string, AchievementProgress>;
+  newly_earned: Achievement[];
+  message: string;
 }
