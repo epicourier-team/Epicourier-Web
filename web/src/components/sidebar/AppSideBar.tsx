@@ -27,6 +27,7 @@ import {
   HelpCircle,
   Lightbulb,
   LogOut,
+  Trophy,
   User,
 } from "lucide-react";
 import Link from "next/link";
@@ -37,6 +38,7 @@ const menuItems = [
   { title: "Calendar", url: "/dashboard/calendar", icon: Calendar },
   { title: "Recommender", url: "/dashboard/recommender", icon: Lightbulb },
   { title: "Nutrients", url: "/dashboard/nutrients", icon: Activity },
+  { title: "Achievements", url: "/dashboard/achievements", icon: Trophy },
 ];
 
 export function AppSidebar({ onLogout }: { onLogout: () => void }) {
