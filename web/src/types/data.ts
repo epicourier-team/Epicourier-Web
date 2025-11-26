@@ -89,3 +89,95 @@ export interface NutrientSummaryResponse {
   weekly: WeeklyNutrient[];
   monthly: MonthlyNutrient[];
 }
+
+// Gamification / Achievement Types (v1.2.0)
+
+/**
+ * Achievement tier levels for badge rarity
+ */
+export type BadgeTier = "bronze" | "silver" | "gold" | "platinum";
+
+/**
+ * Achievement criteria type
+ */
+export type AchievementCriteriaType = "count" | "streak" | "threshold";
+
+/**
+ * Achievement metrics that can be tracked
+ */
+export type AchievementMetric = 
+  | "meals_logged"
+  | "green_recipes"
+  | "days_tracked"
+  | "dashboard_views"
+  | "calories_tracked"
+  | "nutrient_goals_met";
+
+/**
+ * Flexible achievement criteria structure
+ */
+export interface AchievementCriteria {
+  type: AchievementCriteriaType;
+  metric: AchievementMetric;
+  target: number;
+}
+
+/**
+ * Achievement definition from database
+ */
+export interface Achievement {
+  id: number;
+  name: string; // Unique identifier (e.g., 'first_meal')
+  title: string; // Display name (e.g., 'First Meal Logged')
+  description: string | null;
+  icon: string | null; // Icon identifier (e.g., 'utensils', 'leaf')
+  tier: BadgeTier;
+  criteria: AchievementCriteria;
+  created_at: string;
+}
+
+/**
+ * Progress toward an incomplete achievement
+ */
+export interface AchievementProgress {
+  current: number;
+  target: number;
+  percentage: number;
+  last_updated: string;
+}
+
+/**
+ * User's earned achievement record
+ */
+export interface UserAchievement {
+  id: number;
+  user_id: string;
+  achievement_id: number;
+  earned_at: string;
+  progress: AchievementProgress | null;
+  Achievement?: Achievement; // Optional joined data
+}
+
+/**
+ * API response for achievements endpoint
+ */
+export interface AchievementsResponse {
+  earned: UserAchievement[];
+  available: Achievement[];
+  progress: Record<string, AchievementProgress>;
+}
+
+/**
+ * Request body for achievement check endpoint
+ */
+export interface AchievementCheckRequest {
+  trigger: "meal_logged" | "nutrient_viewed" | "manual";
+}
+
+/**
+ * Response from achievement check endpoint
+ */
+export interface AchievementCheckResponse {
+  newly_earned: UserAchievement[];
+  updated_progress: Record<string, AchievementProgress>;
+}
