@@ -89,3 +89,94 @@ export interface NutrientSummaryResponse {
   weekly: WeeklyNutrient[];
   monthly: MonthlyNutrient[];
 }
+
+// Gamification / Achievement System Types (v1.2.0)
+
+/**
+ * Badge tier levels for achievement system
+ */
+export type BadgeTier = "bronze" | "silver" | "gold" | "platinum";
+
+/**
+ * Type of criteria used to evaluate achievement progress
+ */
+export type AchievementCriteriaType = "count" | "streak" | "threshold";
+
+/**
+ * Metric tracked for achievement progress
+ */
+export type AchievementMetric =
+  | "meals_logged"
+  | "green_recipes"
+  | "days_tracked"
+  | "streak_days"
+  | "dashboard_views"
+  | "nutrient_aware_percentage";
+
+/**
+ * Achievement criteria structure (stored as JSONB in database)
+ */
+export interface AchievementCriteria {
+  type: AchievementCriteriaType;
+  metric: AchievementMetric;
+  target: number;
+}
+
+/**
+ * Achievement definition from achievement_definitions table
+ */
+export interface Achievement {
+  id: number;
+  name: string;
+  title: string;
+  description: string;
+  icon: string;
+  tier: BadgeTier;
+  criteria: AchievementCriteria;
+}
+
+/**
+ * User's earned achievement with optional joined Achievement data
+ */
+export interface UserAchievement {
+  id: number;
+  user_id: number;
+  achievement_id: number;
+  earned_at: string;
+  progress: Record<string, unknown> | null;
+  achievement?: Achievement;
+}
+
+/**
+ * Progress tracking for unearned achievements
+ */
+export interface AchievementProgress {
+  current: number;
+  target: number;
+  percentage: number;
+  last_updated: string;
+}
+
+/**
+ * API response structure for GET /api/achievements
+ */
+export interface AchievementsResponse {
+  earned: UserAchievement[];
+  available: Achievement[];
+  progress: Record<string, AchievementProgress>;
+}
+
+/**
+ * API request structure for POST /api/achievements/check
+ */
+export interface AchievementCheckRequest {
+  trigger: "meal_logged" | "nutrient_viewed" | "manual";
+}
+
+/**
+ * API response structure for POST /api/achievements/check
+ */
+export interface AchievementCheckResponse {
+  newly_earned: Achievement[];
+  message: string;
+}
