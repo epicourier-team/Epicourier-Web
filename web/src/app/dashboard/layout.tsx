@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { logout } from "./action";
+import { LogOut } from "lucide-react";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -27,24 +28,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
+      <div className="flex min-h-screen w-full bg-gray-50/50">
         <AppSidebar />
         <div className="flex flex-1 flex-col">
-          <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-white px-4">
-            <SidebarTrigger aria-label="Toggle sidebar" />
-            <Link href="/">
-              <span className="font-bold">EpiCourier</span>
+          <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-gray-200/50 bg-white/80 px-6 backdrop-blur-xl transition-all">
+            <SidebarTrigger aria-label="Toggle sidebar" className="text-gray-500 hover:text-gray-900" />
+            <Link href="/" className="flex items-center gap-2">
+              <span className="font-bold text-xl tracking-tight text-emerald-950">EpiCourier</span>
             </Link>
             <Button
               size="sm"
-              variant="outline"
-              className="ml-auto border-2 border-gray-600 bg-green-100 font-bold text-gray-600"
+              variant="ghost"
+              className="ml-auto gap-2 text-gray-500 hover:text-red-600 hover:bg-red-50"
               onClick={handleLogout}
             >
-              Log Out
+              <span className="hidden sm:inline font-medium">Log Out</span>
+              <LogOut className="h-4 w-4" />
             </Button>
           </header>
-          <main className="flex-1 pl-12">{children}</main>
+          <main className="flex-1 p-6">{children}</main>
         </div>
       </div>
     </SidebarProvider>
