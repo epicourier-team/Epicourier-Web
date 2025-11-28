@@ -27,6 +27,7 @@ import {
   HelpCircle,
   Lightbulb,
   LogOut,
+  Target,
   Trophy,
   User,
 } from "lucide-react";
@@ -38,6 +39,7 @@ const menuItems = [
   { title: "Calendar", url: "/dashboard/calendar", icon: Calendar },
   { title: "Recommender", url: "/dashboard/recommender", icon: Lightbulb },
   { title: "Nutrients", url: "/dashboard/nutrients", icon: Activity },
+  { title: "Challenges", url: "/dashboard/challenges", icon: Target },
   { title: "Achievements", url: "/dashboard/achievements", icon: Trophy },
 ];
 
