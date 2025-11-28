@@ -10,8 +10,8 @@ from api.recommender import create_meal_plan
 
 load_dotenv()
 
-url: str = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+url: str = os.getenv("NEXT_PUBLIC_SUPABASE_URL") or ""
+key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY") or ""
 
 supabase: Client = create_client(url, key)
 
