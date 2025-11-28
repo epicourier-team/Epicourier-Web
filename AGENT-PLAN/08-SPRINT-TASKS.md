@@ -1,8 +1,8 @@
 # Epicourier Sprint Tasks & Milestones
 
-**Document Version**: 1.1  
-**Last Updated**: December 05, 2025 (issues #25/#26 closed)  
-**Current Phase**: Phase 1 Complete - Planning Phase 2
+**Document Version**: 1.2  
+**Last Updated**: November 29, 2025 (Issues #32-#36 merged; #27 completed; #41 open)
+**Current Phase**: Phase 2 Execution - Gamification + Nutrients polish
 
 ---
 
@@ -24,10 +24,10 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 ### 📊 Phase 2 Status Overview
 
 **Active Phase**: Phase 2 - Advanced Features (v1.1.0 - v1.3.0)  
-**Total Planned Issues**: 10  
-**Completed**: 9  
-**In Progress**: 0  
-**Planned**: 1 nutrient follow-ups (export/goals)
+**Total Tracked Issues**: 16  
+**Completed**: 15  
+**Open**: 1 (#41 achievements bug)  
+**In Progress**: 0
 
 ---
 
@@ -56,7 +56,7 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 | #17   | test(frontend): Add unit tests for nutrient dashboard page         | Testing    | P2       | Zhendong Liu | ✅ Complete |
 | #25   | feat(frontend): Nutrient charts & date-range picker                | Frontend   | P1       | -            | ✅ Complete |
 | #26   | feat(backend): Historical nutrient summary endpoints               | Backend    | P1       | -            | ✅ Complete |
-| #27   | feat(full-stack): Nutrition data export (CSV/PDF)                  | Full-Stack | P2       | -            | 🆕 Open     |
+| #27   | feat(full-stack): Nutrition data export (CSV/PDF)                  | Full-Stack | P2       | -            | ✅ Complete |
 | #28   | feat(database): User nutrient goal preferences                     | Database   | P2       | -            | ✅ Complete |
 
 **Expected Deliverables**:
@@ -66,35 +66,41 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 - [x] TypeScript types for nutrient tracking (#13)
 - [x] Visualization dashboard with charts + date range picker (#25)
 - [x] Historical nutrient aggregation endpoints (week/month) (#26)
-- [ ] Nutrition data export flows (CSV/PDF) (#27)
+- [x] Nutrition data export flows (CSV/PDF) (#27)
 - [x] Goal persistence to compare intake vs targets (#28)
 - [ ] > 85% test coverage across nutrient workflows
 
 ---
 
-### 📋 v1.2.0: Gamified Challenges (Issues TBD)
+### 📋 v1.2.0: Gamified Challenges
 
 **Milestone**: `v1.2.0-gamification`  
-**Status**: 📝 Planning  
+**Status**: 🚀 Core shipped, 1 regression open  
 **Target Release**: TBD
 
-| Issue | Title                                            | Type       | Priority | Assignee | Status       |
-| ----- | ------------------------------------------------ | ---------- | -------- | -------- | ------------ |
-| TBD   | feat(frontend): Badges & Achievements Page       | Frontend   | P2       | -        | 📝 To Create |
-| TBD   | feat(frontend): Challenge Tracking UI            | Frontend   | P2       | -        | 📝 To Create |
-| TBD   | feat(backend): Achievement Tracking API          | Backend    | P2       | -        | 📝 To Create |
-| TBD   | feat(backend): Challenge Management System       | Backend    | P2       | -        | 📝 To Create |
-| TBD   | feat(database): Achievements & Challenges Schema | Database   | P2       | -        | 📝 To Create |
-| TBD   | feat: Streak Tracking System                     | Full-Stack | P2       | -        | 📝 To Create |
-| TBD   | feat: Notification System for Achievements       | Full-Stack | P3       | -        | 📝 To Create |
-| TBD   | test: Gamification System Tests                  | Testing    | P2       | -        | 📝 To Create |
+**Recent updates (last 3 days)**:
+
+- ✅ #32 feat(database): Achievement system database schema (PR #37 merged)
+- ✅ #33 chore(types): Add TypeScript types for gamification system (PR #38 merged)
+- ✅ #35 feat(api): Achievement checking and awarding endpoint (PR #39 merged) — #34 superseded/closed
+- ✅ #36 feat(frontend): Badge display component and achievements page (PR #40 merged)
+- 🟠 #41 fix(achievements): DB error, missing auto-unlock, icon display broken (open bug)
+
+| Issue | Title                                                         | Type     | Priority | Assignee | Status                        |
+| ----- | ------------------------------------------------------------- | -------- | -------- | -------- | ----------------------------- |
+| #32   | feat(database): Achievement system database schema            | Database | P1       | -        | ✅ Complete (PR #37)          |
+| #33   | chore(types): Add TypeScript types for gamification system    | Frontend | P2       | -        | ✅ Complete (PR #38)          |
+| #34   | feat(api): Achievement checking and awarding endpoint         | Backend  | P2       | -        | ✅ Closed (superseded by #35) |
+| #35   | feat(api): Achievement checking and awarding endpoint         | Backend  | P1       | -        | ✅ Complete (PR #39)          |
+| #36   | feat(frontend): Badge display component and achievements page | Frontend | P1       | -        | ✅ Complete (PR #40)          |
+| #41   | fix(achievements): DB error, missing auto-unlock, icon issues | Bug      | P1       | -        | 🟠 Open                       |
 
 **Expected Deliverables**:
 
-- [ ] Badge and achievement system
+- [x] Badge and achievement system (schema + APIs + UI)
 - [ ] Weekly/monthly challenges
-- [ ] Streak tracking
-- [ ] Notification integration
+- [ ] Streak tracking + notifications
+- [ ] Automated regression tests for achievements
 
 ---
 
@@ -332,20 +338,20 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 - [x] Basic nutrient dashboard tests (Jest, >85% target)
 - [x] Chart components (Recharts)
 - [x] Date range picker for historical data
-- [ ] Export functionality
+- [x] Export functionality
 
 **Backend Tasks**:
 
 - [x] Nutrient calculation aggregation API (`/api/nutrients/daily`)
 - [x] Historical data query endpoints (week/month summaries)
-- [ ] Report generation service
-- [ ] Data export endpoints
+- [x] Report generation service
+- [x] Data export endpoints
 
 **Database**:
 
 - [x] Nutrient tracking table + RLS
 - [x] Aggregation indexes (immutable `month_start` for monthly index)
-- [ ] User goal preferences table
+- [x] User goal preferences table
 
 **Estimated Effort**: Medium to Large  
 **Dependencies**: Meal calendar data
@@ -354,42 +360,45 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 
 ### v1.2.0: Gamified Challenges
 
-**Status**: 📝 Planning  
+**Status**: 🚀 Core shipped, regression open (#41)  
 **Priority**: P2  
 **Milestone**: `v1.2.0-gamification`
 **Target Release**: TBD
 
-#### Planned Features
+#### Delivered / Planned Features
 
-| Feature      | Description                              | Complexity | Issue # |
-| ------------ | ---------------------------------------- | ---------- | ------- |
-| Badge System | Earn badges for achievements             | Medium     | TBD     |
-| Challenges   | Weekly/monthly health challenges         | Medium     | TBD     |
-| Leaderboard  | Community rankings (optional)            | High       | TBD     |
-| Streaks      | Track consecutive days of healthy eating | Low        | TBD     |
-| Rewards      | Unlock features through achievements     | Medium     | TBD     |
+| Feature      | Description                              | Complexity | Issue # | Status |
+| ------------ | ---------------------------------------- | ---------- | ------- | ------ |
+| Badge System | Earn badges for achievements             | Medium     | #32     | ✅     |
+| Achievements | UI + API to view/unlock badges           | Medium     | #35/#36 | ✅     |
+| Types        | Gamification TS types                    | Low        | #33     | ✅     |
+| Streaks      | Track consecutive days of healthy eating | Low        | #35     | ✅ (in API) |
+| Challenges   | Weekly/monthly challenges                | Medium     | TBD     | 📝 Planned |
+| Rewards      | Unlock features through achievements     | Medium     | TBD     | 📝 Planned |
+| Leaderboard  | Community rankings (optional)            | High       | TBD     | 📝 Planned |
+| Notifications| Notify on unlocks                        | Medium     | TBD     | 📝 Planned |
 
 #### Technical Requirements
 
 **Frontend Tasks**:
 
-- [ ] Badges & achievements page
+- [x] Badges & achievements page (#36)
 - [ ] Challenge tracking UI
 - [ ] Progress animations
 - [ ] Notification system for achievements
 
 **Backend Tasks**:
 
-- [ ] Achievement tracking logic
-- [ ] Badge assignment system
+- [x] Achievement tracking logic + auto-award (#35/#41 follow-up)
+- [x] Badge assignment system (#35)
 - [ ] Challenge creation/management API
 - [ ] Notification service
 
 **Database**:
 
-- [ ] User achievements table
+- [x] User achievements table & schema (#32)
 - [ ] Challenges table
-- [ ] User progress tracking
+- [ ] User progress tracking for challenges
 
 **Estimated Effort**: Medium to Large  
 **Dependencies**: Nutrient tracking system (v1.1.0)
