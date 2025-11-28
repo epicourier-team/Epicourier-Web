@@ -119,7 +119,44 @@ describe("AddMealModal", () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled();
-      // Toast should be called with error but we're not asserting on it
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "❌ Failed",
+          description: "Failed to add: Server error",
+          variant: "destructive",
+        })
+      );
+    });
+  });
+
+  test("shows 'Unknown error' when API error has no error field", async () => {
+    // Line 62: err.error ?? "Unknown error"
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: false,
+        json: async () => ({ message: "Something went wrong" }), // No 'error' field
+      })
+    ) as jest.Mock;
+
+    render(
+      <AddMealModal recipe={recipe} isOpen={true} onClose={mockClose} onSuccess={mockSuccess} />
+    );
+
+    const dateInput = screen.getByLabelText(/Choose a date/i);
+    fireEvent.change(dateInput, { target: { value: "2025-11-09" } });
+
+    const confirmBtn = screen.getByRole("button", { name: /Confirm/i });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "❌ Failed",
+          description: "Failed to add: Unknown error",
+          variant: "destructive",
+        })
+      );
     });
   });
 });

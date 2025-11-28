@@ -309,4 +309,168 @@ describe("GET /api/nutrients/export", () => {
     expect(res.status).toBe(200);
     expect(text).toContain("Date,Calories (kcal),Protein (g)");
   });
+
+  it("returns 500 when calendar data fetch fails", async () => {
+    // Lines 124-125: calendarError handling
+    const mockUserQuery = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockResolvedValue({
+        data: [{ id: 1 }],
+        error: null,
+      }),
+    };
+
+    const mockCalendarQuery = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockReturnThis(),
+      lte: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      returns: jest.fn().mockResolvedValue({
+        data: null,
+        error: { message: "Calendar fetch error" },
+      }),
+    };
+
+    mockFrom
+      .mockImplementationOnce(() => mockUserQuery)
+      .mockImplementationOnce(() => mockCalendarQuery);
+
+    const res = await GET(createRequest("format=csv&start=2025-01-01&end=2025-01-31"));
+    const json = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(json.error).toBe("Internal server error");
+  });
+
+  it("skips meals without date", async () => {
+    // Line 134: meal without date
+    const mockUserQuery = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockResolvedValue({
+        data: [{ id: 1 }],
+        error: null,
+      }),
+    };
+
+    const mockCalendarQuery = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockReturnThis(),
+      lte: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      returns: jest.fn().mockResolvedValue({
+        data: [
+          {
+            id: 1,
+            date: null, // No date
+            meal_type: "breakfast",
+            recipe_id: 1,
+            Recipe: {
+              id: 1,
+              name: "Test",
+              "Recipe-Ingredient_Map": [],
+            },
+          },
+          {
+            id: 2,
+            date: "2025-01-15",
+            meal_type: "lunch",
+            recipe_id: 2,
+            Recipe: {
+              id: 2,
+              name: "Valid Meal",
+              "Recipe-Ingredient_Map": [
+                {
+                  relative_unit_100: 100,
+                  Ingredient: {
+                    agg_fats_g: 10,
+                    calories_kcal: 400,
+                    carbs_g: 30,
+                    protein_g: 20,
+                    sugars_g: 5,
+                  },
+                },
+              ],
+            },
+          },
+        ],
+        error: null,
+      }),
+    };
+
+    mockFrom
+      .mockImplementationOnce(() => mockUserQuery)
+      .mockImplementationOnce(() => mockCalendarQuery);
+
+    const res = await GET(createRequest("format=csv&start=2025-01-01&end=2025-01-31"));
+    const text = await res.text();
+
+    expect(res.status).toBe(200);
+    // Should only have data from the valid meal with date
+    expect(text).toContain("2025-01-15");
+    expect(text).toContain("400"); // calories from valid meal
+  });
+
+  it("skips meals with date outside requested range", async () => {
+    // Line 134: dateKey not in nutrientsByDate (date outside range)
+    const mockUserQuery = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockResolvedValue({
+        data: [{ id: 1 }],
+        error: null,
+      }),
+    };
+
+    const mockCalendarQuery = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockReturnThis(),
+      lte: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      returns: jest.fn().mockResolvedValue({
+        data: [
+          {
+            id: 1,
+            date: "2024-06-15", // Date outside the requested range (2025-01-01 to 2025-01-31)
+            meal_type: "breakfast",
+            recipe_id: 1,
+            Recipe: {
+              id: 1,
+              name: "OutOfRange Meal",
+              "Recipe-Ingredient_Map": [
+                {
+                  relative_unit_100: 100,
+                  Ingredient: {
+                    agg_fats_g: 5,
+                    calories_kcal: 200,
+                    carbs_g: 25,
+                    protein_g: 15,
+                    sugars_g: 3,
+                  },
+                },
+              ],
+            },
+          },
+        ],
+        error: null,
+      }),
+    };
+
+    mockFrom
+      .mockImplementationOnce(() => mockUserQuery)
+      .mockImplementationOnce(() => mockCalendarQuery);
+
+    const res = await GET(createRequest("format=csv&start=2025-01-01&end=2025-01-31"));
+    const text = await res.text();
+
+    expect(res.status).toBe(200);
+    // The out-of-range meal should be skipped, so no 200 calories
+    expect(text).not.toContain("200");
+    // Header should still be present
+    expect(text).toContain("Date,Calories");
+  });
 });

@@ -143,6 +143,34 @@ describe("MealDetailModal – full coverage", () => {
     expect(mockReload).toHaveBeenCalled();
   });
 
+  // ✅ handleSingleUpdate - Mark as Incomplete (Line 179)
+  test("calls onUpdateStatus with false when Mark as Incomplete clicked", async () => {
+    const completedEntry = [
+      {
+        id: 5,
+        date: "2030-01-01",
+        meal_type: "lunch",
+        status: true, // Already completed
+        Recipe: { id: 15, name: "Pizza", description: "Italian dish" },
+      },
+    ];
+    render(
+      <MealDetailModal
+        isOpen={true}
+        onClose={mockClose}
+        entries={completedEntry}
+        onUpdateStatus={mockUpdate}
+        reloadEvents={mockReload}
+      />
+    );
+    const btn = screen.getByRole("button", { name: /mark as incomplete/i });
+    await act(async () => {
+      fireEvent.click(btn);
+    });
+    expect(mockUpdate).toHaveBeenCalledWith(5, false);
+    expect(mockReload).toHaveBeenCalled();
+  });
+
   // ✅ allCompleted = true branch (Mark All as Incomplete)
   test("renders Mark All as Incomplete when all meals completed", () => {
     const completedEntries = baseEntries.map((e) => ({ ...e, status: true }));
