@@ -405,38 +405,61 @@ Get aggregated nutrient data for a specified time period. Calculates nutrients f
 **Response** (200 OK):
 ```json
 {
-  "period": "week",
-  "startDate": "2025-11-22",
-  "endDate": "2025-11-28",
-  "summary": {
-    "calories_kcal": 12500,
-    "protein_g": 650,
-    "carbs_g": 1450,
-    "fats_g": 480,
-    "fiber_g": 175,
-    "sugar_g": 320,
-    "sodium_mg": 15000
+  "daily": {
+    "date": "2025-11-28",
+    "calories_kcal": 1850.5,
+    "protein_g": 95.2,
+    "carbs_g": 210.8,
+    "fats_g": 68.3,
+    "fiber_g": 28.5,
+    "sugar_g": 45.2,
+    "sodium_mg": 2100.0,
+    "meal_count": 3,
+    "user_id": "1"
   },
-  "meals": [
+  "weekly": [],
+  "monthly": []
+}
+```
+
+**Response for period=week** (200 OK):
+```json
+{
+  "daily": null,
+  "weekly": [
     {
-      "id": 123,
-      "date": "2025-11-28",
-      "meal_type": "breakfast",
-      "recipe_name": "Oatmeal Bowl",
-      "calories_kcal": 350,
-      "protein_g": 12,
-      "carbs_g": 55,
-      "fats_g": 8
+      "week_start": "2025-11-22",
+      "week_end": "2025-11-28",
+      "calories_kcal": 12500,
+      "protein_g": 650,
+      "carbs_g": 1450,
+      "fats_g": 480,
+      "fiber_g": 175,
+      "sugar_g": 320,
+      "sodium_mg": 15000,
+      "days_tracked": 7
     }
   ],
-  "dailyBreakdown": [
+  "monthly": []
+}
+```
+
+**Response for period=month** (200 OK):
+```json
+{
+  "daily": null,
+  "weekly": [],
+  "monthly": [
     {
-      "date": "2025-11-28",
-      "calories_kcal": 1850,
-      "protein_g": 95,
-      "carbs_g": 210,
-      "fats_g": 68,
-      "meal_count": 3
+      "month": "2025-11",
+      "calories_kcal": 55000,
+      "protein_g": 2800,
+      "carbs_g": 6200,
+      "fats_g": 2100,
+      "fiber_g": 750,
+      "sugar_g": 1400,
+      "sodium_mg": 65000,
+      "days_tracked": 30
     }
   ]
 }
@@ -929,34 +952,32 @@ interface NutrientData {
   protein_g: number;
   carbs_g: number;
   fats_g: number;
-  fiber_g: number;
-  sugar_g: number;
-  sodium_mg: number;
-}
-
-interface NutrientSummaryResponse {
-  period: "day" | "week" | "month";
-  startDate: string;
-  endDate: string;
-  summary: NutrientData;
-  meals: MealNutrient[];
-  dailyBreakdown: DailyNutrient[];
+  fiber_g?: number;
+  sugar_g?: number;
+  sodium_mg?: number;
 }
 
 interface DailyNutrient extends NutrientData {
-  date: string;
+  date: string;           // YYYY-MM-DD format
   meal_count: number;
+  user_id: string;
 }
 
-interface MealNutrient {
-  id: number;
-  date: string;
-  meal_type: string;
-  recipe_name: string;
-  calories_kcal: number;
-  protein_g: number;
-  carbs_g: number;
-  fats_g: number;
+interface WeeklyNutrient extends NutrientData {
+  week_start: string;     // YYYY-MM-DD format
+  week_end: string;       // YYYY-MM-DD format
+  days_tracked: number;
+}
+
+interface MonthlyNutrient extends NutrientData {
+  month: string;          // YYYY-MM format (e.g., "2025-11")
+  days_tracked: number;
+}
+
+interface NutrientSummaryResponse {
+  daily: DailyNutrient | null;
+  weekly: WeeklyNutrient[];
+  monthly: MonthlyNutrient[];
 }
 ```
 
@@ -1015,6 +1036,7 @@ interface AchievementProgress {
   current: number;
   target: number;
   percentage: number;
+  last_updated: string;  // ISO timestamp
 }
 
 interface AchievementsResponse {
