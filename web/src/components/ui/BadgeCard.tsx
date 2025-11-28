@@ -22,11 +22,11 @@ interface BadgeCardProps {
  */
 export default function BadgeCard({ achievement, isLocked, progress }: BadgeCardProps) {
   // Extract achievement data (handle both Achievement and UserAchievement types)
-  const achievementData = "achievement" in achievement ? achievement.achievement : achievement;
-  
-  if (!achievementData) {
-    return null;
-  }
+  const achievementData = isUserAchievement(achievement)
+    ? achievement.achievement ?? null
+    : achievement ?? null;
+
+  if (!achievementData) return null;
 
   const { title, description, icon, tier } = achievementData;
   const earnedAt = !isLocked && "earned_at" in achievement ? achievement.earned_at : null;
@@ -123,4 +123,8 @@ export default function BadgeCard({ achievement, isLocked, progress }: BadgeCard
       </div>
     </div>
   );
+}
+
+function isUserAchievement(value: Achievement | UserAchievement): value is UserAchievement {
+  return (value as UserAchievement).achievement_id !== undefined;
 }

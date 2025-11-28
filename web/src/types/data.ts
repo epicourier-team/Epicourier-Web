@@ -140,7 +140,7 @@ export interface Achievement {
  */
 export interface UserAchievement {
   id: number;
-  user_id: number;
+  user_id: string;
   achievement_id: number;
   earned_at: string;
   progress: Record<string, unknown> | null;

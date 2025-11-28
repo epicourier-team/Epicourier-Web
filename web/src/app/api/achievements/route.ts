@@ -1,13 +1,39 @@
-import { getPublicUserId } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { getUserIdentity } from "@/lib/auth";
 
-import type { 
-  Achievement, 
-  UserAchievement, 
-  AchievementProgress, 
-  AchievementsResponse 
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
+import type {
+  Achievement,
+  AchievementsResponse,
+  AchievementProgress,
+  UserAchievement,
 } from "@/types/data";
+
+type UserAchievementWithDefinition = UserAchievement & {
+  achievement?: Achievement | null;
+};
+
+type CalendarMealWithTags = {
+  Recipe?: {
+    "Recipe-Tag_Map"?: Array<{
+      Tag?: { name?: string | null } | null;
+    }>;
+  } | null;
+};
+
+type CalendarDate = { date: string | null };
+
+type UserStats = {
+  meals_logged: number;
+  green_recipes: number;
+  days_tracked: number;
+  current_streak: number;
+  dashboard_views: number;
+  nutrient_aware_meals: number;
+  total_meals: number;
+};
 
 /**
  * GET /api/achievements
@@ -25,9 +51,10 @@ import type {
 export async function GET() {
   const supabase = await createClient();
   let publicUserId: number;
+  let authUserId: string;
 
   try {
-    publicUserId = await getPublicUserId(supabase);
+    ({ publicUserId, authUserId } = await getUserIdentity(supabase));
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : "Unauthorized";
     console.warn("GET /api/achievements auth error:", errorMessage);
@@ -66,7 +93,7 @@ export async function GET() {
           criteria
         )
       `)
-      .eq("user_id", publicUserId);
+      .eq("user_id", authUserId);
 
     if (userAchievementsError) {
       console.error("Error fetching user achievements:", userAchievementsError.message);
@@ -74,15 +101,17 @@ export async function GET() {
     }
 
     // Calculate progress for all achievements
+    const achievementDefinitions = (achievements ?? []) as Achievement[];
+    const userAchievementRows = (userAchievements ?? []) as unknown as UserAchievementWithDefinition[];
     const progressMap: Record<string, AchievementProgress> = {};
     const earnedAchievementIds = new Set(
-      (userAchievements || []).map((ua: any) => ua.achievement_id)
+      userAchievementRows.map((ua) => ua.achievement_id)
     );
 
     // Get user statistics for progress calculation
-    const stats = await calculateUserStats(supabase, publicUserId);
+    const stats = await calculateUserStats(supabase, publicUserId, authUserId);
 
-    for (const achievement of achievements || []) {
+    for (const achievement of achievementDefinitions) {
       const isEarned = earnedAchievementIds.has(achievement.id);
       
       if (!isEarned) {
@@ -92,26 +121,28 @@ export async function GET() {
     }
 
     // Separate earned and available achievements
-    const earned: UserAchievement[] = (userAchievements || []).map((ua: any) => ({
+    const earned: UserAchievement[] = userAchievementRows.map((ua) => ({
       id: ua.id,
       user_id: ua.user_id,
       achievement_id: ua.achievement_id,
       earned_at: ua.earned_at,
       progress: ua.progress,
-      achievement: ua.achievement ? {
-        id: ua.achievement.id,
-        name: ua.achievement.name,
-        title: ua.achievement.title,
-        description: ua.achievement.description,
-        icon: ua.achievement.icon,
-        tier: ua.achievement.tier,
-        criteria: ua.achievement.criteria,
-      } : undefined,
+      achievement: ua.achievement
+        ? {
+            id: ua.achievement.id,
+            name: ua.achievement.name,
+            title: ua.achievement.title,
+            description: ua.achievement.description,
+            icon: ua.achievement.icon,
+            tier: ua.achievement.tier,
+            criteria: ua.achievement.criteria,
+          }
+        : undefined,
     }));
 
-    const available: Achievement[] = (achievements || [])
-      .filter((a: any) => !earnedAchievementIds.has(a.id))
-      .map((a: any) => ({
+    const available: Achievement[] = achievementDefinitions
+      .filter((a) => !earnedAchievementIds.has(a.id))
+      .map((a) => ({
         id: a.id,
         name: a.name,
         title: a.title,
@@ -137,8 +168,12 @@ export async function GET() {
 /**
  * Calculate user statistics for achievement progress
  */
-async function calculateUserStats(supabase: any, publicUserId: number) {
-  const stats = {
+async function calculateUserStats(
+  supabase: SupabaseClient<Database>,
+  publicUserId: number,
+  authUserId: string,
+) {
+  const stats: UserStats = {
     meals_logged: 0,
     green_recipes: 0,
     days_tracked: 0,
@@ -179,11 +214,12 @@ async function calculateUserStats(supabase: any, publicUserId: number) {
       .eq("status", true);
 
     if (!greenError && greenMeals) {
-      stats.green_recipes = greenMeals.filter((meal: any) => {
+      const greenMealsTyped = greenMeals as CalendarMealWithTags[];
+      stats.green_recipes = greenMealsTyped.filter((meal) => {
         const recipe = meal.Recipe;
         if (!recipe) return false;
         const tagMaps = recipe["Recipe-Tag_Map"] || [];
-        return tagMaps.some((tm: any) => 
+        return tagMaps.some((tm) =>
           tm.Tag?.name?.toLowerCase().includes("sustainable") ||
           tm.Tag?.name?.toLowerCase().includes("green") ||
           tm.Tag?.name?.toLowerCase().includes("eco")
@@ -199,7 +235,8 @@ async function calculateUserStats(supabase: any, publicUserId: number) {
       .eq("status", true);
 
     if (!datesError && calendarDates) {
-      const uniqueDates = new Set(calendarDates.map((c: any) => c.date));
+      const calendarDatesTyped = calendarDates as CalendarDate[];
+      const uniqueDates = new Set(calendarDatesTyped.map((c) => c.date));
       stats.days_tracked = uniqueDates.size;
 
       // Calculate current streak
@@ -210,7 +247,7 @@ async function calculateUserStats(supabase: any, publicUserId: number) {
     const { count: nutrientViewsCount, error: nutrientError } = await supabase
       .from("nutrient_tracking")
       .select("*", { count: "exact", head: true })
-      .eq("user_id", publicUserId);
+      .eq("user_id", authUserId);
 
     if (!nutrientError && nutrientViewsCount !== null) {
       stats.dashboard_views = nutrientViewsCount;
@@ -220,10 +257,11 @@ async function calculateUserStats(supabase: any, publicUserId: number) {
     const { data: nutrientMeals, error: nutrientMealsError } = await supabase
       .from("nutrient_tracking")
       .select("date")
-      .eq("user_id", publicUserId);
+      .eq("user_id", authUserId);
 
     if (!nutrientMealsError && nutrientMeals) {
-      stats.nutrient_aware_meals = nutrientMeals.length;
+      const nutrientMealsTyped = nutrientMeals as CalendarDate[];
+      stats.nutrient_aware_meals = nutrientMealsTyped.length;
     }
 
   } catch (error) {
@@ -277,10 +315,9 @@ function calculateStreak(dates: string[]): number {
  */
 function calculateProgress(
   achievement: Achievement, 
-  stats: Record<string, number>
+  stats: UserStats
 ): AchievementProgress {
   const criteria = achievement.criteria;
-  const criteriaType = criteria.type;
   const target = criteria.target;
 
   let current = 0;

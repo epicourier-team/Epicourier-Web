@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import BadgeCard from "@/components/ui/BadgeCard";
 import { Trophy, Loader2, RefreshCw } from "lucide-react";
 
-import type { AchievementsResponse } from "@/types/data";
+import type { AchievementCheckResponse, AchievementsResponse } from "@/types/data";
 
 /**
  * Achievements page - displays user's earned and available achievements
@@ -57,9 +57,9 @@ export default function AchievementsPage() {
         throw new Error(errorData.error || "Failed to check achievements");
       }
 
-      const result = await res.json();
+      const result: AchievementCheckResponse = await res.json();
       if (result.newly_earned && result.newly_earned.length > 0) {
-        setNewAchievements(result.newly_earned.map((a: any) => a.title));
+        setNewAchievements(result.newly_earned.map((a) => a.title));
         // Refresh data to show newly earned achievements
         await fetchAchievements();
       }
