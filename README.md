@@ -4,7 +4,7 @@ A full-stack meal planning and grocery management web app powered by **Next.js**
 This repository hosts the **frontend** (Next.js + TypeScript + Tailwind CSS) and connects seamlessly to the backend API for AI-powered recommendations.
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17537732.svg)](https://doi.org/10.5281/zenodo.17537732)
-[![codecov](https://codecov.io/github/epicourier-team/Epicourier-Web/graph/badge.svg?token=TTLT1APZ44)](https://codecov.io/github/epicourier-team/Epicourier-Web)
+[![codecov](https://codecov.io/github/sdxshuai/Epicourier-Web/graph/badge.svg?token=TTLT1APZ44)](https://codecov.io/github/sdxshuai/Epicourier-Web)
 
 ## 🎬 Demo Video
 [![Demo Video](https://img.youtube.com/vi/QW4FuDJqLx0/maxresdefault.jpg)](https://youtu.be/QW4FuDJqLx0)
@@ -45,7 +45,7 @@ Serves model inference, powered by FastAPI.
 ## 🧪 Coverage
 Code coverage is automatically tracked via **Codecov**:
 
-[![codecov](https://codecov.io/github/epicourier-team/Epicourier-Web/graph/badge.svg?token=TTLT1APZ44)](https://codecov.io/github/epicourier-team/Epicourier-Web)
+[![codecov](https://codecov.io/github/sdxshuai/Epicourier-Web/graph/badge.svg?token=TTLT1APZ44)](https://codecov.io/github/sdxshuai/Epicourier-Web)
 
 ---
 
