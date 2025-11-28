@@ -2,7 +2,12 @@
 
 **Document Version**: 1.0  
 **Last Updated**: November 17, 2025  
-**Status**: Phase 1 Complete
+**Status**: Production (Stable)
+
+> **Scope**: This document covers the **Python FastAPI backend** for AI/ML recommendations.  
+> - **Phase 1**: Goal-based meal recommendations (✅ Complete)
+> - **Phase 2 v1.1-v1.2**: Nutrient Tracking & Gamification use Next.js API Routes (no Python changes)
+> - **Phase 2 v1.3**: Smart Cart with AI inventory-based suggestions (📝 Planned - will extend this backend)
 
 ---
 
@@ -39,9 +44,10 @@ backend/
 │   ├── __init__.py
 │   ├── conftest.py
 │   └── test_recommender.py
-├── requirements.txt       # Python dependencies
+├── pyproject.toml        # Python dependencies (uv managed)
+├── uv.lock              # Dependency lock file
 ├── Dockerfile            # Container configuration
-├── Makefile             # Build & run commands
+├── Makefile             # Build & run commands (uses uv)
 └── vercel.json          # Vercel deployment config
 ```
 
@@ -503,31 +509,35 @@ User Goal → Gemini (expand) → Embeddings → Similarity → Ranking → Clus
 
 ## 📦 Dependency Management
 
-### `requirements.txt`
+### `pyproject.toml` (uv managed)
 
-```txt
-fastapi
-uvicorn
-pydantic
-supabase
-python-dotenv
-torch
-pandas
-sentence-transformers
-scikit-learn
-transformers
-google-genai
+```toml
+[project]
+name = "epicourier-backend"
+version = "0.1.0"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi>=0.115.14",
+    "google-genai>=1.47.0",
+    "pandas>=2.3.3",
+    "pydantic>=2.11.7",
+    "python-dotenv>=1.1.1",
+    "scikit-learn>=1.6.1",
+    "sentence-transformers>=5.1.2",
+    "supabase>=2.16.1",
+    "torch>=2.8.0",
+    "uvicorn>=0.35.0",
+]
 ```
 
-**Installation**:
+**Installation** (using uv):
 ```bash
-pip install -r requirements.txt
+uv sync                    # Install all dependencies
+uv add <package>          # Add new dependency
+uv run uvicorn api.index:app --reload  # Run server
 ```
 
-**Note**: For CUDA support, install PyTorch with CUDA:
-```bash
-pip install torch --index-url https://download.pytorch.org/whl/cu118
-```
+**Note**: For CUDA support, uv will automatically detect and install appropriate PyTorch version.
 
 ---
 
@@ -577,20 +587,30 @@ def recommend_meals(req: RecommendRequest):
 
 ## 🐳 Deployment Patterns
 
-### Dockerfile
+### Dockerfile (uv-based)
 
 ```dockerfile
 FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install uv for package management
+RUN pip install uv
 
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen
+
+# Copy application code
 COPY . .
 
-CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 8000
+
+CMD ["uv", "run", "uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
+
+> **Note**: The current Dockerfile may still use requirements.txt for legacy compatibility.
+> Migration to uv-based builds is recommended for consistency with local development.
 
 ---
 
@@ -618,26 +638,26 @@ CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "8000"]
 ### Makefile
 
 ```makefile
-.PHONY: install run test clean
+.PHONY: dev render test clean
 
-install:
-pip install -r requirements.txt
+dev:
+	uv run uvicorn api.index:app --reload --host 0.0.0.0 --port 8000
 
-run:
-uvicorn api.index:app --reload --host 0.0.0.0 --port 8000
+render:
+	uv run uvicorn api.index:app --host 0.0.0.0 --port ${PORT}
 
 test:
-pytest tests/ -v
+	uv run pytest tests/ -v
 
 clean:
-find . -type d -name "__pycache__" -exec rm -rf {} +
-find . -type f -name "*.pyc" -delete
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
 ```
 
 **Usage**:
 ```bash
-make install   # Install dependencies
-make run       # Start development server
+uv sync        # Install dependencies
+make dev       # Start development server
 make test      # Run tests
 make clean     # Clean cache files
 ```

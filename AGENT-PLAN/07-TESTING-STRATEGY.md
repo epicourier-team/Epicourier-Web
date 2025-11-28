@@ -791,15 +791,18 @@ jobs:
         with:
           python-version: '3.11'
       
+      - name: Install uv
+        run: pip install uv
+      
       - name: Install dependencies
         working-directory: ./backend
         run: |
-          pip install -r requirements.txt
-          pip install pytest pytest-cov
+          uv sync
+          uv add pytest pytest-cov --dev
       
       - name: Run tests
         working-directory: ./backend
-        run: pytest tests/ --cov=api --cov-report=xml
+        run: uv run pytest tests/ --cov=api --cov-report=xml
       
       - name: Upload coverage
         uses: codecov/codecov-action@v3

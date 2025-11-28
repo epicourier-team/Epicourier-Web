@@ -1,8 +1,8 @@
 # Epicourier Frontend Patterns
 
-**Document Version**: 1.0  
-**Last Updated**: November 17, 2025  
-**Status**: Phase 1 Complete
+**Document Version**: 1.2  
+**Last Updated**: November 28, 2025  
+**Status**: Phase 2 In Progress
 
 ---
 
@@ -34,30 +34,46 @@ web/src/
 │   │   ├── layout.tsx       # Dashboard layout (Client)
 │   │   ├── calendar/        # Calendar page
 │   │   ├── recipes/         # Recipe browsing
-│   │   └── recommender/     # AI recommendations
+│   │   ├── recommender/     # AI recommendations
+│   │   ├── nutrients/       # Nutrient tracking (Phase 2)
+│   │   └── achievements/    # Achievement badges (Phase 2)
 │   └── api/                 # API route handlers
 │       ├── recipes/route.ts
 │       ├── calendar/route.ts
 │       ├── events/
 │       ├── tags/route.ts
-│       └── ingredients/route.ts
+│       ├── ingredients/route.ts
+│       ├── nutrients/       # Phase 2: Nutrient tracking APIs
+│       │   ├── daily/route.ts
+│       │   ├── export/route.ts
+│       │   └── goals/route.ts
+│       └── achievements/    # Phase 2: Gamification APIs
+│           ├── route.ts
+│           └── check/route.ts
 ├── components/              # Reusable components
-│   └── ui/                  # shadcn/ui components
-│       ├── button.tsx
-│       ├── card.tsx
-│       ├── sidebar.tsx
-│       ├── searchbar.tsx
-│       ├── pagenation.tsx
-│       ├── filterpanel.tsx
-│       ├── AddMealModal.tsx
-│       └── MealDetailModal.tsx
+│   ├── ui/                  # shadcn/ui components + custom UI
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── sidebar.tsx
+│   │   ├── searchbar.tsx
+│   │   ├── pagenation.tsx
+│   │   ├── filterpanel.tsx
+│   │   ├── AddMealModal.tsx
+│   │   ├── MealDetailModal.tsx
+│   │   └── BadgeCard.tsx    # Phase 2: Achievement badge
+│   ├── landing/             # Landing page components
+│   │   ├── Hero.tsx
+│   │   ├── Features.tsx
+│   │   └── FAQ.tsx
+│   └── sidebar/             # Dashboard navigation
+│       └── AppSidebar.tsx
 ├── hooks/                   # Custom React hooks
 │   └── use-recipe.tsx      # Recipe data fetching hook
 ├── lib/                     # Utility libraries
 │   ├── supabaseClient.ts   # Client-side Supabase
-│   └── supabaseServer.ts   # Server-side Supabase
+│   └── supabaseServer.ts   # Server-side Supabase (service role)
 ├── types/                   # TypeScript type definitions
-│   └── data.ts             # Shared data types
+│   └── data.ts             # Shared data types (incl. Phase 2)
 ├── utils/                   # Helper functions
 │   └── supabase/
 │       └── middleware.ts   # Auth middleware
@@ -903,7 +919,259 @@ export default function RecipeCard({ recipe, onSelect }: RecipeCardProps) {
 
 ---
 
-## 🔄 Data Fetching Patterns
+## � Phase 2: Recharts Integration (v1.1.0)
+
+### Nutrient Dashboard Pattern
+
+**Purpose**: Visualize daily/weekly/monthly nutrient data with interactive charts
+
+**Example**: Nutrient Bar Chart
+
+```tsx
+// app/dashboard/nutrients/page.tsx
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { NutrientSummaryResponse, NutrientGoal } from "@/types/data";
+
+export default function NutrientsPage() {
+  const [data, setData] = useState<NutrientSummaryResponse | null>(null);
+  const [goals, setGoals] = useState<NutrientGoal | null>(null);
+  const [period, setPeriod] = useState<"day" | "week" | "month">("day");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true);
+      const [nutrientsRes, goalsRes] = await Promise.all([
+        fetch(`/api/nutrients/daily?period=${period}`),
+        fetch("/api/nutrients/goals"),
+      ]);
+      
+      setData(await nutrientsRes.json());
+      setGoals(await goalsRes.json());
+      setIsLoading(false);
+    }
+    fetchData();
+  }, [period]);
+
+  // Transform data for Recharts
+  const chartData = data?.daily
+    ? [
+        { name: "Calories", value: data.daily.calories_kcal, goal: goals?.calories_kcal },
+        { name: "Protein", value: data.daily.protein_g, goal: goals?.protein_g },
+        { name: "Carbs", value: data.daily.carbs_g, goal: goals?.carbs_g },
+        { name: "Fats", value: data.daily.fats_g, goal: goals?.fats_g },
+      ]
+    : [];
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Nutrient Tracking</h1>
+      
+      <div className="flex gap-2 mb-6">
+        {(["day", "week", "month"] as const).map((p) => (
+          <button
+            key={p}
+            onClick={() => setPeriod(p)}
+            className={`px-4 py-2 rounded ${
+              period === p ? "bg-primary text-white" : "bg-gray-100"
+            }`}
+          >
+            {p.charAt(0).toUpperCase() + p.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      <ResponsiveContainer width="100%" height={400}>
+        <BarChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="value" fill="#8884d8" name="Actual" />
+          <Bar dataKey="goal" fill="#82ca9d" name="Goal" />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+```
+
+### Export Data Pattern
+
+**Purpose**: Allow users to export nutrient data in different formats
+
+```tsx
+// Example: Export button component
+const handleExport = async (format: "csv" | "text") => {
+  const response = await fetch(`/api/nutrients/export?period=week&format=${format}`);
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `nutrients-${new Date().toISOString().split("T")[0]}.${format === "csv" ? "csv" : "txt"}`;
+  a.click();
+};
+```
+
+---
+
+## 🏆 Phase 2: Achievement System (v1.2.0)
+
+### BadgeCard Component Pattern
+
+**Purpose**: Display achievement badges with tier-based styling
+
+```tsx
+// components/ui/BadgeCard.tsx
+"use client";
+
+import { Achievement, BadgeTier } from "@/types/data";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import * as Icons from "lucide-react";
+
+const tierColors: Record<BadgeTier, string> = {
+  bronze: "bg-amber-700",
+  silver: "bg-gray-400",
+  gold: "bg-yellow-500",
+  platinum: "bg-gray-200",
+};
+
+interface BadgeCardProps {
+  achievement: Achievement;
+  earned?: boolean;
+  progress?: { current: number; target: number; percentage: number };
+}
+
+export function BadgeCard({ achievement, earned = false, progress }: BadgeCardProps) {
+  // Dynamic icon loading from lucide-react
+  const IconComponent = Icons[achievement.icon as keyof typeof Icons] || Icons.Award;
+
+  return (
+    <Card className={`relative ${!earned ? "opacity-50 grayscale" : ""}`}>
+      <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs text-white ${tierColors[achievement.tier]}`}>
+        {achievement.tier}
+      </div>
+      <CardHeader className="flex flex-col items-center">
+        <IconComponent className="w-12 h-12 mb-2" />
+        <CardTitle className="text-center">{achievement.title}</CardTitle>
+      </CardHeader>
+      <CardContent className="text-center">
+        <p className="text-sm text-gray-600">{achievement.description}</p>
+        {progress && !earned && (
+          <div className="mt-2">
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-primary h-2 rounded-full"
+                style={{ width: `${progress.percentage}%` }}
+              />
+            </div>
+            <p className="text-xs mt-1">{progress.current} / {progress.target}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### Achievement Page Pattern
+
+```tsx
+// app/dashboard/achievements/page.tsx
+"use client";
+
+import { useState, useEffect } from "react";
+import { BadgeCard } from "@/components/ui/BadgeCard";
+import { AchievementsResponse } from "@/types/data";
+
+export default function AchievementsPage() {
+  const [data, setData] = useState<AchievementsResponse | null>(null);
+
+  useEffect(() => {
+    fetch("/api/achievements")
+      .then((res) => res.json())
+      .then(setData);
+  }, []);
+
+  if (!data) return <div>Loading...</div>;
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-6">Your Achievements</h1>
+      
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">Earned ({data.earned.length})</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {data.earned.map((ua) => (
+            <BadgeCard
+              key={ua.achievement_id}
+              achievement={ua.achievement!}
+              earned={true}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-xl font-semibold mb-4">Available ({data.available.length})</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {data.available.map((a) => (
+            <BadgeCard
+              key={a.id}
+              achievement={a}
+              earned={false}
+              progress={data.progress[a.name]}
+            />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+```
+
+### Achievement Check Pattern
+
+**Purpose**: Trigger achievement check after user actions
+
+```tsx
+// Example: Check achievements after logging a meal
+const handleMealLogged = async () => {
+  // ... meal logging logic ...
+  
+  // Trigger achievement check
+  const response = await fetch("/api/achievements/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ trigger: "meal_logged" }),
+  });
+  
+  const result = await response.json();
+  
+  if (result.newly_earned.length > 0) {
+    // Show toast notification for new achievements
+    toast({
+      title: "Achievement Unlocked! 🎉",
+      description: result.newly_earned.map((a) => a.title).join(", "),
+    });
+  }
+};
+```
+
+---
+
+## �🔄 Data Fetching Patterns
 
 ### API Route Handlers
 
@@ -970,5 +1238,5 @@ This document should be updated when:
 - ✅ New libraries are added (shadcn/ui components)
 - ✅ Authentication flows are modified
 
-**Last Review**: November 17, 2025  
-**Next Review**: December 1, 2025
+**Last Review**: November 28, 2025  
+**Next Review**: December 15, 2025

@@ -35,11 +35,11 @@ npm run lint             # Run ESLint
 
 ```bash
 cd backend
-pip install -r requirements.txt  # Install dependencies
+uv sync                          # Install dependencies
 make dev                         # Start development server (http://localhost:8000)
 # OR
-python -m uvicorn api.index:app --reload --host 0.0.0.0 --port 8000
-pytest                           # Run tests
+uv run uvicorn api.index:app --reload --host 0.0.0.0 --port 8000
+uv run pytest                    # Run tests
 ```
 
 ### Database (Supabase Local)
@@ -66,8 +66,8 @@ BACKEND_URL=https://your-ngrok-url.ngrok-free.app
 
 ## 🎯 Current Project Status
 
-**Phase**: Phase 1 Complete - Core Features Implemented  
-**Current Version**: v1.0 (Production Ready)  
+**Phase**: Phase 2 In Progress - Advanced Features  
+**Current Version**: v1.2.0 (Gamification Core Complete)  
 **Deployment**: Vercel (Frontend) + ngrok/Render (Backend)
 
 ### ✅ Completed Features

@@ -29,10 +29,10 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 | Version | Feature Area      | Status                | Progress |
 |---------|-------------------|----------------------|----------|
 | v1.1.0  | Nutrient Tracking | ✅ Complete          | 10/10    |
-| v1.2.0  | Gamification      | 🚧 Core Complete     | 6/6 core, remaining features planned |
-| v1.3.0  | Smart Cart        | 📝 Planning          | 0/9      |
+| v1.2.0  | Gamification      | 🚧 Core Complete     | 6/6 core + 8 extended planned |
+| v1.3.0  | Smart Cart        | 📝 Planning          | 0/20     |
 
-**Overall Phase 2 Progress**: ~60% (v1.1.0 + v1.2.0 core shipped, v1.2.0 extras + v1.3.0 pending)
+**Overall Phase 2 Progress**: ~55% (v1.1.0 + v1.2.0 core shipped, v1.2.0 extended + v1.3.0 pending)
 
 ---
 
@@ -106,13 +106,60 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 | Issue | Title                                                     | Type       | Priority | Assignee | Status       |
 | ----- | --------------------------------------------------------- | ---------- | -------- | -------- | ------------ |
 | TBD   | feat(database): Challenge system schema                   | Database   | P1       | -        | 📝 To Create |
-| TBD   | feat(backend): Weekly/monthly challenge generation API    | Backend    | P1       | -        | 📝 To Create |
+| TBD   | feat(backend): Weekly/monthly challenge generation API    | Next.js API| P1       | -        | 📝 To Create |
 | TBD   | feat(frontend): Challenge participation UI                | Frontend   | P1       | -        | 📝 To Create |
 | TBD   | feat(frontend): Streak tracking dashboard widget          | Frontend   | P2       | -        | 📝 To Create |
-| TBD   | feat(backend): Streak calculation and persistence         | Backend    | P2       | -        | 📝 To Create |
+| TBD   | feat(backend): Streak calculation and persistence         | Next.js API| P2       | -        | 📝 To Create |
 | TBD   | feat(frontend): Achievement notification toast system     | Frontend   | P2       | -        | 📝 To Create |
-| TBD   | feat(backend): Push notification service for achievements | Backend    | P3       | -        | 📝 To Create |
+| TBD   | feat(backend): Push notification service for achievements | Next.js API| P3       | -        | 📝 To Create |
 | TBD   | test: Gamification integration tests                      | Testing    | P2       | -        | 📝 To Create |
+
+**Challenge System Schema Design**:
+```sql
+-- challenges: System-defined or admin-created challenges
+challenges (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,           -- "weekly_green_5"
+  title TEXT NOT NULL,                 -- "Green Week Champion"
+  description TEXT,                    -- "Log 5 green recipes this week"
+  type TEXT NOT NULL,                  -- 'weekly' | 'monthly' | 'special'
+  criteria JSONB NOT NULL,             -- {"metric": "green_recipes", "target": 5}
+  reward_achievement_id INTEGER,       -- FK to achievement_definitions (optional)
+  start_date DATE,                     -- NULL for recurring
+  end_date DATE,                       -- NULL for recurring
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT now()
+)
+
+-- user_challenges: User participation and progress
+user_challenges (
+  id SERIAL PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users,
+  challenge_id INTEGER NOT NULL REFERENCES challenges,
+  joined_at TIMESTAMP DEFAULT now(),
+  progress JSONB,                      -- {"current": 3, "target": 5}
+  completed_at TIMESTAMP,              -- NULL if not completed
+  UNIQUE(user_id, challenge_id)
+)
+```
+
+**Streak Tracking Design**:
+```sql
+-- Option A: Add to nutrient_tracking table
+ALTER TABLE nutrient_tracking ADD COLUMN streak_count INTEGER DEFAULT 0;
+
+-- Option B: Separate streak_history table for detailed tracking
+streak_history (
+  id SERIAL PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users,
+  streak_type TEXT NOT NULL,           -- 'daily_log' | 'nutrient_goal' | 'green_recipe'
+  current_streak INTEGER DEFAULT 0,
+  longest_streak INTEGER DEFAULT 0,
+  last_activity_date DATE,
+  updated_at TIMESTAMP DEFAULT now(),
+  UNIQUE(user_id, streak_type)
+)
+```
 
 **Extended Deliverables** (Planned):
 
@@ -131,7 +178,7 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 **Status**: 📝 Planning  
 **Target Release**: TBD
 
-**Summary**: Automated shopping list generation from meal plans, inventory tracking, and smart recipe suggestions.
+**Summary**: Automated shopping list generation from meal plans, inventory tracking, and **AI-powered recipe suggestions based on available ingredients** (extends Python backend).
 
 #### 📝 Database Schema Tasks
 
@@ -165,22 +212,78 @@ user_inventory (
 
 #### 📝 Backend API Tasks
 
-| Issue | Title                                                       | Type    | Priority | Assignee | Status       |
-| ----- | ----------------------------------------------------------- | ------- | -------- | -------- | ------------ |
-| TBD   | feat(api): Shopping list CRUD endpoints                     | Backend | P1       | -        | 📝 To Create |
-| TBD   | feat(api): Auto-generate shopping list from calendar        | Backend | P1       | -        | 📝 To Create |
-| TBD   | feat(api): Inventory CRUD endpoints                         | Backend | P1       | -        | 📝 To Create |
-| TBD   | feat(api): Smart ingredient aggregation algorithm           | Backend | P1       | -        | 📝 To Create |
-| TBD   | feat(api): Recipe suggestions based on inventory            | Backend | P2       | -        | 📝 To Create |
+> **Note**: Shopping list CRUD uses Next.js API Routes. **AI-powered recipe suggestions** require extending the Python FastAPI backend with a new `/inventory-recommend` endpoint.
+
+| Issue | Title                                                       | Type           | Priority | Assignee | Status       |
+| ----- | ----------------------------------------------------------- | -------------- | -------- | -------- | ------------ |
+| TBD   | feat(api): Shopping list CRUD endpoints                     | Next.js API    | P1       | -        | 📝 To Create |
+| TBD   | feat(api): Auto-generate shopping list from calendar        | Next.js API    | P1       | -        | 📝 To Create |
+| TBD   | feat(api): Inventory CRUD endpoints                         | Next.js API    | P1       | -        | 📝 To Create |
+| TBD   | feat(api): Smart ingredient aggregation algorithm           | Next.js API    | P1       | -        | 📝 To Create |
+| TBD   | feat(python): AI recipe suggestions based on inventory      | **Python API** | P1       | -        | 📝 To Create |
+| TBD   | feat(python): Expiring ingredient priority in suggestions   | **Python API** | P2       | -        | 📝 To Create |
+
+**AI Inventory Recommendation Design** (Python FastAPI Extension):
+```python
+# New endpoint: POST /inventory-recommend
+# Extends existing recommender.py architecture
+
+class InventoryRecommendRequest(BaseModel):
+    inventory: List[InventoryItem]  # [{ingredient_id, quantity, expiration_date}]
+    preferences: Optional[str] = None  # "low carb", "high protein", etc.
+    num_recipes: int = 5
+
+class InventoryItem(BaseModel):
+    ingredient_id: int
+    quantity: float
+    unit: str
+    expiration_date: Optional[str] = None  # ISO date string
+
+# Algorithm Flow:
+# 1. Load user inventory → map to ingredient embeddings
+# 2. Find recipes that use inventory ingredients (SQL filter)
+# 3. Rank by:
+#    - Ingredient coverage (% of recipe ingredients available)
+#    - Expiration urgency (prioritize soon-to-expire items)
+#    - User preferences (if provided, use Gemini expansion)
+# 4. Use existing KMeans diversity selection
+# 5. Return top N diverse recipes with reasoning
+
+def recommend_from_inventory(inventory: List[InventoryItem], preferences: str = None):
+    # Reuse existing embedding + clustering infrastructure
+    recipe_data = load_recipe_data()
+    embedder = load_embedder()
+    
+    # Filter recipes by available ingredients
+    available_ingredient_ids = [item.ingredient_id for item in inventory]
+    candidate_recipes = filter_by_ingredients(recipe_data, available_ingredient_ids)
+    
+    # Score by coverage + expiration urgency
+    scored = score_recipes(candidate_recipes, inventory)
+    
+    # Optional: Apply preference filter via Gemini
+    if preferences:
+        scored = apply_preference_filter(scored, preferences)
+    
+    # Diversity selection (reuse existing KMeans)
+    diverse = select_diverse_recipes(scored, n_meals=5)
+    
+    return diverse, generate_reasoning(diverse, inventory)
+```
 
 **API Endpoints Preview**:
 ```
+# Next.js API Routes (CRUD)
 GET/POST /api/shopping-lists           - List/create shopping lists
 GET/PUT/DELETE /api/shopping-lists/[id] - Manage specific list
 POST /api/shopping-lists/generate      - Auto-generate from calendar date range
 GET/POST /api/inventory                - List/add inventory items
 PUT/DELETE /api/inventory/[id]         - Update/remove inventory item
-GET /api/recipes/suggestions           - Recipes matching current inventory
+
+# Python FastAPI (AI Recommendations) - NEW in v1.3.0
+POST /inventory-recommend              - AI recipe suggestions from inventory
+  Request:  { inventory: [{ingredient_id, quantity, expiration_date}], preferences?: string }
+  Response: { recipes: [...], reasoning: string }
 ```
 
 #### 📝 Frontend UI Tasks
@@ -202,6 +305,8 @@ GET /api/recipes/suggestions           - Recipes matching current inventory
 | TBD   | test: Inventory API unit tests                          | Testing | P1       | -        | 📝 To Create |
 | TBD   | test: Shopping list generation algorithm tests          | Testing | P1       | -        | 📝 To Create |
 | TBD   | test: Frontend shopping/inventory component tests       | Testing | P2       | -        | 📝 To Create |
+| TBD   | test(python): Inventory recommendation API tests        | Testing | P1       | -        | 📝 To Create |
+| TBD   | test(python): Expiration priority scoring tests         | Testing | P2       | -        | 📝 To Create |
 
 **Expected Deliverables**:
 

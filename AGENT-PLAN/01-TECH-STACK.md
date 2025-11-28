@@ -23,10 +23,10 @@
   "@supabase/ssr": "^0.7.0",
   "@fullcalendar/react": "^6.1.19",
   "@radix-ui/react-*": "UI component primitives",
-  "recharts": "^2.x",
-  "tailwindcss": "Latest",
-  "class-variance-authority": "0.7.1",
-  "lucide-react": "0.462.0"
+  "recharts": "^3.5.0",
+  "tailwindcss": "^4.1.17",
+  "class-variance-authority": "^0.7.1",
+  "lucide-react": "^0.462.0"
 }
 ```
 
@@ -52,18 +52,22 @@
 
 ### Core Dependencies
 
-```python
-# backend/requirements.txt
-fastapi
-uvicorn
-python-dotenv
-supabase
-google-generativeai  # Gemini API
-sentence-transformers  # Embeddings
-torch  # ML inference
-pandas  # Data processing
-scikit-learn  # KMeans clustering
-pydantic  # Data validation
+```toml
+# backend/pyproject.toml (managed by uv)
+[project]
+dependencies = [
+    "fastapi>=0.121.2",
+    "uvicorn>=0.38.0",
+    "python-dotenv>=1.2.1",
+    "supabase>=2.24.0",
+    "google-genai>=1.47.0",
+    "sentence-transformers>=5.1.2",
+    "torch>=2.8.0",
+    "pandas>=2.3.3",
+    "scikit-learn>=1.6.1",
+    "pydantic>=2.12.4",
+    "transformers>=4.57.1",
+]
 ```
 
 ### Key Features
@@ -118,10 +122,13 @@ Epicourier-Web/
 │   │   ├── app/
 │   │   │   ├── api/               # Next.js API routes
 │   │   │   │   ├── recipes/       # Recipe CRUD
-│   │   │   │   ├── calendar/      # Calendar events
-│   │   │   │   ├── recommendations/  # AI recommendations
+│   │   │   │   ├── calendar/      # Calendar events (via events/)
+│   │   │   │   ├── events/        # Event CRUD
+│   │   │   │   ├── recommendations/ # Proxy to Python backend
+│   │   │   │   ├── recommender/   # Alternative recommender route
 │   │   │   │   ├── ingredients/   # Ingredient search
 │   │   │   │   ├── tags/          # Tag filtering
+│   │   │   │   ├── users/         # User profile
 │   │   │   │   ├── nutrients/     # Nutrient tracking (Phase 2)
 │   │   │   │   │   ├── daily/     # Daily/weekly/monthly aggregation
 │   │   │   │   │   ├── export/    # CSV/text export
@@ -142,8 +149,7 @@ Epicourier-Web/
 │   │   ├── components/
 │   │   │   ├── landing/           # Landing page components
 │   │   │   ├── sidebar/           # Dashboard sidebar
-│   │   │   ├── achievements/      # BadgeCard, etc. (Phase 2)
-│   │   │   └── ui/                # Reusable UI components
+│   │   │   └── ui/                # Reusable UI components (incl. BadgeCard)
 │   │   ├── hooks/                 # Custom React hooks
 │   │   ├── lib/                   # Supabase clients & utils
 │   │   │   ├── supabaseServer.ts  # Service-role client (Phase 2)
@@ -171,7 +177,8 @@ Epicourier-Web/
 │   │   └── test_recommender.py
 │   ├── Dockerfile
 │   ├── Makefile
-│   └── requirements.txt
+│   ├── pyproject.toml             # Dependencies (uv managed)
+│   └── uv.lock                    # Lock file
 │
 ├── data/                   # Data Pipeline (separate from backend)
 │   ├── llama_recipe_pipeline.py  # LLM-based data generation
@@ -233,8 +240,10 @@ npm audit fix        # Security fixes
 ### Backend
 
 ```bash
-pip install -r requirements.txt     # Install dependencies
-pip freeze > requirements.txt       # Update requirements
+uv sync                  # Install dependencies from pyproject.toml
+uv add <package>         # Add new dependency
+uv run <command>         # Run command in venv
+uv run uvicorn api.index:app --reload  # Start dev server
 ```
 
 ---
