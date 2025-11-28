@@ -1,8 +1,8 @@
 # Epicourier Sprint Tasks & Milestones
 
-**Document Version**: 1.2  
-**Last Updated**: November 29, 2025 (Issues #32-#36 merged; #27 completed; #41 open)
-**Current Phase**: Phase 2 Execution - Gamification + Nutrients polish
+**Document Version**: 1.4  
+**Last Updated**: November 28, 2025  
+**Current Phase**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 🚧 | v1.3.0 📝)
 
 ---
 
@@ -24,27 +24,25 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 ### 📊 Phase 2 Status Overview
 
 **Active Phase**: Phase 2 - Advanced Features (v1.1.0 - v1.3.0)  
-**Total Tracked Issues**: 16  
-**Completed**: 15  
-**Open**: 1 (#41 achievements bug)  
-**In Progress**: 0
+**Phase 2 Scope**: Nutrient Tracking → Gamification → Smart Cart
+
+| Version | Feature Area      | Status                | Progress |
+|---------|-------------------|----------------------|----------|
+| v1.1.0  | Nutrient Tracking | ✅ Complete          | 10/10    |
+| v1.2.0  | Gamification      | 🚧 Core Complete     | 6/6 core + 8 extended planned |
+| v1.3.0  | Smart Cart        | 📝 Planning          | 0/20     |
+
+**Overall Phase 2 Progress**: ~55% (v1.1.0 + v1.2.0 core shipped, v1.2.0 extended + v1.3.0 pending)
 
 ---
 
 ### 📋 v1.1.0: Nutrient Summary System
 
 **Milestone**: `v1.1.0-nutrient-tracking`  
-**Status**: 🚧 In Progress (charts + historical API shipped; exports/goals pending)  
-**Target Release**: TBD
+**Status**: ✅ Complete  
+**Release Date**: November 28, 2025
 
-**Recent nutrient updates (last 7 days)**:
-
-- ✅ #14 chore(database): Add nutrient_tracking table migration (Supabase schema + RLS)
-- ✅ #15 feat(api): Implement nutrient aggregation API (`/api/nutrients/daily`)
-- ✅ #16 feat(frontend): Create nutrient dashboard page (`/dashboard/nutrients`)
-- ✅ #17 test(frontend): Add Jest coverage for nutrient dashboard page (PR #22)
-- ✅ #23 fix(database): Make monthly index immutable via `month_start` generated column (PR #24)
-- ✅ #13 chore(types): Add TypeScript nutrient tracking types
+**Summary**: Full nutrient tracking system with dashboard, charts, data export, and goal setting.
 
 | Issue | Title                                                              | Type       | Priority | Assignee     | Status      |
 | ----- | ------------------------------------------------------------------ | ---------- | -------- | ------------ | ----------- |
@@ -59,77 +57,339 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 | #27   | feat(full-stack): Nutrition data export (CSV/PDF)                  | Full-Stack | P2       | -            | ✅ Complete |
 | #28   | feat(database): User nutrient goal preferences                     | Database   | P2       | -            | ✅ Complete |
 
-**Expected Deliverables**:
+**Delivered**:
 
-- [x] Nutrient tracking schema + API with immutable month index (#14, #15, #23)
-- [x] Basic nutrient dashboard page + Jest coverage (#16, #17)
-- [x] TypeScript types for nutrient tracking (#13)
-- [x] Visualization dashboard with charts + date range picker (#25)
-- [x] Historical nutrient aggregation endpoints (week/month) (#26)
-- [x] Nutrition data export flows (CSV/PDF) (#27)
-- [x] Goal persistence to compare intake vs targets (#28)
-- [ ] > 85% test coverage across nutrient workflows
+- ✅ `nutrient_tracking` table with IMMUTABLE month_start index
+- ✅ `nutrient_goals` table for user-defined daily targets
+- ✅ `/api/nutrients/daily` - Aggregated nutrient data (day/week/month)
+- ✅ `/api/nutrients/export` - CSV and text report exports
+- ✅ `/api/nutrients/goals` - GET/PUT nutrient goals
+- ✅ `/dashboard/nutrients` - Interactive dashboard with Recharts
+- ✅ Date-range picker component for flexible viewing
+- ✅ Jest tests for nutrient dashboard components
 
 ---
 
 ### 📋 v1.2.0: Gamified Challenges
 
 **Milestone**: `v1.2.0-gamification`  
-**Status**: 🚀 Core shipped, 1 regression open  
-**Target Release**: TBD
+**Status**: 🚧 Core Complete, Extended Features Pending  
+**Core Release Date**: November 28, 2025
 
-**Recent updates (last 3 days)**:
+**Summary**: Achievement/badge system with auto-unlock, tier-based styling, and progress tracking.
 
-- ✅ #32 feat(database): Achievement system database schema (PR #37 merged)
-- ✅ #33 chore(types): Add TypeScript types for gamification system (PR #38 merged)
-- ✅ #35 feat(api): Achievement checking and awarding endpoint (PR #39 merged) — #34 superseded/closed
-- ✅ #36 feat(frontend): Badge display component and achievements page (PR #40 merged)
-- 🟠 #41 fix(achievements): DB error, missing auto-unlock, icon display broken (open bug)
+#### ✅ Completed Issues (Core Achievement System)
 
-| Issue | Title                                                         | Type     | Priority | Assignee | Status                        |
-| ----- | ------------------------------------------------------------- | -------- | -------- | -------- | ----------------------------- |
-| #32   | feat(database): Achievement system database schema            | Database | P1       | -        | ✅ Complete (PR #37)          |
-| #33   | chore(types): Add TypeScript types for gamification system    | Frontend | P2       | -        | ✅ Complete (PR #38)          |
-| #34   | feat(api): Achievement checking and awarding endpoint         | Backend  | P2       | -        | ✅ Closed (superseded by #35) |
-| #35   | feat(api): Achievement checking and awarding endpoint         | Backend  | P1       | -        | ✅ Complete (PR #39)          |
-| #36   | feat(frontend): Badge display component and achievements page | Frontend | P1       | -        | ✅ Complete (PR #40)          |
-| #41   | fix(achievements): DB error, missing auto-unlock, icon issues | Bug      | P1       | -        | 🟠 Open                       |
+| Issue | Title                                                         | Type     | Priority | Status                        |
+| ----- | ------------------------------------------------------------- | -------- | -------- | ----------------------------- |
+| #32   | feat(database): Achievement system database schema            | Database | P1       | ✅ Complete (PR #37)          |
+| #33   | chore(types): Add TypeScript types for gamification system    | Frontend | P2       | ✅ Complete (PR #38)          |
+| #34   | feat(api): Achievement checking and awarding endpoint         | Backend  | P2       | ✅ Closed (superseded by #35) |
+| #35   | feat(api): Achievement checking and awarding endpoint         | Backend  | P1       | ✅ Complete (PR #39)          |
+| #36   | feat(frontend): Badge display component and achievements page | Frontend | P1       | ✅ Complete (PR #40)          |
+| #41   | fix(achievements): DB error, missing auto-unlock, icon issues | Bug      | P1       | ✅ Complete (PR #42)          |
 
-**Expected Deliverables**:
+**Core Deliverables** (Shipped):
 
-- [x] Badge and achievement system (schema + APIs + UI)
-- [ ] Weekly/monthly challenges
-- [ ] Streak tracking + notifications
-- [ ] Automated regression tests for achievements
+- ✅ `achievement_definitions` table with 8 seed achievements
+- ✅ `user_achievements` table with progress tracking
+- ✅ `/api/achievements` - GET all achievements with progress
+- ✅ `/api/achievements/check` - POST to trigger achievement check
+- ✅ Auto-unlock logic when criteria are met (service-role client)
+- ✅ `BadgeCard` component with tier-based styling
+- ✅ `/dashboard/achievements` - Tabbed interface (Earned/Available/All)
+- ✅ Lucide icon map with next/image fallback
+- ✅ Jest tests for achievements API
+
+#### 📝 Planned Issues (Extended Gamification Features)
+
+| Issue | Title                                                     | Type       | Priority | Assignee | Status       |
+| ----- | --------------------------------------------------------- | ---------- | -------- | -------- | ------------ |
+| TBD   | feat(database): Challenge system schema                   | Database   | P1       | -        | 📝 To Create |
+| TBD   | feat(backend): Weekly/monthly challenge generation API    | Next.js API| P1       | -        | 📝 To Create |
+| TBD   | feat(frontend): Challenge participation UI                | Frontend   | P1       | -        | 📝 To Create |
+| TBD   | feat(frontend): Streak tracking dashboard widget          | Frontend   | P2       | -        | 📝 To Create |
+| TBD   | feat(backend): Streak calculation and persistence         | Next.js API| P2       | -        | 📝 To Create |
+| TBD   | feat(frontend): Achievement notification toast system     | Frontend   | P2       | -        | 📝 To Create |
+| TBD   | feat(backend): Push notification service for achievements | Next.js API| P3       | -        | 📝 To Create |
+| TBD   | test: Gamification integration tests                      | Testing    | P2       | -        | 📝 To Create |
+
+**Challenge System Schema Design**:
+```sql
+-- challenges: System-defined or admin-created challenges
+challenges (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,           -- "weekly_green_5"
+  title TEXT NOT NULL,                 -- "Green Week Champion"
+  description TEXT,                    -- "Log 5 green recipes this week"
+  type TEXT NOT NULL,                  -- 'weekly' | 'monthly' | 'special'
+  criteria JSONB NOT NULL,             -- {"metric": "green_recipes", "target": 5}
+  reward_achievement_id INTEGER,       -- FK to achievement_definitions (optional)
+  start_date DATE,                     -- NULL for recurring
+  end_date DATE,                       -- NULL for recurring
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT now()
+)
+
+-- user_challenges: User participation and progress
+user_challenges (
+  id SERIAL PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users,
+  challenge_id INTEGER NOT NULL REFERENCES challenges,
+  joined_at TIMESTAMP DEFAULT now(),
+  progress JSONB,                      -- {"current": 3, "target": 5}
+  completed_at TIMESTAMP,              -- NULL if not completed
+  UNIQUE(user_id, challenge_id)
+)
+```
+
+**Streak Tracking Design**:
+```sql
+-- Option A: Add to nutrient_tracking table
+ALTER TABLE nutrient_tracking ADD COLUMN streak_count INTEGER DEFAULT 0;
+
+-- Option B: Separate streak_history table for detailed tracking
+streak_history (
+  id SERIAL PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users,
+  streak_type TEXT NOT NULL,           -- 'daily_log' | 'nutrient_goal' | 'green_recipe'
+  current_streak INTEGER DEFAULT 0,
+  longest_streak INTEGER DEFAULT 0,
+  last_activity_date DATE,
+  updated_at TIMESTAMP DEFAULT now(),
+  UNIQUE(user_id, streak_type)
+)
+```
+
+**Extended Deliverables** (Planned):
+
+- [ ] Challenge system database schema (challenges, user_challenges)
+- [ ] Weekly challenge: "Log 5 green recipes this week"
+- [ ] Monthly challenge: "Maintain 80% nutrient goal adherence"
+- [ ] Streak tracking UI with visual indicators
+- [ ] Real-time achievement unlock notifications
+- [ ] Integration tests for gamification workflows
 
 ---
 
-### 📋 v1.3.0: Smart Cart Integration (Issues TBD)
+### 📋 v1.3.0: Smart Cart Integration
 
 **Milestone**: `v1.3.0-smart-cart`  
 **Status**: 📝 Planning  
 **Target Release**: TBD
 
-| Issue | Title                                             | Type       | Priority | Assignee | Status       |
-| ----- | ------------------------------------------------- | ---------- | -------- | -------- | ------------ |
-| TBD   | feat(frontend): Shopping List Page                | Frontend   | P1       | -        | 📝 To Create |
-| TBD   | feat(frontend): Inventory Management UI           | Frontend   | P1       | -        | 📝 To Create |
-| TBD   | feat(backend): Shopping List Generation Algorithm | Backend    | P1       | -        | 📝 To Create |
-| TBD   | feat(backend): Inventory Tracking API             | Backend    | P1       | -        | 📝 To Create |
-| TBD   | feat(backend): Smart Suggestion Engine            | Backend    | P1       | -        | 📝 To Create |
-| TBD   | feat(database): Shopping List & Inventory Schema  | Database   | P1       | -        | 📝 To Create |
-| TBD   | feat: Quantity Calculation Service                | Backend    | P1       | -        | 📝 To Create |
-| TBD   | feat: Shopping List Export (Print/Email)          | Full-Stack | P2       | -        | 📝 To Create |
-| TBD   | test: Shopping Cart Integration Tests             | Testing    | P1       | -        | 📝 To Create |
+**Summary**: Automated shopping list generation from meal plans, inventory tracking, and **AI-powered recipe suggestions based on available ingredients** (extends Python backend).
+
+#### 📝 Database Schema Tasks
+
+| Issue | Title                                                    | Type     | Priority | Assignee | Status       |
+| ----- | -------------------------------------------------------- | -------- | -------- | -------- | ------------ |
+| TBD   | feat(database): shopping_lists table schema              | Database | P1       | -        | 📝 To Create |
+| TBD   | feat(database): shopping_list_items table schema         | Database | P1       | -        | 📝 To Create |
+| TBD   | feat(database): user_inventory table schema              | Database | P1       | -        | 📝 To Create |
+| TBD   | chore(types): Add TypeScript types for shopping/inventory| Frontend | P2       | -        | 📝 To Create |
+
+**Schema Design Preview**:
+```sql
+-- shopping_lists: User's shopping list metadata
+shopping_lists (
+  id, user_id, name, date_range_start, date_range_end, 
+  status: 'draft'|'active'|'completed', created_at
+)
+
+-- shopping_list_items: Individual items in a shopping list
+shopping_list_items (
+  id, list_id, ingredient_id, quantity, unit, 
+  is_checked, added_from_recipe_id, notes
+)
+
+-- user_inventory: User's pantry/fridge items
+user_inventory (
+  id, user_id, ingredient_id, quantity, unit, 
+  expiration_date, location: 'pantry'|'fridge'|'freezer'
+)
+```
+
+#### 📝 Backend API Tasks
+
+> **Note**: Shopping list CRUD uses Next.js API Routes. **AI-powered recipe suggestions** require extending the Python FastAPI backend with a new `/inventory-recommend` endpoint.
+
+| Issue | Title                                                       | Type           | Priority | Assignee | Status       |
+| ----- | ----------------------------------------------------------- | -------------- | -------- | -------- | ------------ |
+| TBD   | feat(api): Shopping list CRUD endpoints                     | Next.js API    | P1       | -        | 📝 To Create |
+| TBD   | feat(api): Auto-generate shopping list from calendar        | Next.js API    | P1       | -        | 📝 To Create |
+| TBD   | feat(api): Inventory CRUD endpoints                         | Next.js API    | P1       | -        | 📝 To Create |
+| TBD   | feat(api): Smart ingredient aggregation algorithm           | Next.js API    | P1       | -        | 📝 To Create |
+| TBD   | feat(python): AI recipe suggestions based on inventory      | **Python API** | P1       | -        | 📝 To Create |
+| TBD   | feat(python): Expiring ingredient priority in suggestions   | **Python API** | P2       | -        | 📝 To Create |
+
+**AI Inventory Recommendation Design** (Python FastAPI Extension):
+```python
+# New endpoint: POST /inventory-recommend
+# Extends existing recommender.py architecture
+
+class InventoryRecommendRequest(BaseModel):
+    inventory: List[InventoryItem]  # [{ingredient_id, quantity, expiration_date}]
+    preferences: Optional[str] = None  # "low carb", "high protein", etc.
+    num_recipes: int = 5
+
+class InventoryItem(BaseModel):
+    ingredient_id: int
+    quantity: float
+    unit: str
+    expiration_date: Optional[str] = None  # ISO date string
+
+# Algorithm Flow:
+# 1. Load user inventory → map to ingredient embeddings
+# 2. Find recipes that use inventory ingredients (SQL filter)
+# 3. Rank by:
+#    - Ingredient coverage (% of recipe ingredients available)
+#    - Expiration urgency (prioritize soon-to-expire items)
+#    - User preferences (if provided, use Gemini expansion)
+# 4. Use existing KMeans diversity selection
+# 5. Return top N diverse recipes with reasoning
+
+def recommend_from_inventory(inventory: List[InventoryItem], preferences: str = None):
+    # Reuse existing embedding + clustering infrastructure
+    recipe_data = load_recipe_data()
+    embedder = load_embedder()
+    
+    # Filter recipes by available ingredients
+    available_ingredient_ids = [item.ingredient_id for item in inventory]
+    candidate_recipes = filter_by_ingredients(recipe_data, available_ingredient_ids)
+    
+    # Score by coverage + expiration urgency
+    scored = score_recipes(candidate_recipes, inventory)
+    
+    # Optional: Apply preference filter via Gemini
+    if preferences:
+        scored = apply_preference_filter(scored, preferences)
+    
+    # Diversity selection (reuse existing KMeans)
+    diverse = select_diverse_recipes(scored, n_meals=5)
+    
+    return diverse, generate_reasoning(diverse, inventory)
+```
+
+**API Endpoints Preview**:
+```
+# Next.js API Routes (CRUD)
+GET/POST /api/shopping-lists           - List/create shopping lists
+GET/PUT/DELETE /api/shopping-lists/[id] - Manage specific list
+POST /api/shopping-lists/generate      - Auto-generate from calendar date range
+GET/POST /api/inventory                - List/add inventory items
+PUT/DELETE /api/inventory/[id]         - Update/remove inventory item
+
+# Python FastAPI (AI Recommendations) - NEW in v1.3.0
+POST /inventory-recommend              - AI recipe suggestions from inventory
+  Request:  { inventory: [{ingredient_id, quantity, expiration_date}], preferences?: string }
+  Response: { recipes: [...], reasoning: string }
+```
+
+#### 📝 Frontend UI Tasks
+
+| Issue | Title                                                      | Type     | Priority | Assignee | Status       |
+| ----- | ---------------------------------------------------------- | -------- | -------- | -------- | ------------ |
+| TBD   | feat(frontend): Shopping List Page `/dashboard/shopping`   | Frontend | P1       | -        | 📝 To Create |
+| TBD   | feat(frontend): Inventory Management `/dashboard/inventory`| Frontend | P1       | -        | 📝 To Create |
+| TBD   | feat(frontend): Shopping list item checkbox interactions   | Frontend | P1       | -        | 📝 To Create |
+| TBD   | feat(frontend): "Add to shopping list" from recipe page    | Frontend | P2       | -        | 📝 To Create |
+| TBD   | feat(frontend): Inventory expiration warnings              | Frontend | P2       | -        | 📝 To Create |
+| TBD   | feat(frontend): Shopping list export (print/email/share)   | Frontend | P2       | -        | 📝 To Create |
+
+#### 📝 Testing Tasks
+
+| Issue | Title                                                   | Type    | Priority | Assignee | Status       |
+| ----- | ------------------------------------------------------- | ------- | -------- | -------- | ------------ |
+| TBD   | test: Shopping list API unit tests                      | Testing | P1       | -        | 📝 To Create |
+| TBD   | test: Inventory API unit tests                          | Testing | P1       | -        | 📝 To Create |
+| TBD   | test: Shopping list generation algorithm tests          | Testing | P1       | -        | 📝 To Create |
+| TBD   | test: Frontend shopping/inventory component tests       | Testing | P2       | -        | 📝 To Create |
+| TBD   | test(python): Inventory recommendation API tests        | Testing | P1       | -        | 📝 To Create |
+| TBD   | test(python): Expiration priority scoring tests         | Testing | P2       | -        | 📝 To Create |
 
 **Expected Deliverables**:
 
-- [ ] Automated shopping list generation
-- [ ] Inventory management system
-- [ ] Recipe suggestions based on inventory
-- [ ] Export and sharing capabilities
+- [ ] Shopping list database schema with RLS policies
+- [ ] Inventory tracking database schema
+- [ ] Auto-generate shopping list from meal calendar (date range)
+- [ ] Smart ingredient aggregation (combine same ingredients from multiple recipes)
+- [ ] `/dashboard/shopping` - Interactive shopping list UI
+- [ ] `/dashboard/inventory` - Inventory management interface
+- [ ] Checkbox to mark items as purchased
+- [ ] Recipe suggestions based on available inventory
+- [ ] Expiration date warnings for inventory items
+- [ ] Export shopping list (print-friendly, email, share link)
+- [ ] Integration with calendar (quick "add ingredients to cart" from meal)
 
 ---
+
+## 🚀 Phase 2 Completion Roadmap
+
+### Current Progress Summary
+
+```
+Phase 2: Advanced Features (v1.1.0 - v1.3.0)
+├── v1.1.0 Nutrient Tracking ████████████████████ 100% ✅
+├── v1.2.0 Gamification
+│   ├── Core (Achievements) ████████████████████ 100% ✅
+│   └── Extended (Challenges) ░░░░░░░░░░░░░░░░░░░░ 0% 📝
+└── v1.3.0 Smart Cart       ░░░░░░░░░░░░░░░░░░░░ 0% 📝
+
+Overall Phase 2: ████████████░░░░░░░░ ~55%
+```
+
+### Recommended Next Steps
+
+#### Option A: Complete v1.2.0 Extended Features First
+**Rationale**: Finish gamification before starting new feature area
+
+1. Create GitHub issues for v1.2.0 extended features (8 issues)
+2. Implement Challenge database schema
+3. Build Weekly/Monthly challenge generation API
+4. Create Challenge participation UI
+5. Add Streak tracking widget
+6. Implement achievement notifications
+
+**Estimated Effort**: 2-3 sprints
+
+#### Option B: Start v1.3.0 Smart Cart (MVP First)
+**Rationale**: Deliver core shopping functionality, defer gamification extras
+
+1. Create GitHub issues for v1.3.0 core features (focus on P1 items)
+2. Implement database schema (shopping_lists, shopping_list_items, user_inventory)
+3. Build shopping list CRUD API
+4. Create auto-generate from calendar feature
+5. Build basic shopping list UI
+6. Add inventory management later
+
+**Estimated Effort**: 3-4 sprints for MVP
+
+#### Option C: Parallel Development
+**Rationale**: If multiple developers available
+
+- **Stream A**: v1.2.0 extended (challenges, streaks)
+- **Stream B**: v1.3.0 database + API foundation
+
+### Issue Creation Checklist
+
+When ready to start the next milestone, create issues using this template:
+
+```markdown
+## Description
+[Clear description of what needs to be built]
+
+## Acceptance Criteria
+- [ ] Criterion 1
+- [ ] Criterion 2
+
+## Technical Notes
+- Related tables/APIs
+- Dependencies on other issues
+
+## Labels
+`phase-2`, `v1.2.0` or `v1.3.0`, `frontend`/`backend`/`database`, `priority-p1`
+```
 
 ### 🚨 How to Create Issues for Phase 2
 

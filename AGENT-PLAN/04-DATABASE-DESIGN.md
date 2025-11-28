@@ -1,8 +1,8 @@
 # Epicourier Database Design
 
-**Document Version**: 1.0  
-**Last Updated**: November 17, 2025  
-**Status**: Phase 1 Complete
+**Document Version**: 1.2  
+**Last Updated**: November 28, 2025  
+**Status**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 🚧 | v1.3.0 📝)
 
 ---
 
@@ -42,11 +42,13 @@ This document describes the complete database schema for Epicourier, hosted on *
 └──────┬──────┘
        │
        │ 1:N
-       ▼
-┌─────────────┐         ┌──────────────────┐
-│  Calendar   │────────▶│  Recipe          │
-│             │  N:1    │                  │
-└─────────────┘         └────────┬─────────┘
+       ├───────────────────────────────────────────────────┐
+       │                                                   │
+       ▼                                                   ▼
+┌─────────────┐         ┌──────────────────┐    ┌──────────────────┐
+│  Calendar   │────────▶│  Recipe          │    │ nutrient_tracking│
+│             │  N:1    │                  │    │ (Phase 2)        │
+└─────────────┘         └────────┬─────────┘    └──────────────────┘
                                  │
                     ┌────────────┼────────────┐
                     │                         │
@@ -62,6 +64,36 @@ This document describes the complete database schema for Epicourier, hosted on *
         ┌─────────────────┐    ┌──────────────────┐
         │   Ingredient    │    │    RecipeTag     │
         └─────────────────┘    └──────────────────┘
+
+       ┌──────────────────────────────────────────────────┐
+       │               Gamification System (Phase 2)       │
+       └──────────────────────────────────────────────────┘
+       
+┌─────────────────────┐         ┌────────────────────────┐
+│achievement_definitions│◀───────│   user_achievements   │
+│                      │   N:1   │                        │
+└──────────────────────┘         └────────────────────────┘
+                                          │
+                                          │ N:1
+                                          ▼
+                                 ┌─────────────┐
+                                 │ auth.users  │
+                                 └─────────────┘
+
+       ┌──────────────────────────────────────────────────┐
+       │               Nutrient Goals (Phase 2)            │
+       └──────────────────────────────────────────────────┘
+       
+                                 ┌─────────────────┐
+                                 │  nutrient_goals │
+                                 │  (per user)     │
+                                 └─────────────────┘
+                                          │
+                                          │ 1:1
+                                          ▼
+                                 ┌─────────────┐
+                                 │ auth.users  │
+                                 └─────────────┘
 ```
 
 ---
@@ -311,13 +343,254 @@ notes: "Try with extra feta cheese"
 
 ---
 
-## 🔒 Row Level Security (RLS)
+## � Phase 2: Nutrient Tracking Tables
+
+### nutrient_tracking Table
+
+Daily aggregated nutrient data for users, computed from Calendar meal logs.
+
+**Table Name**: `nutrient_tracking`
+
+| Column        | Type      | Constraints                        | Description                          |
+|---------------|-----------|------------------------------------|--------------------------------------|
+| id            | integer   | PRIMARY KEY (SERIAL)               | Unique tracking record identifier    |
+| user_id       | uuid      | NOT NULL, FOREIGN KEY → auth.users | References Supabase auth.users       |
+| date          | date      | NOT NULL                           | Tracking date (YYYY-MM-DD)           |
+| calories_kcal | numeric   | DEFAULT 0                          | Total calories for the day           |
+| protein_g     | numeric   | DEFAULT 0                          | Total protein (grams)                |
+| carbs_g       | numeric   | DEFAULT 0                          | Total carbohydrates (grams)          |
+| fats_g        | numeric   | DEFAULT 0                          | Total fats (grams)                   |
+| fiber_g       | numeric   | DEFAULT 0                          | Total fiber (grams)                  |
+| sugar_g       | numeric   | DEFAULT 0                          | Total sugar (grams)                  |
+| sodium_mg     | numeric   | DEFAULT 0                          | Total sodium (milligrams)            |
+| meal_count    | integer   | DEFAULT 0                          | Number of meals logged for the day   |
+| month_start   | date      | GENERATED ALWAYS AS (IMMUTABLE)    | First day of month (for indexing)    |
+| created_at    | timestamp | DEFAULT now()                      | Record creation timestamp            |
+| updated_at    | timestamp | DEFAULT now()                      | Record last update timestamp         |
+
+**Important**: The `month_start` column is a generated column using an IMMUTABLE function:
+
+```sql
+-- Required function for IMMUTABLE index
+CREATE OR REPLACE FUNCTION date_trunc_month_immutable(d date)
+RETURNS date
+LANGUAGE sql
+IMMUTABLE
+AS $$
+  SELECT date_trunc('month', d)::date;
+$$;
+
+-- Column definition
+month_start date GENERATED ALWAYS AS (date_trunc_month_immutable(date)) STORED
+```
+
+**Example Data**:
+```sql
+id: 1
+user_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+date: "2025-11-28"
+calories_kcal: 1850.5
+protein_g: 95.2
+carbs_g: 210.8
+fats_g: 68.3
+fiber_g: 28.5
+sugar_g: 45.2
+sodium_mg: 2100.0
+meal_count: 3
+month_start: "2025-11-01"
+```
+
+**Constraints**:
+- Foreign key to auth.users (ON DELETE CASCADE)
+- Unique constraint on (user_id, date)
+
+**Indexes**:
+- Primary key index on `id`
+- Index on `user_id` for user queries
+- Index on `date` for date range queries
+- Index on `month_start` for monthly aggregations
+- Composite unique index on `(user_id, date)`
+
+---
+
+### nutrient_goals Table
+
+User-defined daily nutrient intake goals.
+
+**Table Name**: `nutrient_goals`
+
+| Column        | Type      | Constraints                         | Description                      |
+|---------------|-----------|-------------------------------------|----------------------------------|
+| user_id       | uuid      | PRIMARY KEY, FOREIGN KEY → auth.users | User's auth UUID (1:1)         |
+| calories_kcal | numeric   | DEFAULT 2000                        | Daily calorie goal               |
+| protein_g     | numeric   | DEFAULT 50                          | Daily protein goal (grams)       |
+| carbs_g       | numeric   | DEFAULT 250                         | Daily carbohydrate goal (grams)  |
+| fats_g        | numeric   | DEFAULT 65                          | Daily fat goal (grams)           |
+| fiber_g       | numeric   | DEFAULT 25                          | Daily fiber goal (grams)         |
+| sodium_mg     | numeric   | DEFAULT 2300                        | Daily sodium goal (milligrams)   |
+| created_at    | timestamp | DEFAULT now()                       | Record creation timestamp        |
+| updated_at    | timestamp | DEFAULT now()                       | Record last update timestamp     |
+
+**Example Data**:
+```sql
+user_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+calories_kcal: 2200
+protein_g: 120
+carbs_g: 200
+fats_g: 70
+fiber_g: 30
+sodium_mg: 2000
+```
+
+**Constraints**:
+- Primary key on `user_id` (ensures 1:1 relationship)
+- Foreign key to auth.users (ON DELETE CASCADE)
+
+**Indexes**:
+- Primary key index on `user_id`
+
+---
+
+## 🏆 Phase 2: Gamification Tables
+
+### achievement_definitions Table
+
+Master list of all achievements/badges available in the system.
+
+**Table Name**: `achievement_definitions`
+
+| Column      | Type      | Constraints     | Description                           |
+|-------------|-----------|-----------------|---------------------------------------|
+| id          | integer   | PRIMARY KEY     | Unique achievement identifier         |
+| name        | text      | NOT NULL, UNIQUE| Internal name (e.g., "first_meal")   |
+| title       | text      | NOT NULL        | Display title (e.g., "First Steps")  |
+| description | text      |                 | User-facing achievement description   |
+| icon        | text      |                 | Icon name (lucide-react icon)         |
+| tier        | enum      | DEFAULT 'bronze'| "bronze", "silver", "gold", "platinum"|
+| criteria    | jsonb     | NOT NULL        | Criteria for earning achievement      |
+| created_at  | timestamp | DEFAULT now()   | Record creation timestamp             |
+
+**Criteria JSON Structure**:
+```typescript
+interface AchievementCriteria {
+  type: "count" | "streak" | "threshold";
+  metric: "meals_logged" | "green_recipes" | "days_tracked" | 
+          "current_streak" | "dashboard_views" | "nutrient_aware_meals";
+  target: number;
+}
+```
+
+**Example Data**:
+```sql
+id: 1
+name: "first_meal"
+title: "First Steps"
+description: "Log your first meal"
+icon: "Utensils"
+tier: "bronze"
+criteria: {"type": "count", "metric": "meals_logged", "target": 1}
+
+id: 2
+name: "meal_planner_10"
+title: "Meal Planner"
+description: "Log 10 meals"
+icon: "Calendar"
+tier: "silver"
+criteria: {"type": "count", "metric": "meals_logged", "target": 10}
+
+id: 3
+name: "eco_warrior"
+title: "Eco Warrior"
+description: "Choose 5 sustainable green recipes"
+icon: "Leaf"
+tier: "gold"
+criteria: {"type": "count", "metric": "green_recipes", "target": 5}
+
+id: 4
+name: "streak_7"
+title: "Week Warrior"
+description: "Maintain a 7-day logging streak"
+icon: "Flame"
+tier: "silver"
+criteria: {"type": "streak", "metric": "current_streak", "target": 7}
+```
+
+**Tier Progression**:
+| Tier     | Difficulty | Icon Color (UI) |
+|----------|------------|-----------------|
+| bronze   | Easy       | #CD7F32         |
+| silver   | Medium     | #C0C0C0         |
+| gold     | Hard       | #FFD700         |
+| platinum | Expert     | #E5E4E2         |
+
+**Indexes**:
+- Primary key index on `id`
+- Unique index on `name`
+- Index on `tier` for filtering
+
+---
+
+### user_achievements Table
+
+Tracks which achievements each user has earned.
+
+**Table Name**: `user_achievements`
+
+| Column         | Type      | Constraints                                    | Description                        |
+|----------------|-----------|------------------------------------------------|------------------------------------|
+| id             | integer   | PRIMARY KEY (SERIAL)                           | Unique record identifier           |
+| user_id        | uuid      | NOT NULL, FOREIGN KEY → auth.users             | User who earned the achievement    |
+| achievement_id | integer   | NOT NULL, FOREIGN KEY → achievement_definitions| Achievement that was earned        |
+| earned_at      | timestamp | DEFAULT now()                                  | When the achievement was earned    |
+| progress       | jsonb     |                                                | Progress data at time of earning   |
+
+**Progress JSON Structure**:
+```typescript
+interface AchievementProgress {
+  final_value: number;     // Value that triggered the award
+  trigger: string;         // What triggered the check ("meal_logged", "auto_check", etc.)
+  source?: string;         // API endpoint that awarded it
+}
+```
+
+**Example Data**:
+```sql
+id: 1
+user_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+achievement_id: 1  -- First Steps
+earned_at: "2025-11-25T10:30:00Z"
+progress: {"final_value": 1, "trigger": "meal_logged"}
+
+id: 2
+user_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+achievement_id: 4  -- Week Warrior
+earned_at: "2025-11-28T18:45:00Z"
+progress: {"final_value": 7, "trigger": "auto_check", "source": "GET /api/achievements"}
+```
+
+**Constraints**:
+- Foreign key to auth.users (ON DELETE CASCADE)
+- Foreign key to achievement_definitions (ON DELETE CASCADE)
+- Unique constraint on (user_id, achievement_id) - each user can earn each achievement only once
+
+**Indexes**:
+- Primary key index on `id`
+- Index on `user_id` for user queries
+- Index on `achievement_id` for achievement lookups
+- Composite unique index on `(user_id, achievement_id)`
+
+---
+
+## �🔒 Row Level Security (RLS)
 
 ### Enabled Tables
 
 RLS is enabled on user-specific tables:
 - `Calendar` - Users can only access their own calendar entries
 - `User` - Users can only read their own profile
+- `nutrient_tracking` - Users can only access their own nutrient data
+- `nutrient_goals` - Users can only access their own goals
+- `user_achievements` - Users can only access their own achievements
 
 ### Calendar Table Policies
 
@@ -361,6 +634,73 @@ These tables are publicly readable:
 - `RecipeTag`
 - `Recipe-Ingredient_Map`
 - `Recipe-Tag_Map`
+- `achievement_definitions` (read-only, definitions are public)
+
+### nutrient_tracking Table Policies
+
+**SELECT Policy**:
+```sql
+CREATE POLICY "Users can view own nutrient tracking"
+ON nutrient_tracking
+FOR SELECT
+USING (auth.uid() = user_id);
+```
+
+**INSERT Policy**:
+```sql
+CREATE POLICY "Users can insert own nutrient tracking"
+ON nutrient_tracking
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+```
+
+**UPDATE Policy**:
+```sql
+CREATE POLICY "Users can update own nutrient tracking"
+ON nutrient_tracking
+FOR UPDATE
+USING (auth.uid() = user_id);
+```
+
+### nutrient_goals Table Policies
+
+**SELECT Policy**:
+```sql
+CREATE POLICY "Users can view own nutrient goals"
+ON nutrient_goals
+FOR SELECT
+USING (auth.uid() = user_id);
+```
+
+**UPSERT Policy** (INSERT/UPDATE):
+```sql
+CREATE POLICY "Users can upsert own nutrient goals"
+ON nutrient_goals
+FOR ALL
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+```
+
+### user_achievements Table Policies
+
+**SELECT Policy**:
+```sql
+CREATE POLICY "Users can view own achievements"
+ON user_achievements
+FOR SELECT
+USING (auth.uid() = user_id);
+```
+
+**INSERT Policy** (via Service Role):
+```sql
+-- Note: Inserts are done via service-role client to bypass RLS
+-- This prevents users from manually awarding themselves achievements
+-- The API validates criteria before inserting
+CREATE POLICY "Service role can insert achievements"
+ON user_achievements
+FOR INSERT
+WITH CHECK (true);  -- Service role bypasses RLS
+```
 
 ---
 
@@ -446,21 +786,121 @@ JOIN RecipeTag rt ON rtm.tag_id = rt.id
 WHERE rt.name = 'Vegetarian';
 ```
 
+### Get User's Weekly Nutrient Summary (Phase 2)
+
+```sql
+SELECT 
+  date,
+  calories_kcal,
+  protein_g,
+  carbs_g,
+  fats_g,
+  fiber_g,
+  sugar_g,
+  sodium_mg,
+  meal_count
+FROM nutrient_tracking
+WHERE user_id = 'auth-user-uuid'
+  AND date >= '2025-11-22'
+  AND date <= '2025-11-28'
+ORDER BY date;
+```
+
+### Get User's Nutrient Goals with Progress (Phase 2)
+
+```sql
+SELECT 
+  g.calories_kcal AS goal_calories,
+  g.protein_g AS goal_protein,
+  g.carbs_g AS goal_carbs,
+  g.fats_g AS goal_fats,
+  t.calories_kcal AS actual_calories,
+  t.protein_g AS actual_protein,
+  t.carbs_g AS actual_carbs,
+  t.fats_g AS actual_fats,
+  ROUND((t.calories_kcal / g.calories_kcal) * 100, 1) AS calories_pct
+FROM nutrient_goals g
+LEFT JOIN nutrient_tracking t ON g.user_id = t.user_id AND t.date = CURRENT_DATE
+WHERE g.user_id = 'auth-user-uuid';
+```
+
+### Get User's Achievements with Details (Phase 2)
+
+```sql
+SELECT 
+  ad.name,
+  ad.title,
+  ad.description,
+  ad.icon,
+  ad.tier,
+  ua.earned_at,
+  ua.progress
+FROM user_achievements ua
+JOIN achievement_definitions ad ON ua.achievement_id = ad.id
+WHERE ua.user_id = 'auth-user-uuid'
+ORDER BY ua.earned_at DESC;
+```
+
+### Calculate User Stats for Achievement Progress (Phase 2)
+
+```sql
+-- Count meals logged
+SELECT COUNT(*) AS meals_logged
+FROM Calendar
+WHERE user_id = 1 AND status = true;
+
+-- Count green recipes (sustainability score >= 7)
+SELECT COUNT(DISTINCT c.recipe_id) AS green_recipes
+FROM Calendar c
+JOIN Recipe r ON c.recipe_id = r.id
+WHERE c.user_id = 1 
+  AND c.status = true 
+  AND r.green_score >= 7;
+
+-- Calculate current streak
+SELECT COUNT(DISTINCT date) AS streak_days
+FROM Calendar
+WHERE user_id = 1 
+  AND status = true
+  AND date >= (
+    SELECT MAX(date) - INTERVAL '30 days' FROM Calendar WHERE user_id = 1
+  );
+```
+
 ---
 
 ## 📈 Database Statistics
 
-### Current Data Volume (Phase 1)
+### Current Data Volume (Phase 2)
 
-| Table                  | Estimated Rows |
-|------------------------|----------------|
-| Recipe                 | ~50,000        |
-| Ingredient             | ~2,000         |
-| RecipeTag              | ~50            |
-| Recipe-Ingredient_Map  | ~200,000       |
-| Recipe-Tag_Map         | ~100,000       |
-| User                   | Growing        |
-| Calendar               | Growing        |
+| Table                    | Estimated Rows | Notes                           |
+|--------------------------|----------------|---------------------------------|
+| Recipe                   | ~50,000        | Static recipe database          |
+| Ingredient               | ~2,000         | Nutritional data per ingredient |
+| RecipeTag                | ~50            | Dietary/cuisine tags            |
+| Recipe-Ingredient_Map    | ~200,000       | Recipe composition              |
+| Recipe-Tag_Map           | ~100,000       | Recipe categorization           |
+| User                     | Growing        | Public user profiles            |
+| Calendar                 | Growing        | Meal planning entries           |
+| nutrient_tracking        | Growing        | Daily per-user (Phase 2)        |
+| nutrient_goals           | Growing        | 1 per user (Phase 2)            |
+| achievement_definitions  | 8              | Seed data (Phase 2)             |
+| user_achievements        | Growing        | Earned badges (Phase 2)         |
+
+### Seed Achievement Data
+
+The system ships with 8 pre-defined achievements:
+
+| Name              | Title           | Tier     | Target                      |
+|-------------------|-----------------|----------|-----------------------------|
+| first_meal        | First Steps     | bronze   | Log 1 meal                  |
+| meal_planner_10   | Meal Planner    | silver   | Log 10 meals                |
+| meal_master_50    | Meal Master     | gold     | Log 50 meals                |
+| eco_warrior       | Eco Warrior     | gold     | 5 sustainable recipes       |
+| streak_7          | Week Warrior    | silver   | 7-day streak                |
+| streak_30         | Month Champion  | platinum | 30-day streak               |
+| nutrient_tracker  | Nutrient Ninja  | silver   | View dashboard 10 times     |
+| balanced_eater    | Balanced Eater  | gold     | 70% nutrient-aware meals    |
 
 ---
 
@@ -487,6 +927,19 @@ WHERE rt.name = 'Vegetarian';
 4. **Mapping Tables**:
    - Composite indexes on foreign key pairs
    - Individual indexes on each foreign key
+
+5. **nutrient_tracking Table** (Phase 2):
+   - Primary key on `id`
+   - B-tree index on `user_id`
+   - B-tree index on `date`
+   - B-tree index on `month_start` (IMMUTABLE generated column)
+   - Unique composite index on `(user_id, date)`
+
+6. **user_achievements Table** (Phase 2):
+   - Primary key on `id`
+   - B-tree index on `user_id`
+   - B-tree index on `achievement_id`
+   - Unique composite index on `(user_id, achievement_id)`
 
 ### Query Optimization Tips
 
@@ -541,29 +994,51 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 ---
 
-## 🔮 Future Enhancements (Phase 2)
+## 🔮 Future Enhancements (Phase 3+)
 
-### Planned Tables
+### ✅ Completed Tables (Phase 2)
 
-1. **NutrientTracking**
-   - Track daily nutrient intake
-   - Historical nutrition data
+1. **nutrient_tracking** ✅
+   - Daily aggregated nutrient intake
+   - Historical nutrition data with IMMUTABLE indexing
+   - Implemented: November 2025
 
-2. **Achievement**
-   - Gamification badges
-   - User achievements
+2. **nutrient_goals** ✅
+   - User-defined daily nutrient targets
+   - 1:1 relationship with auth.users
+   - Implemented: November 2025
 
-3. **Challenge**
-   - Weekly/monthly challenges
+3. **achievement_definitions** ✅
+   - Gamification badge definitions
+   - Tier system (bronze/silver/gold/platinum)
+   - Implemented: November 2025
+
+4. **user_achievements** ✅
+   - Tracks earned achievements per user
+   - Auto-award system via API
+   - Implemented: November 2025
+
+### Planned Tables (Phase 3)
+
+1. **Challenge**
+   - Weekly/monthly nutrition challenges
    - Challenge participation tracking
+   - Leaderboards and rankings
 
-4. **ShoppingList**
+2. **ShoppingList**
    - Generated from meal plans
-   - Inventory tracking
+   - Smart ingredient aggregation
+   - Store integration
 
-5. **Inventory**
+3. **Inventory**
    - User's pantry items
    - Expiration date tracking
+   - Auto-suggest recipes based on inventory
+
+4. **UserPreferences**
+   - Dietary restrictions
+   - Allergen information
+   - Cuisine preferences
 
 ### Planned Features
 
@@ -571,6 +1046,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 - **Materialized views**: Pre-computed aggregations for analytics
 - **Partitioning**: Date-based partitioning for Calendar table
 - **Replication**: Read replicas for scaling
+- **Real-time subscriptions**: Supabase Realtime for live updates
 
 ---
 
@@ -592,5 +1068,5 @@ This document should be updated when:
 - ✅ Indexes are modified
 - ✅ RLS policies are updated
 
-**Last Review**: November 17, 2025  
-**Next Review**: December 1, 2025
+**Last Review**: November 29, 2025  
+**Next Review**: December 15, 2025

@@ -1,5 +1,9 @@
 # Epicourier Tech Stack
 
+**Document Version**: 1.2  
+**Last Updated**: November 28, 2025  
+**Status**: Phase 2 In Progress
+
 ## 🌐 Frontend (Web App)
 
 **Framework**: Next.js 15 with App Router  
@@ -19,9 +23,10 @@
   "@supabase/ssr": "^0.7.0",
   "@fullcalendar/react": "^6.1.19",
   "@radix-ui/react-*": "UI component primitives",
-  "tailwindcss": "Latest",
-  "class-variance-authority": "0.7.1",
-  "lucide-react": "0.462.0"
+  "recharts": "^3.5.0",
+  "tailwindcss": "^4.1.17",
+  "class-variance-authority": "^0.7.1",
+  "lucide-react": "^0.462.0"
 }
 ```
 
@@ -32,6 +37,7 @@
 - **Middleware**: Auth protection and session management
 - **UI Components**: shadcn/ui + Radix UI primitives
 - **Calendar**: FullCalendar for meal planning
+- **Charts**: Recharts for nutrient visualization (Phase 2)
 - **Markdown**: react-markdown for recipe rendering
 
 ---
@@ -46,18 +52,22 @@
 
 ### Core Dependencies
 
-```python
-# backend/requirements.txt
-fastapi
-uvicorn
-python-dotenv
-supabase
-google-generativeai  # Gemini API
-sentence-transformers  # Embeddings
-torch  # ML inference
-pandas  # Data processing
-scikit-learn  # KMeans clustering
-pydantic  # Data validation
+```toml
+# backend/pyproject.toml (managed by uv)
+[project]
+dependencies = [
+    "fastapi>=0.121.2",
+    "uvicorn>=0.38.0",
+    "python-dotenv>=1.2.1",
+    "supabase>=2.24.0",
+    "google-genai>=1.47.0",
+    "sentence-transformers>=5.1.2",
+    "torch>=2.8.0",
+    "pandas>=2.3.3",
+    "scikit-learn>=1.6.1",
+    "pydantic>=2.12.4",
+    "transformers>=4.57.1",
+]
 ```
 
 ### Key Features
@@ -81,16 +91,24 @@ pydantic  # Data validation
 ```sql
 -- Core entities
 Recipe (id, name, description, min_prep_time, green_score, image_url)
-Ingredient (id, name)
+Ingredient (id, name, nutritional fields...)
 RecipeTag (id, name)
 
 -- Relationships
-Recipe-Ingredient_Map (recipe_id, ingredient_id)
+Recipe-Ingredient_Map (recipe_id, ingredient_id, relative_unit_100)
 Recipe-Tag_Map (recipe_id, tag_id)
 
 -- User data
-Calendar (user events, meal planning)
-Users (Supabase managed)
+User (public user profile)
+Calendar (meal planning entries)
+
+-- Phase 2: Nutrient Tracking
+nutrient_tracking (user_id, date, calories_kcal, protein_g, carbs_g, fats_g, ...)
+nutrient_goals (user_id, daily nutrient targets)
+
+-- Phase 2: Gamification
+achievement_definitions (name, title, description, icon, tier, criteria)
+user_achievements (user_id, achievement_id, earned_at, progress)
 ```
 
 ---
@@ -104,14 +122,26 @@ Epicourier-Web/
 │   │   ├── app/
 │   │   │   ├── api/               # Next.js API routes
 │   │   │   │   ├── recipes/       # Recipe CRUD
-│   │   │   │   ├── calendar/      # Calendar events
-│   │   │   │   ├── recommendations/  # AI recommendations
+│   │   │   │   ├── calendar/      # Calendar events (via events/)
+│   │   │   │   ├── events/        # Event CRUD
+│   │   │   │   ├── recommendations/ # Proxy to Python backend
+│   │   │   │   ├── recommender/   # Alternative recommender route
 │   │   │   │   ├── ingredients/   # Ingredient search
-│   │   │   │   └── tags/          # Tag filtering
+│   │   │   │   ├── tags/          # Tag filtering
+│   │   │   │   ├── users/         # User profile
+│   │   │   │   ├── nutrients/     # Nutrient tracking (Phase 2)
+│   │   │   │   │   ├── daily/     # Daily/weekly/monthly aggregation
+│   │   │   │   │   ├── export/    # CSV/text export
+│   │   │   │   │   └── goals/     # User nutrient goals
+│   │   │   │   └── achievements/  # Gamification (Phase 2)
+│   │   │   │       ├── route.ts   # GET all achievements
+│   │   │   │       └── check/     # POST achievement check
 │   │   │   ├── dashboard/         # Protected routes
 │   │   │   │   ├── recipes/       # Recipe management
 │   │   │   │   ├── calendar/      # Meal planning
-│   │   │   │   └── recommender/   # AI recommender
+│   │   │   │   ├── recommender/   # AI recommender
+│   │   │   │   ├── nutrients/     # Nutrient dashboard (Phase 2)
+│   │   │   │   └── achievements/  # Achievement badges (Phase 2)
 │   │   │   ├── signin/            # Auth pages
 │   │   │   ├── signup/
 │   │   │   ├── layout.tsx         # Root layout
@@ -119,10 +149,14 @@ Epicourier-Web/
 │   │   ├── components/
 │   │   │   ├── landing/           # Landing page components
 │   │   │   ├── sidebar/           # Dashboard sidebar
-│   │   │   └── ui/                # Reusable UI components
+│   │   │   └── ui/                # Reusable UI components (incl. BadgeCard)
 │   │   ├── hooks/                 # Custom React hooks
 │   │   ├── lib/                   # Supabase clients & utils
+│   │   │   ├── supabaseServer.ts  # Service-role client (Phase 2)
+│   │   │   └── auth.ts            # Auth helpers
 │   │   ├── types/                 # TypeScript types
+│   │   │   ├── data.ts            # All data types incl. Phase 2
+│   │   │   └── supabase.ts        # Generated Supabase types
 │   │   ├── utils/                 # Helper functions
 │   │   └── styles/                # Global CSS
 │   ├── __tests__/                 # Jest tests
@@ -143,7 +177,8 @@ Epicourier-Web/
 │   │   └── test_recommender.py
 │   ├── Dockerfile
 │   ├── Makefile
-│   └── requirements.txt
+│   ├── pyproject.toml             # Dependencies (uv managed)
+│   └── uv.lock                    # Lock file
 │
 ├── data/                   # Data Pipeline (separate from backend)
 │   ├── llama_recipe_pipeline.py  # LLM-based data generation
@@ -205,8 +240,10 @@ npm audit fix        # Security fixes
 ### Backend
 
 ```bash
-pip install -r requirements.txt     # Install dependencies
-pip freeze > requirements.txt       # Update requirements
+uv sync                  # Install dependencies from pyproject.toml
+uv add <package>         # Add new dependency
+uv run <command>         # Run command in venv
+uv run uvicorn api.index:app --reload  # Start dev server
 ```
 
 ---

@@ -1,8 +1,8 @@
 # Epicourier API Specifications
 
-**Document Version**: 1.0  
-**Last Updated**: November 17, 2025  
-**Status**: Phase 1 Complete
+**Document Version**: 1.2  
+**Last Updated**: November 28, 2025  
+**Status**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 🚧 | v1.3.0 📝)
 
 ---
 
@@ -384,6 +384,379 @@ Get sample recipe recommendations (temporary, will be replaced by AI endpoint).
 
 ---
 
+## 📊 Nutrient Tracking Endpoints (Phase 2)
+
+### Daily Nutrient Summary
+
+#### `GET /api/nutrients/daily`
+
+Get aggregated nutrient data for a specified time period. Calculates nutrients from user's Calendar meal logs.
+
+**Authentication**: Required
+
+**Query Parameters**:
+```typescript
+{
+  period?: "day" | "week" | "month"  // Default: "day"
+  date?: string                       // Target date YYYY-MM-DD (default: today)
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "daily": {
+    "date": "2025-11-28",
+    "calories_kcal": 1850.5,
+    "protein_g": 95.2,
+    "carbs_g": 210.8,
+    "fats_g": 68.3,
+    "fiber_g": 28.5,
+    "sugar_g": 45.2,
+    "sodium_mg": 2100.0,
+    "meal_count": 3,
+    "user_id": "1"
+  },
+  "weekly": [],
+  "monthly": []
+}
+```
+
+**Response for period=week** (200 OK):
+```json
+{
+  "daily": null,
+  "weekly": [
+    {
+      "week_start": "2025-11-22",
+      "week_end": "2025-11-28",
+      "calories_kcal": 12500,
+      "protein_g": 650,
+      "carbs_g": 1450,
+      "fats_g": 480,
+      "fiber_g": 175,
+      "sugar_g": 320,
+      "sodium_mg": 15000,
+      "days_tracked": 7
+    }
+  ],
+  "monthly": []
+}
+```
+
+**Response for period=month** (200 OK):
+```json
+{
+  "daily": null,
+  "weekly": [],
+  "monthly": [
+    {
+      "month": "2025-11",
+      "calories_kcal": 55000,
+      "protein_g": 2800,
+      "carbs_g": 6200,
+      "fats_g": 2100,
+      "fiber_g": 750,
+      "sugar_g": 1400,
+      "sodium_mg": 65000,
+      "days_tracked": 30
+    }
+  ]
+}
+```
+
+**Errors**:
+- `400` - Invalid date format or period parameter
+- `401` - Unauthorized
+- `500` - Database error
+
+**Example**:
+```bash
+GET /api/nutrients/daily?period=week&date=2025-11-28
+GET /api/nutrients/daily?period=month
+GET /api/nutrients/daily  # Today's nutrients
+```
+
+---
+
+### Nutrient Data Export
+
+#### `GET /api/nutrients/export`
+
+Export nutrient data in CSV or text report format.
+
+**Authentication**: Required
+
+**Query Parameters**:
+```typescript
+{
+  startDate: string    // Start date YYYY-MM-DD (required)
+  endDate: string      // End date YYYY-MM-DD (required)
+  format?: "csv" | "text"  // Export format (default: "csv")
+}
+```
+
+**Response** (200 OK) - CSV Format:
+```
+Content-Type: text/csv
+Content-Disposition: attachment; filename="nutrients_2025-11-22_2025-11-28.csv"
+
+Date,Calories (kcal),Protein (g),Carbs (g),Fats (g),Fiber (g),Sugar (g),Sodium (mg),Meal Count
+2025-11-22,1850.50,95.20,210.80,68.30,28.50,45.20,2100.00,3
+2025-11-23,1720.00,88.50,195.40,62.10,25.00,42.80,1980.00,3
+...
+```
+
+**Response** (200 OK) - Text Format:
+```
+Content-Type: text/plain
+Content-Disposition: attachment; filename="nutrients_2025-11-22_2025-11-28.txt"
+
+Epicourier Nutrition Report
+===========================
+Period: 2025-11-22 to 2025-11-28
+Generated: 2025-11-28T10:30:00Z
+
+Daily Summary
+-------------
+Nov 22, 2025:
+  Calories: 1850.50 kcal | Protein: 95.20g | Carbs: 210.80g | Fats: 68.30g
+  Meals logged: 3
+
+Nov 23, 2025:
+  Calories: 1720.00 kcal | Protein: 88.50g | Carbs: 195.40g | Fats: 62.10g
+  Meals logged: 3
+...
+
+Weekly Totals
+-------------
+Total Calories: 12,500 kcal
+Average Daily Calories: 1,785.71 kcal
+Total Meals: 21
+```
+
+**Errors**:
+- `400` - Missing or invalid date parameters
+- `401` - Unauthorized
+- `500` - Database error
+
+---
+
+### Nutrient Goals
+
+#### `GET /api/nutrients/goals`
+
+Get user's daily nutrient intake goals.
+
+**Authentication**: Required
+
+**Response** (200 OK):
+```json
+{
+  "goal": {
+    "user_id": "uuid-string",
+    "calories_kcal": 2200,
+    "protein_g": 120,
+    "carbs_g": 200,
+    "fats_g": 70,
+    "fiber_g": 30,
+    "sodium_mg": 2000,
+    "created_at": "2025-11-20T10:00:00Z",
+    "updated_at": "2025-11-25T15:30:00Z"
+  }
+}
+```
+
+**Response** (200 OK) - No goals set:
+```json
+{
+  "goal": null
+}
+```
+
+**Errors**:
+- `401` - Unauthorized
+- `500` - Database error
+
+---
+
+#### `PUT /api/nutrients/goals`
+
+Create or update user's daily nutrient goals. Uses upsert logic - creates if not exists, updates if exists.
+
+**Authentication**: Required
+
+**Request Body**:
+```json
+{
+  "calories_kcal": 2200,
+  "protein_g": 120,
+  "carbs_g": 200,
+  "fats_g": 70,
+  "fiber_g": 30,
+  "sodium_mg": 2000
+}
+```
+
+**Note**: At least one goal field must be provided. Partial updates are supported - only provided fields will be updated.
+
+**Response** (200 OK):
+```json
+{
+  "goal": {
+    "user_id": "uuid-string",
+    "calories_kcal": 2200,
+    "protein_g": 120,
+    "carbs_g": 200,
+    "fats_g": 70,
+    "fiber_g": 30,
+    "sodium_mg": 2000,
+    "created_at": "2025-11-20T10:00:00Z",
+    "updated_at": "2025-11-28T18:45:00Z"
+  }
+}
+```
+
+**Errors**:
+- `400` - Invalid payload or missing required fields
+- `401` - Unauthorized
+- `500` - Database error
+
+---
+
+## 🏆 Achievement Endpoints (Phase 2)
+
+### Get User Achievements
+
+#### `GET /api/achievements`
+
+Get all achievements for the current user, including earned and available achievements with progress.
+
+**Authentication**: Required
+
+**Response** (200 OK):
+```json
+{
+  "earned": [
+    {
+      "id": 1,
+      "user_id": "uuid-string",
+      "achievement_id": 1,
+      "earned_at": "2025-11-25T10:30:00Z",
+      "progress": {
+        "final_value": 1,
+        "trigger": "meal_logged"
+      },
+      "achievement": {
+        "id": 1,
+        "name": "first_meal",
+        "title": "First Steps",
+        "description": "Log your first meal",
+        "icon": "Utensils",
+        "tier": "bronze",
+        "criteria": {
+          "type": "count",
+          "metric": "meals_logged",
+          "target": 1
+        }
+      }
+    }
+  ],
+  "available": [
+    {
+      "id": 2,
+      "name": "meal_planner_10",
+      "title": "Meal Planner",
+      "description": "Log 10 meals",
+      "icon": "Calendar",
+      "tier": "silver",
+      "criteria": {
+        "type": "count",
+        "metric": "meals_logged",
+        "target": 10
+      }
+    }
+  ],
+  "progress": {
+    "meal_planner_10": {
+      "current": 5,
+      "target": 10,
+      "percentage": 50
+    },
+    "streak_7": {
+      "current": 3,
+      "target": 7,
+      "percentage": 42.86
+    }
+  }
+}
+```
+
+**Note**: This endpoint automatically awards achievements if criteria are met during the request (auto-check feature).
+
+**Errors**:
+- `401` - Unauthorized
+- `500` - Database error
+
+---
+
+### Check & Award Achievements
+
+#### `POST /api/achievements/check`
+
+Manually trigger achievement check and award new achievements based on current progress.
+
+**Authentication**: Required
+
+**Request Body**:
+```json
+{
+  "trigger": "meal_logged" | "nutrient_viewed" | "manual"
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "newly_earned": [
+    {
+      "id": 2,
+      "name": "meal_planner_10",
+      "title": "Meal Planner",
+      "description": "Log 10 meals",
+      "icon": "Calendar",
+      "tier": "silver",
+      "criteria": {
+        "type": "count",
+        "metric": "meals_logged",
+        "target": 10
+      }
+    }
+  ],
+  "message": "Congratulations! You earned 1 new achievement(s)!"
+}
+```
+
+**Response** (200 OK) - No new achievements:
+```json
+{
+  "newly_earned": [],
+  "message": "No new achievements earned."
+}
+```
+
+**When to Call**:
+- After user logs a meal → `trigger: "meal_logged"`
+- When user views nutrient dashboard → `trigger: "nutrient_viewed"`
+- Manual refresh → `trigger: "manual"`
+
+**Errors**:
+- `400` - Missing trigger field or invalid JSON
+- `401` - Unauthorized
+- `500` - Database error
+
+---
+
 ## 🤖 FastAPI Backend Endpoints
 
 Base URL: `http://localhost:8000` (dev) or deployed URL (prod)
@@ -571,6 +944,117 @@ interface RecipeTag {
 }
 ```
 
+### Nutrient Data Model (Phase 2)
+
+```typescript
+interface NutrientData {
+  calories_kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fats_g: number;
+  fiber_g?: number;
+  sugar_g?: number;
+  sodium_mg?: number;
+}
+
+interface DailyNutrient extends NutrientData {
+  date: string;           // YYYY-MM-DD format
+  meal_count: number;
+  user_id: string;
+}
+
+interface WeeklyNutrient extends NutrientData {
+  week_start: string;     // YYYY-MM-DD format
+  week_end: string;       // YYYY-MM-DD format
+  days_tracked: number;
+}
+
+interface MonthlyNutrient extends NutrientData {
+  month: string;          // YYYY-MM format (e.g., "2025-11")
+  days_tracked: number;
+}
+
+interface NutrientSummaryResponse {
+  daily: DailyNutrient | null;
+  weekly: WeeklyNutrient[];
+  monthly: MonthlyNutrient[];
+}
+```
+
+### Nutrient Goals Model (Phase 2)
+
+```typescript
+interface NutrientGoals {
+  user_id: string;
+  calories_kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fats_g: number;
+  fiber_g: number;
+  sodium_mg: number;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+### Achievement Models (Phase 2)
+
+```typescript
+type BadgeTier = "bronze" | "silver" | "gold" | "platinum";
+
+interface AchievementCriteria {
+  type: "count" | "streak" | "threshold";
+  metric: "meals_logged" | "green_recipes" | "days_tracked" | 
+          "current_streak" | "dashboard_views" | "nutrient_aware_meals";
+  target: number;
+}
+
+interface Achievement {
+  id: number;
+  name: string;               // Internal identifier (e.g., "first_meal")
+  title: string;              // Display title (e.g., "First Steps")
+  description: string | null;
+  icon: string;               // Lucide icon name (e.g., "Utensils")
+  tier: BadgeTier;
+  criteria: AchievementCriteria;
+}
+
+interface UserAchievement {
+  id: number;
+  user_id: string;
+  achievement_id: number;
+  earned_at: string;
+  progress: {
+    final_value: number;
+    trigger: string;
+    source?: string;
+  };
+  achievement?: Achievement;  // Joined achievement definition
+}
+
+interface AchievementProgress {
+  current: number;
+  target: number;
+  percentage: number;
+  last_updated: string;  // ISO timestamp
+}
+
+interface AchievementsResponse {
+  earned: UserAchievement[];
+  available: Achievement[];
+  progress: Record<string, AchievementProgress>;
+}
+
+interface AchievementCheckRequest {
+  trigger: "meal_logged" | "nutrient_viewed" | "manual";
+}
+
+interface AchievementCheckResponse {
+  newly_earned: Achievement[];
+  message: string;
+}
+```
+
 ---
 
 ## 🛡️ Rate Limiting
@@ -650,6 +1134,102 @@ const updated = await response.json();
 console.log('Meal completed:', updated);
 ```
 
+### Use Case 5: Get Weekly Nutrient Summary (Phase 2)
+
+```typescript
+// User views their weekly nutrient summary
+const response = await fetch('/api/nutrients/daily?period=week&date=2025-11-28');
+const { summary, dailyBreakdown } = await response.json();
+
+console.log('Weekly totals:', summary);
+console.log('Daily breakdown:', dailyBreakdown);
+
+// Calculate average daily intake
+const avgCalories = summary.calories_kcal / dailyBreakdown.length;
+console.log('Average daily calories:', avgCalories);
+```
+
+### Use Case 6: Set Nutrient Goals (Phase 2)
+
+```typescript
+// User sets their daily nutrient goals
+const response = await fetch('/api/nutrients/goals', {
+  method: 'PUT',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    calories_kcal: 2200,
+    protein_g: 120,
+    carbs_g: 200,
+    fats_g: 70
+  })
+});
+
+const { goal } = await response.json();
+console.log('Goals updated:', goal);
+```
+
+### Use Case 7: Export Nutrient Data (Phase 2)
+
+```typescript
+// User exports nutrient data as CSV
+const startDate = '2025-11-01';
+const endDate = '2025-11-30';
+const response = await fetch(
+  `/api/nutrients/export?startDate=${startDate}&endDate=${endDate}&format=csv`
+);
+
+// Download the CSV file
+const blob = await response.blob();
+const url = window.URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = `nutrients_${startDate}_${endDate}.csv`;
+a.click();
+```
+
+### Use Case 8: Check Achievements After Logging Meal (Phase 2)
+
+```typescript
+// After user logs a meal, check for new achievements
+const checkResponse = await fetch('/api/achievements/check', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ trigger: 'meal_logged' })
+});
+
+const { newly_earned, message } = await checkResponse.json();
+
+if (newly_earned.length > 0) {
+  // Show achievement unlocked notification
+  newly_earned.forEach(achievement => {
+    showNotification({
+      title: '🏆 Achievement Unlocked!',
+      body: `${achievement.title}: ${achievement.description}`,
+      icon: achievement.icon
+    });
+  });
+}
+```
+
+### Use Case 9: Display Achievement Progress (Phase 2)
+
+```typescript
+// Get all achievements with progress
+const response = await fetch('/api/achievements');
+const { earned, available, progress } = await response.json();
+
+console.log('Earned badges:', earned.length);
+console.log('Available badges:', available.length);
+
+// Display progress bars for available achievements
+available.forEach(achievement => {
+  const progressData = progress[achievement.name];
+  if (progressData) {
+    console.log(`${achievement.title}: ${progressData.current}/${progressData.target} (${progressData.percentage}%)`);
+  }
+});
+```
+
 ---
 
 ## 📚 Related Documentation
@@ -671,5 +1251,5 @@ This document should be updated when:
 - ✅ Authentication methods are modified
 - ✅ Error handling patterns are updated
 
-**Last Review**: November 17, 2025  
-**Next Review**: December 1, 2025
+**Last Review**: November 29, 2025  
+**Next Review**: December 15, 2025

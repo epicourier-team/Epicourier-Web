@@ -1,8 +1,8 @@
 # Epicourier System Architecture
 
-**Document Version**: 1.0  
-**Last Updated**: November 17, 2025  
-**Status**: Production (Phase 1 Complete)
+**Document Version**: 1.2  
+**Last Updated**: November 28, 2025  
+**Status**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 🚧)
 
 ---
 
@@ -101,8 +101,12 @@ web/src/app/
 │   │       └── page.tsx
 │   ├── calendar/             # Meal planning calendar
 │   │   └── page.tsx          # FullCalendar integration
-│   └── recommender/          # AI meal recommendations
-│       └── page.tsx
+│   ├── recommender/          # AI meal recommendations
+│   │   └── page.tsx
+│   ├── nutrients/            # Nutrient tracking dashboard (Phase 2)
+│   │   └── page.tsx          # Charts with Recharts
+│   └── achievements/         # Gamification badges (Phase 2)
+│       └── page.tsx          # BadgeCard grid display
 └── api/                      # Next.js API Routes (Server-side)
     ├── recipes/
     │   └── route.ts          # GET /api/recipes (search, filter)
@@ -115,8 +119,19 @@ web/src/app/
     ├── events/
     │   └── [id]/
     │       └── route.ts      # PATCH /api/events/[id]
-    └── recommendations/
-        └── route.ts          # POST /api/recommendations (proxy to FastAPI)
+    ├── recommendations/
+    │   └── route.ts          # POST /api/recommendations (proxy to FastAPI)
+    ├── nutrients/            # Phase 2: Nutrient Tracking
+    │   ├── daily/
+    │   │   └── route.ts      # GET /api/nutrients/daily
+    │   ├── export/
+    │   │   └── route.ts      # GET /api/nutrients/export
+    │   └── goals/
+    │       └── route.ts      # GET/PUT /api/nutrients/goals
+    └── achievements/         # Phase 2: Gamification
+        ├── route.ts          # GET /api/achievements
+        └── check/
+            └── route.ts      # POST /api/achievements/check
 ```
 
 ### Component Architecture
@@ -129,17 +144,30 @@ web/src/components/
 │   └── FAQ.tsx
 ├── sidebar/                  # Dashboard navigation
 │   └── AppSidebar.tsx
-├── ui/                       # shadcn/ui components
-│   ├── button.tsx
-│   ├── card.tsx
-│   ├── modal.tsx
-│   ├── calendar.tsx
-│   ├── sheet.tsx
-│   └── ...
-└── recipes/                  # Recipe-specific components
-    ├── RecipeCard.tsx
-    ├── RecipeDetailModal.tsx
-    └── SearchBar.tsx
+└── ui/                       # Reusable UI components
+    ├── button.tsx            # shadcn/ui button
+    ├── card.tsx              # shadcn/ui card
+    ├── dialog.tsx            # shadcn/ui dialog
+    ├── sheet.tsx             # shadcn/ui sheet (mobile nav)
+    ├── sidebar.tsx           # shadcn/ui sidebar
+    ├── accordion.tsx         # FAQ accordion
+    ├── input.tsx             # Form input
+    ├── label.tsx             # Form label
+    ├── textarea.tsx          # Multi-line input
+    ├── toast.tsx             # Notifications
+    ├── toaster.tsx           # Toast container
+    ├── skeleton.tsx          # Loading placeholders
+    ├── separator.tsx         # Visual divider
+    ├── tooltip.tsx           # Hover tooltips
+    ├── dropdown-menu.tsx     # Dropdown menus
+    ├── date-range-picker.tsx # Date selection
+    ├── searchbar.tsx         # Recipe search
+    ├── filterpanel.tsx       # Tag filtering
+    ├── pagenation.tsx        # Page navigation
+    ├── recipecard.tsx        # Recipe display card
+    ├── AddMealModal.tsx      # Add meal to calendar
+    ├── MealDetailModal.tsx   # View meal details
+    └── BadgeCard.tsx         # Phase 2: Achievement badge
 ```
 
 ### Key Libraries
@@ -149,11 +177,12 @@ web/src/components/
 | Next.js            | 15.5.4   | React framework with App Router            |
 | React              | 19.1.0   | UI library                                 |
 | TypeScript         | 5.x      | Type safety                                |
-| Tailwind CSS       | 3.x      | Utility-first styling                      |
+| Tailwind CSS       | 4.1.17   | Utility-first styling                      |
 | shadcn/ui          | Latest   | Accessible UI components                   |
 | FullCalendar       | 6.1.19   | Interactive calendar for meal planning     |
-| @supabase/ssr      | Latest   | Supabase client for Next.js                |
-| lucide-react       | Latest   | Icon library                               |
+| Recharts           | 3.5.0    | Charts for nutrient visualization (Phase 2)|
+| @supabase/ssr      | 0.7.0    | Supabase client for Next.js                |
+| lucide-react       | 0.462.0  | Icon library                               |
 
 ---
 
@@ -176,7 +205,8 @@ backend/
 ├── tests/
 │   ├── conftest.py
 │   └── test_recommender.py
-├── requirements.txt          # Python dependencies
+├── pyproject.toml            # Python dependencies (uv managed)
+├── uv.lock                   # Dependency lock file
 ├── Dockerfile
 ├── Makefile
 └── vercel.json              # Deployment config
@@ -250,15 +280,18 @@ Final Meal Plan
 
 ### Tables
 
-| Table                  | Description                                  |
-|------------------------|----------------------------------------------|
-| `Recipe`               | Recipe metadata (name, description, etc.)    |
-| `Ingredient`           | Ingredient master list                       |
-| `RecipeTag`            | Tag categories (vegetarian, gluten-free)     |
-| `Recipe-Ingredient_Map`| Many-to-many: Recipe ↔ Ingredient            |
-| `Recipe-Tag_Map`       | Many-to-many: Recipe ↔ Tag                   |
-| `Calendar`             | User meal plans                              |
-| `Events`               | Meal events (breakfast, lunch, dinner)       |
+| Table                  | Description                                  | Phase |
+|------------------------|----------------------------------------------|-------|
+| `Recipe`               | Recipe metadata (name, description, etc.)    | 1     |
+| `Ingredient`           | Ingredient master list with nutrients        | 1     |
+| `RecipeTag`            | Tag categories (vegetarian, gluten-free)     | 1     |
+| `Recipe-Ingredient_Map`| Many-to-many: Recipe ↔ Ingredient            | 1     |
+| `Recipe-Tag_Map`       | Many-to-many: Recipe ↔ Tag                   | 1     |
+| `Calendar`             | User meal plans with date and meal type      | 1     |
+| `nutrient_tracking`    | Daily aggregated nutrient data per user      | 2     |
+| `nutrient_goals`       | User-defined daily nutrient targets          | 2     |
+| `achievement_definitions` | Master list of available achievements     | 2     |
+| `user_achievements`    | User earned achievements with progress       | 2     |
 
 ### Relationships
 
@@ -267,7 +300,11 @@ Recipe ─┬─ Recipe-Ingredient_Map ─ Ingredient
         │
         └─ Recipe-Tag_Map ─ RecipeTag
 
-Calendar ─ Events (meal_date, meal_type, completed)
+User (auth.users)
+    ├── Calendar (meal planning)
+    ├── nutrient_tracking (daily nutrients)
+    ├── nutrient_goals (1:1 nutrient targets)
+    └── user_achievements ─ achievement_definitions
 ```
 
 **Reference**: See [04-DATABASE-DESIGN.md](./04-DATABASE-DESIGN.md) for detailed schema.
@@ -411,9 +448,41 @@ User selects recipe + date + meal type
     ↓
 [Next.js API Route] → Supabase Insert
     ↓
-[Supabase] → Calendar + Events tables
+[Supabase] → Calendar table
     ↓
 [FullCalendar] → Re-fetch and display updated calendar
+```
+
+### Nutrient Tracking Flow (Phase 2)
+
+```
+User views Nutrients Dashboard
+    ↓
+[Next.js Client] → GET /api/nutrients/daily?period=day
+    ↓
+[Next.js API Route] → Supabase Query
+    ↓
+[Supabase] → Join Calendar + Recipe-Ingredient_Map + Ingredient
+    ↓
+[API Route] → Aggregate nutrients, upsert to nutrient_tracking
+    ↓
+[Frontend] → Display Recharts visualizations
+```
+
+### Achievement Check Flow (Phase 2)
+
+```
+User logs a meal / views dashboard
+    ↓
+[Next.js Client] → POST /api/achievements/check
+    ↓
+[Next.js API Route] → Query user stats from Calendar
+    ↓
+[API Route] → Compare against achievement_definitions criteria
+    ↓
+[API Route] → Insert earned achievements (via service-role)
+    ↓
+[Frontend] → Display newly earned badges (toast notification)
 ```
 
 ---
@@ -426,6 +495,7 @@ User selects recipe + date + meal type
 | Next.js Frontend | Supabase Database                  | Supabase Client SDK     |
 | Next.js Frontend | FastAPI Backend                    | HTTP REST API           |
 | Next.js API      | Supabase Database                  | Supabase Server SDK     |
+| Next.js API      | Supabase (Service Role)            | supabaseServer.ts (Phase 2) |
 | FastAPI Backend  | Supabase Database                  | Supabase Python Client  |
 | FastAPI Backend  | Google Gemini API                  | HTTP REST API           |
 | FastAPI Backend  | SentenceTransformers (Local Model) | PyTorch                 |
@@ -447,8 +517,8 @@ npm run dev        # http://localhost:3000
 **Backend**:
 ```bash
 cd backend
-pip install -r requirements.txt
-uvicorn api.index:app --reload  # http://localhost:8000
+uv sync                              # Install dependencies
+uv run uvicorn api.index:app --reload  # http://localhost:8000
 ```
 
 **Database**:
@@ -500,14 +570,25 @@ GEMINI_KEY=AIzxxx...
 
 ## 🔮 Future Architecture Enhancements
 
-### Phase 2 Planned Improvements
+### Phase 2 Implemented (v1.1.0 - v1.2.0)
 
-1. **Caching Layer**: Redis for frequently accessed recipes
-2. **CDN Integration**: CloudFront for static assets
-3. **WebSocket Support**: Real-time meal plan updates
-4. **Microservices**: Separate nutrient tracking service
-5. **Mobile App**: React Native with shared API
-6. **Analytics**: User behavior tracking and meal insights
+1. **Nutrient Tracking**: Daily/weekly/monthly nutrient aggregation with Recharts visualization
+2. **Achievement System**: Gamification with badges, tiers, and progress tracking
+3. **Service Role Client**: `supabaseServer.ts` for bypassing RLS in trusted operations
+4. **Export Feature**: CSV and text export of nutrient data
+
+### Phase 2 Remaining (v1.2.0 Extension)
+
+1. **Streak Tracking**: Consecutive day tracking for achievement system
+2. **Challenge System**: Time-limited achievement challenges
+3. **Notification System**: Achievement unlock notifications
+4. **Social Sharing**: Share achievement badges
+
+### Phase 3 Planned (v1.3.0 Smart Cart)
+
+1. **Shopping Lists**: Generate shopping lists from meal plans
+2. **Inventory Management**: Track pantry items
+3. **Smart Suggestions**: Suggest meals based on inventory
 
 ---
 
@@ -532,6 +613,6 @@ This document should be updated when:
 - ✅ Deployment infrastructure updates
 - ✅ Major technology stack changes
 
-**Last Review**: November 17, 2025  
-**Next Review**: December 1, 2025
+**Last Review**: November 28, 2025  
+**Next Review**: December 15, 2025
 
