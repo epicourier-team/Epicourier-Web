@@ -5,7 +5,7 @@ import type { Database } from "@/types/supabase";
  * Resolve both the Supabase auth user ID (UUID) and the numeric public user ID.
  */
 export async function getUserIdentity(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseClient<Database>
 ): Promise<{ authUserId: string; publicUserId: number }> {
   const {
     data: { user: authUser },

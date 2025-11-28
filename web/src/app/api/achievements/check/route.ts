@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { getUserIdentity } from "@/lib/auth";
+import { supabaseServer } from "@/lib/supabaseServer";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
@@ -31,13 +32,13 @@ type UserStats = {
 
 /**
  * POST /api/achievements/check
- * 
+ *
  * Checks and awards new achievements based on user's current progress.
  * Called after user performs actions (meal_logged, nutrient_viewed, etc.)
- * 
+ *
  * Request body:
  * - trigger: "meal_logged" | "nutrient_viewed" | "manual"
- * 
+ *
  * Returns:
  * - newly_earned: Array of newly unlocked achievements
  * - message: Success message
@@ -108,17 +109,15 @@ export async function POST(request: Request) {
 
       if (isEarned) {
         // Award achievement
-        const { error: insertError } = await supabase
-          .from("user_achievements")
-          .insert({
-            user_id: authUserId,
-            achievement_id: achievement.id,
-            earned_at: new Date().toISOString(),
-            progress: {
-              final_value: stats[criteria.metric as keyof typeof stats],
-              trigger: body.trigger,
-            },
-          });
+        const { error: insertError } = await supabaseServer.from("user_achievements").insert({
+          user_id: authUserId,
+          achievement_id: achievement.id,
+          earned_at: new Date().toISOString(),
+          progress: {
+            final_value: stats[criteria.metric as keyof typeof stats],
+            trigger: body.trigger,
+          },
+        });
 
         if (!insertError) {
           newlyEarned.push({
@@ -157,7 +156,7 @@ export async function POST(request: Request) {
 async function calculateUserStats(
   supabase: SupabaseClient<Database>,
   publicUserId: number,
-  authUserId: string,
+  authUserId: string
 ) {
   const stats: UserStats = {
     meals_logged: 0,
@@ -183,7 +182,8 @@ async function calculateUserStats(
     // Count green recipes
     const { data: greenMeals, error: greenError } = await supabase
       .from("Calendar")
-      .select(`
+      .select(
+        `
         id,
         Recipe: recipe_id (
           id,
@@ -193,7 +193,8 @@ async function calculateUserStats(
             )
           )
         )
-      `)
+      `
+      )
       .eq("user_id", publicUserId)
       .eq("status", true);
 
@@ -260,9 +261,7 @@ async function calculateUserStats(
 function calculateStreak(dates: string[]): number {
   if (dates.length === 0) return 0;
 
-  const sortedDates = dates
-    .map((d) => new Date(d))
-    .sort((a, b) => b.getTime() - a.getTime()); // Most recent first
+  const sortedDates = dates.map((d) => new Date(d)).sort((a, b) => b.getTime() - a.getTime()); // Most recent first
 
   let streak = 1;
   const today = new Date();
@@ -298,10 +297,7 @@ function calculateStreak(dates: string[]): number {
 /**
  * Check if achievement criteria is met
  */
-function checkAchievementCriteria(
-  criteria: Achievement["criteria"],
-  stats: UserStats
-): boolean {
+function checkAchievementCriteria(criteria: Achievement["criteria"], stats: UserStats): boolean {
   const current = stats[criteria.metric as keyof UserStats] || 0;
 
   switch (criteria.type) {

@@ -12,7 +12,7 @@ interface BadgeCardProps {
 
 /**
  * BadgeCard component displays a single achievement/badge card
- * 
+ *
  * Features:
  * - Shows badge icon, title, description, and tier
  * - Locked state with grayscale filter and progress bar
@@ -23,8 +23,8 @@ interface BadgeCardProps {
 export default function BadgeCard({ achievement, isLocked, progress }: BadgeCardProps) {
   // Extract achievement data (handle both Achievement and UserAchievement types)
   const achievementData = isUserAchievement(achievement)
-    ? achievement.achievement ?? null
-    : achievement ?? null;
+    ? (achievement.achievement ?? null)
+    : (achievement ?? null);
 
   if (!achievementData) return null;
 
@@ -77,9 +77,7 @@ export default function BadgeCard({ achievement, isLocked, progress }: BadgeCard
         >
           {title}
         </h3>
-        <p className={`text-sm ${isLocked ? "text-gray-400" : "text-gray-600"}`}>
-          {description}
-        </p>
+        <p className={`text-sm ${isLocked ? "text-gray-400" : "text-gray-600"}`}>{description}</p>
 
         {/* Progress bar (only for locked achievements) */}
         {isLocked && progress && (
@@ -105,7 +103,8 @@ export default function BadgeCard({ achievement, isLocked, progress }: BadgeCard
           <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-emerald-600">
             <span>✓</span>
             <span>
-              Earned on {new Date(earnedAt).toLocaleDateString("en-US", {
+              Earned on{" "}
+              {new Date(earnedAt).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "short",
                 day: "numeric",
@@ -116,7 +115,7 @@ export default function BadgeCard({ achievement, isLocked, progress }: BadgeCard
 
         {/* Locked overlay */}
         {isLocked && (
-          <div className="brutalism-border absolute right-4 top-16 bg-gray-200 px-2 py-1 text-xs font-bold uppercase text-gray-600">
+          <div className="brutalism-border absolute top-16 right-4 bg-gray-200 px-2 py-1 text-xs font-bold text-gray-600 uppercase">
             🔒 Locked
           </div>
         )}
