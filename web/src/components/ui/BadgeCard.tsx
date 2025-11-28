@@ -1,3 +1,16 @@
+import Image from "next/image";
+import type { ComponentType } from "react";
+import {
+  Activity,
+  BarChart3,
+  Calendar,
+  ChefHat,
+  Flame,
+  Leaf,
+  Trees,
+  Trophy,
+  UtensilsCrossed,
+} from "lucide-react";
 import { Achievement, UserAchievement, BadgeTier } from "@/types/data";
 
 interface BadgeCardProps {
@@ -31,6 +44,43 @@ export default function BadgeCard({ achievement, isLocked, progress }: BadgeCard
   const { title, description, icon, tier } = achievementData;
   const earnedAt = !isLocked && "earned_at" in achievement ? achievement.earned_at : null;
 
+  const lucideIconMap: Record<string, ComponentType<{ className?: string }>> = {
+    utensils: UtensilsCrossed,
+    "chef-hat": ChefHat,
+    calendar: Calendar,
+    leaf: Leaf,
+    activity: Activity,
+    chart: BarChart3,
+    flame: Flame,
+    tree: Trees,
+  };
+
+  const renderIcon = () => {
+    if (
+      icon &&
+      (icon.startsWith("http://") || icon.startsWith("https://") || icon.startsWith("/"))
+    ) {
+      return (
+        <Image
+          src={icon}
+          alt={`${title} badge`}
+          width={40}
+          height={40}
+          unoptimized
+          className="size-10 object-contain"
+        />
+      );
+    }
+
+    const IconComponent = icon ? lucideIconMap[icon.toLowerCase()] : null;
+    if (IconComponent) {
+      return <IconComponent className="size-10" />;
+    }
+
+    // Fallback: show trophy to avoid raw text rendering
+    return <Trophy className="size-10" />;
+  };
+
   // Tier color mapping
   const tierColors: Record<BadgeTier, string> = {
     bronze: "border-amber-700 bg-amber-50",
@@ -58,7 +108,7 @@ export default function BadgeCard({ achievement, isLocked, progress }: BadgeCard
               isLocked ? "grayscale" : tierBorderColor
             }`}
           >
-            {icon}
+            {renderIcon()}
           </div>
           <div
             className={`brutalism-border brutalism-shadow-sm px-2 py-1 text-xs font-bold uppercase ${
