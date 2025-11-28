@@ -2,14 +2,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 
 /**
- * Helper function to get the numeric user ID from public."User" table
- * based on the authenticated user's email.
- *
- * @param supabase - Supabase client instance
- * @returns The numeric user ID from the public User table
- * @throws Error if user is not authenticated or user profile is not found
+ * Resolve both the Supabase auth user ID (UUID) and the numeric public user ID.
  */
-export async function getPublicUserId(supabase: SupabaseClient<Database>): Promise<number> {
+export async function getUserIdentity(
+  supabase: SupabaseClient<Database>
+): Promise<{ authUserId: string; publicUserId: number }> {
   const {
     data: { user: authUser },
     error: authError,
@@ -39,5 +36,18 @@ export async function getPublicUserId(supabase: SupabaseClient<Database>): Promi
   }
 
   const publicUser = publicUsers[0];
-  return publicUser.id;
+  return { authUserId: authUser.id, publicUserId: publicUser.id };
+}
+
+/**
+ * Helper function to get the numeric user ID from public."User" table
+ * based on the authenticated user's email.
+ *
+ * @param supabase - Supabase client instance
+ * @returns The numeric user ID from the public User table
+ * @throws Error if user is not authenticated or user profile is not found
+ */
+export async function getPublicUserId(supabase: SupabaseClient<Database>): Promise<number> {
+  const { publicUserId } = await getUserIdentity(supabase);
+  return publicUserId;
 }

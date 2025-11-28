@@ -8,6 +8,39 @@ export type Database = {
   };
   public: {
     Tables: {
+      achievement_definitions: {
+        Row: {
+          created_at: string | null;
+          criteria: Json;
+          description: string | null;
+          icon: string | null;
+          id: number;
+          name: string;
+          tier: "bronze" | "silver" | "gold" | "platinum" | null;
+          title: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          criteria: Json;
+          description?: string | null;
+          icon?: string | null;
+          id?: number;
+          name: string;
+          tier?: "bronze" | "silver" | "gold" | "platinum" | null;
+          title: string;
+        };
+        Update: {
+          created_at?: string | null;
+          criteria?: Json;
+          description?: string | null;
+          icon?: string | null;
+          id?: number;
+          name?: string;
+          tier?: "bronze" | "silver" | "gold" | "platinum" | null;
+          title?: string;
+        };
+        Relationships: [];
+      };
       Calendar: {
         Row: {
           created_at: string;
@@ -58,6 +91,57 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      nutrient_tracking: {
+        Row: {
+          calories_kcal: number | null;
+          carbs_g: number | null;
+          created_at: string | null;
+          date: string;
+          fats_g: number | null;
+          fiber_g: number | null;
+          id: number;
+          meal_count: number | null;
+          month_start: string;
+          protein_g: number | null;
+          sodium_mg: number | null;
+          sugar_g: number | null;
+          updated_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          calories_kcal?: number | null;
+          carbs_g?: number | null;
+          created_at?: string | null;
+          date: string;
+          fats_g?: number | null;
+          fiber_g?: number | null;
+          id?: number;
+          meal_count?: number | null;
+          month_start?: string;
+          protein_g?: number | null;
+          sodium_mg?: number | null;
+          sugar_g?: number | null;
+          updated_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          calories_kcal?: number | null;
+          carbs_g?: number | null;
+          created_at?: string | null;
+          date?: string;
+          fats_g?: number | null;
+          fiber_g?: number | null;
+          id?: number;
+          meal_count?: number | null;
+          month_start?: string;
+          protein_g?: number | null;
+          sodium_mg?: number | null;
+          sugar_g?: number | null;
+          updated_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
       };
       Ingredient: {
         Row: {
@@ -274,6 +358,38 @@ export type Database = {
           name?: string | null;
         };
         Relationships: [];
+      };
+      user_achievements: {
+        Row: {
+          achievement_id: number;
+          earned_at: string | null;
+          id: number;
+          progress: Json | null;
+          user_id: string;
+        };
+        Insert: {
+          achievement_id: number;
+          earned_at?: string | null;
+          id?: number;
+          progress?: Json | null;
+          user_id: string;
+        };
+        Update: {
+          achievement_id?: number;
+          earned_at?: string | null;
+          id?: number;
+          progress?: Json | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey";
+            columns: ["achievement_id"];
+            isOneToOne: false;
+            referencedRelation: "achievement_definitions";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       User: {
         Row: {

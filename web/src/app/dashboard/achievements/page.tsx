@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import BadgeCard from "@/components/ui/BadgeCard";
 import { Trophy, Loader2, RefreshCw } from "lucide-react";
 
-import type { AchievementsResponse } from "@/types/data";
+import type { AchievementCheckResponse, AchievementsResponse } from "@/types/data";
 
 /**
  * Achievements page - displays user's earned and available achievements
- * 
+ *
  * Features:
  * - Tabbed interface: Earned / Available
  * - Real-time progress tracking for locked achievements
@@ -57,9 +57,9 @@ export default function AchievementsPage() {
         throw new Error(errorData.error || "Failed to check achievements");
       }
 
-      const result = await res.json();
+      const result: AchievementCheckResponse = await res.json();
       if (result.newly_earned && result.newly_earned.length > 0) {
-        setNewAchievements(result.newly_earned.map((a: any) => a.title));
+        setNewAchievements(result.newly_earned.map((a) => a.title));
         // Refresh data to show newly earned achievements
         await fetchAchievements();
       }
@@ -91,10 +91,7 @@ export default function AchievementsPage() {
         <div className="brutalism-panel max-w-md p-6 text-center">
           <p className="brutalism-text-bold mb-2 text-red-600">Error</p>
           <p className="text-sm text-gray-600">{error}</p>
-          <button
-            onClick={fetchAchievements}
-            className="brutalism-button-primary mt-4 px-4 py-2"
-          >
+          <button onClick={fetchAchievements} className="brutalism-button-primary mt-4 px-4 py-2">
             Retry
           </button>
         </div>
@@ -177,11 +174,7 @@ export default function AchievementsPage() {
         {tab === "earned" &&
           (earnedCount > 0 ? (
             data?.earned.map((userAchievement) => (
-              <BadgeCard
-                key={userAchievement.id}
-                achievement={userAchievement}
-                isLocked={false}
-              />
+              <BadgeCard key={userAchievement.id} achievement={userAchievement} isLocked={false} />
             ))
           ) : (
             <div className="brutalism-panel col-span-full p-8 text-center">
@@ -201,9 +194,7 @@ export default function AchievementsPage() {
             ))
           ) : (
             <div className="brutalism-panel col-span-full p-8 text-center">
-              <p className="text-gray-500">
-                Amazing! You&apos;ve unlocked all achievements! 🎉
-              </p>
+              <p className="text-gray-500">Amazing! You&apos;ve unlocked all achievements! 🎉</p>
             </div>
           ))}
       </div>
