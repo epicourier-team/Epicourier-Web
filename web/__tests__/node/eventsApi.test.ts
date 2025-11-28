@@ -93,6 +93,67 @@ describe("GET /api/events", () => {
     expect(json.error).toBe("User not authenticated");
   });
 
+  it("returns 401 if authenticated user does not have an email", async () => {
+    // Line 22: user has no email
+    mockAuthGetUser.mockResolvedValue({
+      data: { user: { id: "auth-123", email: null } },
+      error: null,
+    });
+
+    const res = await GET();
+    const json = await res.json();
+
+    expect(res.status).toBe(401);
+    expect(json.error).toBe("Authenticated user does not have an email.");
+  });
+
+  it("returns 401 if profile fetch fails", async () => {
+    // Lines 33-34: profileError handling
+    mockSelect.mockReturnValueOnce({
+      eq: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnValue({
+        then: async (resolve: (...args: unknown[]) => void) =>
+          resolve({ data: null, error: new Error("Profile DB error") }),
+      }),
+    });
+
+    const res = await GET();
+    const json = await res.json();
+
+    expect(res.status).toBe(401);
+    expect(json.error).toBe("Error fetching user profile.");
+  });
+
+  it("returns 401 if public user profile not found", async () => {
+    // Line 38: empty publicUsers array
+    mockSelect.mockReturnValueOnce({
+      eq: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnValue({
+        then: async (resolve: (...args: unknown[]) => void) =>
+          resolve({ data: [], error: null }),
+      }),
+    });
+
+    const res = await GET();
+    const json = await res.json();
+
+    expect(res.status).toBe(401);
+    expect(json.error).toBe("Public user profile not found.");
+  });
+
+  it("returns 401 with default error message when non-Error is thrown", async () => {
+    // Line 56: err is not instanceof Error - covers the else branch
+    mockAuthGetUser.mockImplementation(() => {
+      throw "string error"; // Non-Error thrown
+    });
+
+    const res = await GET();
+    const json = await res.json();
+
+    expect(res.status).toBe(401);
+    expect(json.error).toBe("Unauthorized");
+  });
+
   it("returns 200 with data when authenticated", async () => {
     const mockData: CalendarEntry[] = [
       { id: 1, date: "2025-11-06", meal_type: "lunch", Recipe: { name: "Pasta" } },
@@ -155,6 +216,100 @@ describe("GET /api/events", () => {
 });
 
 describe("POST /api/events", () => {
+  it("returns 401 if user is not authenticated", async () => {
+    mockAuthGetUser.mockResolvedValue({ data: { user: null }, error: new Error("No session") });
+
+    const req = createRequest("http://localhost/api/events", {
+      method: "POST",
+      body: JSON.stringify({ recipe_id: 1, date: "2025-11-06", meal_type: "lunch" }),
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(401);
+    expect(json.error).toBe("User not authenticated");
+  });
+
+  it("returns 401 if authenticated user does not have an email", async () => {
+    // Lines 103-108: user has no email
+    mockAuthGetUser.mockResolvedValue({
+      data: { user: { id: "auth-123", email: null } },
+      error: null,
+    });
+
+    const req = createRequest("http://localhost/api/events", {
+      method: "POST",
+      body: JSON.stringify({ recipe_id: 1, date: "2025-11-06", meal_type: "lunch" }),
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(401);
+    expect(json.error).toBe("Authenticated user does not have an email.");
+  });
+
+  it("returns 401 if profile fetch fails", async () => {
+    mockSelect.mockReturnValueOnce({
+      eq: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnValue({
+        then: async (resolve: (...args: unknown[]) => void) =>
+          resolve({ data: null, error: new Error("Profile DB error") }),
+      }),
+    });
+
+    const req = createRequest("http://localhost/api/events", {
+      method: "POST",
+      body: JSON.stringify({ recipe_id: 1, date: "2025-11-06", meal_type: "lunch" }),
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(401);
+    expect(json.error).toBe("Error fetching user profile.");
+  });
+
+  it("returns 401 if public user profile not found", async () => {
+    mockSelect.mockReturnValueOnce({
+      eq: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnValue({
+        then: async (resolve: (...args: unknown[]) => void) =>
+          resolve({ data: [], error: null }),
+      }),
+    });
+
+    const req = createRequest("http://localhost/api/events", {
+      method: "POST",
+      body: JSON.stringify({ recipe_id: 1, date: "2025-11-06", meal_type: "lunch" }),
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(401);
+    expect(json.error).toBe("Public user profile not found.");
+  });
+
+  it("returns 401 with default error message when non-Error is thrown", async () => {
+    // Line 104: err is not instanceof Error - covers the else branch
+    mockAuthGetUser.mockImplementation(() => {
+      throw "string error"; // Non-Error thrown
+    });
+
+    const req = createRequest("http://localhost/api/events", {
+      method: "POST",
+      body: JSON.stringify({ recipe_id: 1, date: "2025-11-06", meal_type: "lunch" }),
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(401);
+    expect(json.error).toBe("Unauthorized");
+  });
+
   it("returns 400 if required fields are missing", async () => {
     // Mock auth success
     mockSelect.mockReturnValueOnce({
@@ -210,6 +365,50 @@ describe("POST /api/events", () => {
         recipe_id: 55,
         date: "2025-11-06",
         meal_type: "dinner",
+      }),
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toEqual(newItem);
+  });
+
+  it("returns 200 with inserted data when status is explicitly true", async () => {
+    // Line 129: status is passed as boolean (true)
+    const newItem = {
+      id: 11,
+      user_id: 123,
+      recipe_id: 56,
+      date: "2025-11-07",
+      meal_type: "breakfast",
+      status: true,
+      Recipe: { id: 56, name: "Omelette" },
+    };
+
+    // 1. Mock user profile fetch
+    mockSelect.mockReturnValueOnce({
+      eq: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnValue({
+        then: async (resolve: (...args: unknown[]) => void) =>
+          resolve({ data: [{ id: 123 }], error: null }),
+      }),
+    });
+
+    // 2. Mock insert
+    mockInsert.mockReturnValueOnce({
+      select: jest.fn().mockReturnThis(),
+      single: jest.fn().mockResolvedValue({ data: newItem, error: null }),
+    });
+
+    const req = createRequest("http://localhost/api/events", {
+      method: "POST",
+      body: JSON.stringify({
+        recipe_id: 56,
+        date: "2025-11-07",
+        meal_type: "breakfast",
+        status: true, // Explicit boolean status
       }),
     });
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/app/dashboard/layout";
 import { useToast } from "@/hooks/use-toast";
@@ -116,5 +117,87 @@ describe("DashboardLayout", () => {
     // Verify toast mock is properly set up
     expect(useToast).toHaveBeenCalled();
     expect(mockToast).toBeDefined();
+  });
+
+  describe("handleLogout callback", () => {
+    it("redirects to signin on successful logout", async () => {
+      const user = userEvent.setup();
+      (logout as jest.Mock).mockResolvedValue({ success: true });
+
+      render(
+        <DashboardLayout>
+          <div>Content</div>
+        </DashboardLayout>
+      );
+
+      // Find and click the User button to open dropdown
+      const userButtons = screen.getAllByText("User");
+      await user.click(userButtons[0]);
+
+      // Wait for dropdown to open and click Log Out
+      const logoutButton = await screen.findByText("Log Out");
+      await user.click(logoutButton);
+
+      await waitFor(() => {
+        expect(logout).toHaveBeenCalled();
+        expect(mockPush).toHaveBeenCalledWith("/signin");
+      });
+    });
+
+    it("shows error toast on logout failure", async () => {
+      const user = userEvent.setup();
+      (logout as jest.Mock).mockResolvedValue({
+        success: false,
+        error: { message: "Logout failed" },
+      });
+
+      render(
+        <DashboardLayout>
+          <div>Content</div>
+        </DashboardLayout>
+      );
+
+      // Find and click the User button to open dropdown
+      const userButtons = screen.getAllByText("User");
+      await user.click(userButtons[0]);
+
+      // Wait for dropdown to open and click Log Out
+      const logoutButton = await screen.findByText("Log Out");
+      await user.click(logoutButton);
+
+      await waitFor(() => {
+        expect(logout).toHaveBeenCalled();
+        expect(mockToast).toHaveBeenCalledWith({
+          title: "Logout failed",
+          description: "Logout failed",
+          variant: "destructive",
+        });
+      });
+    });
+
+    it("does nothing when logout returns no success and no error", async () => {
+      const user = userEvent.setup();
+      (logout as jest.Mock).mockResolvedValue({ success: false });
+
+      render(
+        <DashboardLayout>
+          <div>Content</div>
+        </DashboardLayout>
+      );
+
+      // Find and click the User button to open dropdown
+      const userButtons = screen.getAllByText("User");
+      await user.click(userButtons[0]);
+
+      // Wait for dropdown to open and click Log Out
+      const logoutButton = await screen.findByText("Log Out");
+      await user.click(logoutButton);
+
+      await waitFor(() => {
+        expect(logout).toHaveBeenCalled();
+        expect(mockPush).not.toHaveBeenCalled();
+        expect(mockToast).not.toHaveBeenCalled();
+      });
+    });
   });
 });

@@ -217,4 +217,58 @@ describe("useRecipes", () => {
       expect(global.fetch).toHaveBeenCalledTimes(2);
     });
   });
+
+  it("uses default page 1 when page is not provided", async () => {
+    // Line 16: filters.page || 1
+    const { result } = renderHook(() => useRecipes({ limit: 20 }));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.pagination.page).toBe(1);
+  });
+
+  it("does not append ingredientIds when array is empty", async () => {
+    // Line 35-44: empty arrays branch
+    renderHook(() => useRecipes({ ingredientIds: [], page: 1, limit: 20 }));
+
+    await waitFor(() => {
+      const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+      expect(fetchCall).not.toContain("ingredientIds");
+    });
+  });
+
+  it("does not append tagIds when array is empty", async () => {
+    renderHook(() => useRecipes({ tagIds: [], page: 1, limit: 20 }));
+
+    await waitFor(() => {
+      const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+      expect(fetchCall).not.toContain("tagIds");
+    });
+  });
+
+  it("handles error without message property", async () => {
+    // Line 57-58: err.message || "Fetch failed"
+    const errorWithoutMessage = { name: "CustomError" };
+    (global.fetch as jest.Mock).mockRejectedValue(errorWithoutMessage);
+
+    const { result } = renderHook(() => useRecipes({ page: 1, limit: 20 }));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    // Error should be null since it's not instanceof Error
+    expect(result.current.error).toBeNull();
+  });
+
+  it("does not include query param when query is empty string", async () => {
+    renderHook(() => useRecipes({ query: "", page: 1, limit: 20 }));
+
+    await waitFor(() => {
+      const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+      expect(fetchCall).not.toContain("query=");
+    });
+  });
 });
