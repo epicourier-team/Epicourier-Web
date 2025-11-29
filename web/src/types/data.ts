@@ -189,6 +189,11 @@ export interface AchievementCheckResponse {
 export type ChallengeType = "weekly" | "monthly" | "special";
 
 /**
+ * Challenge category: content-based grouping
+ */
+export type ChallengeCategory = "nutrition" | "sustainability" | "habits" | "recipes" | "milestones";
+
+/**
  * Challenge criteria structure (stored as JSONB in database)
  */
 export interface ChallengeCriteria {
@@ -206,6 +211,7 @@ export interface Challenge {
   title: string;
   description: string | null;
   type: ChallengeType;
+  category: ChallengeCategory;
   criteria: ChallengeCriteria;
   reward_achievement_id: number | null;
   start_date: string | null;

@@ -2,15 +2,30 @@
 
 import { useEffect, useState, useCallback } from "react";
 import ChallengeCard from "@/components/ui/ChallengeCard";
-import { Target, Loader2, RefreshCw } from "lucide-react";
+import {
+  Target,
+  Loader2,
+  RefreshCw,
+  Calendar,
+  CalendarDays,
+  Star,
+  LayoutGrid,
+  Clock,
+  Salad,
+  Leaf,
+  CheckSquare,
+  ChefHat,
+  Trophy,
+} from "lucide-react";
 
-import type { ChallengesResponse, ChallengeWithStatus } from "@/types/data";
+import type { ChallengesResponse, ChallengeWithStatus, ChallengeCategory } from "@/types/data";
 
 /**
  * Challenges page - displays user's challenges and participation
  *
  * Features:
  * - Tabbed interface: Active / Joined / Completed
+ * - Dual view: By Time (weekly/monthly/special) or By Category
  * - Join challenge functionality
  * - Progress tracking for joined challenges
  * - Days remaining countdown
@@ -19,6 +34,7 @@ import type { ChallengesResponse, ChallengeWithStatus } from "@/types/data";
  */
 export default function ChallengesPage() {
   const [tab, setTab] = useState<"active" | "joined" | "completed">("active");
+  const [viewMode, setViewMode] = useState<"time" | "category">("time");
   const [data, setData] = useState<ChallengesResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -116,6 +132,100 @@ export default function ChallengesPage() {
 
   const currentChallenges = getCurrentChallenges();
 
+  // Group challenges by type
+  const groupChallengesByType = (challenges: ChallengeWithStatus[]) => {
+    const grouped = {
+      weekly: challenges.filter((c) => c.type === "weekly"),
+      monthly: challenges.filter((c) => c.type === "monthly"),
+      special: challenges.filter((c) => c.type === "special"),
+    };
+    return grouped;
+  };
+
+  const groupedChallenges = groupChallengesByType(currentChallenges);
+
+  // Group challenges by category
+  const groupChallengesByCategory = (challenges: ChallengeWithStatus[]) => {
+    const grouped: Record<ChallengeCategory, ChallengeWithStatus[]> = {
+      nutrition: challenges.filter((c) => c.category === "nutrition"),
+      sustainability: challenges.filter((c) => c.category === "sustainability"),
+      habits: challenges.filter((c) => c.category === "habits"),
+      recipes: challenges.filter((c) => c.category === "recipes"),
+      milestones: challenges.filter((c) => c.category === "milestones"),
+    };
+    return grouped;
+  };
+
+  const groupedByCategory = groupChallengesByCategory(currentChallenges);
+
+  const typeConfig = {
+    weekly: {
+      title: "Weekly Challenges",
+      icon: Calendar,
+      color: "blue",
+      bgColor: "bg-blue-50",
+      textColor: "text-blue-700",
+      borderColor: "border-blue-200",
+    },
+    monthly: {
+      title: "Monthly Challenges",
+      icon: CalendarDays,
+      color: "purple",
+      bgColor: "bg-purple-50",
+      textColor: "text-purple-700",
+      borderColor: "border-purple-200",
+    },
+    special: {
+      title: "Special Challenges",
+      icon: Star,
+      color: "amber",
+      bgColor: "bg-amber-50",
+      textColor: "text-amber-700",
+      borderColor: "border-amber-200",
+    },
+  };
+
+  const categoryConfig: Record<
+    ChallengeCategory,
+    { title: string; icon: typeof Salad; bgColor: string; textColor: string; borderColor: string }
+  > = {
+    nutrition: {
+      title: "Nutrition Goals",
+      icon: Salad,
+      bgColor: "bg-green-50",
+      textColor: "text-green-700",
+      borderColor: "border-green-200",
+    },
+    sustainability: {
+      title: "Sustainability",
+      icon: Leaf,
+      bgColor: "bg-emerald-50",
+      textColor: "text-emerald-700",
+      borderColor: "border-emerald-200",
+    },
+    habits: {
+      title: "Healthy Habits",
+      icon: CheckSquare,
+      bgColor: "bg-blue-50",
+      textColor: "text-blue-700",
+      borderColor: "border-blue-200",
+    },
+    recipes: {
+      title: "Recipe Exploration",
+      icon: ChefHat,
+      bgColor: "bg-orange-50",
+      textColor: "text-orange-700",
+      borderColor: "border-orange-200",
+    },
+    milestones: {
+      title: "Milestones",
+      icon: Trophy,
+      bgColor: "bg-yellow-50",
+      textColor: "text-yellow-700",
+      borderColor: "border-yellow-200",
+    },
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="mx-auto max-w-6xl">
@@ -142,7 +252,7 @@ export default function ChallengesPage() {
         </div>
 
         {/* Tab navigation */}
-        <div className="mb-6 flex gap-2 overflow-x-auto">
+        <div className="mb-4 flex gap-2 overflow-x-auto">
           {[
             { key: "active", label: "Available", count: activeChallenges.length },
             { key: "joined", label: "In Progress", count: joinedChallenges.length },
@@ -162,7 +272,32 @@ export default function ChallengesPage() {
           ))}
         </div>
 
-        {/* Challenge grid */}
+        {/* View mode toggle */}
+        <div className="mb-6 flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-600">Group by:</span>
+          <div className="flex rounded-lg border-2 border-black bg-white">
+            <button
+              onClick={() => setViewMode("time")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold transition-all ${
+                viewMode === "time" ? "bg-black text-white" : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              <Clock className="size-4" />
+              Time
+            </button>
+            <button
+              onClick={() => setViewMode("category")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold transition-all ${
+                viewMode === "category" ? "bg-black text-white" : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              <LayoutGrid className="size-4" />
+              Category
+            </button>
+          </div>
+        </div>
+
+        {/* Challenge sections */}
         {currentChallenges.length === 0 ? (
           <div className="brutalism-panel p-8 text-center">
             <Target className="mx-auto mb-4 size-12 text-gray-400" />
@@ -180,16 +315,89 @@ export default function ChallengesPage() {
               </button>
             )}
           </div>
+        ) : viewMode === "time" ? (
+          /* Group by Time (Weekly/Monthly/Special) */
+          <div className="space-y-8">
+            {(["weekly", "monthly", "special"] as const).map((type) => {
+              const challenges = groupedChallenges[type];
+              if (challenges.length === 0) return null;
+
+              const config = typeConfig[type];
+              const IconComponent = config.icon;
+
+              return (
+                <section key={type}>
+                  {/* Section Header */}
+                  <div className={`mb-4 flex items-center gap-3 rounded-lg ${config.bgColor} p-3`}>
+                    <div className={`rounded-lg bg-white p-2 ${config.borderColor} border-2`}>
+                      <IconComponent className={`size-5 ${config.textColor}`} />
+                    </div>
+                    <div>
+                      <h2 className={`font-bold ${config.textColor}`}>{config.title}</h2>
+                      <p className="text-sm text-gray-600">
+                        {challenges.length} challenge{challenges.length !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Challenge Grid */}
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {challenges.map((challenge) => (
+                      <ChallengeCard
+                        key={challenge.id}
+                        challenge={challenge}
+                        onJoin={tab === "active" ? () => joinChallenge(challenge.id) : undefined}
+                        isJoining={joiningId === challenge.id}
+                      />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {currentChallenges.map((challenge) => (
-              <ChallengeCard
-                key={challenge.id}
-                challenge={challenge}
-                onJoin={tab === "active" ? () => joinChallenge(challenge.id) : undefined}
-                isJoining={joiningId === challenge.id}
-              />
-            ))}
+          /* Group by Category (Nutrition/Sustainability/Habits/Recipes/Milestones) */
+          <div className="space-y-8">
+            {(["nutrition", "sustainability", "habits", "recipes", "milestones"] as const).map(
+              (category) => {
+                const challenges = groupedByCategory[category];
+                if (challenges.length === 0) return null;
+
+                const config = categoryConfig[category];
+                const IconComponent = config.icon;
+
+                return (
+                  <section key={category}>
+                    {/* Section Header */}
+                    <div
+                      className={`mb-4 flex items-center gap-3 rounded-lg ${config.bgColor} p-3`}
+                    >
+                      <div className={`rounded-lg bg-white p-2 ${config.borderColor} border-2`}>
+                        <IconComponent className={`size-5 ${config.textColor}`} />
+                      </div>
+                      <div>
+                        <h2 className={`font-bold ${config.textColor}`}>{config.title}</h2>
+                        <p className="text-sm text-gray-600">
+                          {challenges.length} challenge{challenges.length !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Challenge Grid */}
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {challenges.map((challenge) => (
+                        <ChallengeCard
+                          key={challenge.id}
+                          challenge={challenge}
+                          onJoin={tab === "active" ? () => joinChallenge(challenge.id) : undefined}
+                          isJoining={joiningId === challenge.id}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                );
+              }
+            )}
           </div>
         )}
 
