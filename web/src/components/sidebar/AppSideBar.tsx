@@ -25,6 +25,7 @@ import {
   ChefHat,
   ChevronUp,
   HelpCircle,
+  Home,
   Lightbulb,
   LogOut,
   Target,
@@ -35,6 +36,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const menuItems = [
+  { title: "Home", url: "/dashboard", icon: Home },
   { title: "Recipes", url: "/dashboard/recipes", icon: ChefHat },
   { title: "Calendar", url: "/dashboard/calendar", icon: Calendar },
   { title: "Recommender", url: "/dashboard/recommender", icon: Lightbulb },

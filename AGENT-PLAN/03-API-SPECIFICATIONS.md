@@ -1,8 +1,8 @@
 # Epicourier API Specifications
 
-**Document Version**: 1.2  
+**Document Version**: 1.3  
 **Last Updated**: November 28, 2025  
-**Status**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 🚧 | v1.3.0 📝)
+**Status**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 ✅ | v1.3.0 📝)
 
 ---
 
@@ -752,6 +752,120 @@ Manually trigger achievement check and award new achievements based on current p
 
 **Errors**:
 - `400` - Missing trigger field or invalid JSON
+- `401` - Unauthorized
+- `500` - Database error
+
+---
+
+## 🔥 Streak Endpoints (Phase 2)
+
+### Get User Streaks
+
+#### `GET /api/streaks`
+
+Get all streak data for the current user, including current streak, longest streak, and activity status.
+
+**Authentication**: Required
+
+**Response** (200 OK):
+```json
+{
+  "streaks": [
+    {
+      "id": 1,
+      "user_id": "uuid-string",
+      "streak_type": "daily_log",
+      "current_streak": 35,
+      "longest_streak": 42,
+      "last_activity_date": "2025-11-28",
+      "updated_at": "2025-11-28T10:30:00Z",
+      "label": "Daily Logging",
+      "isActiveToday": true
+    },
+    {
+      "id": 2,
+      "user_id": "uuid-string",
+      "streak_type": "nutrient_goal",
+      "current_streak": 14,
+      "longest_streak": 21,
+      "last_activity_date": "2025-11-27",
+      "updated_at": "2025-11-27T18:00:00Z",
+      "label": "Nutrient Goals",
+      "isActiveToday": false
+    },
+    {
+      "id": 3,
+      "user_id": "uuid-string",
+      "streak_type": "green_recipe",
+      "current_streak": 7,
+      "longest_streak": 10,
+      "last_activity_date": "2025-11-28",
+      "updated_at": "2025-11-28T12:00:00Z",
+      "label": "Green Recipes",
+      "isActiveToday": true
+    }
+  ]
+}
+```
+
+**Streak Types**:
+- `daily_log` - Consecutive days with at least one meal logged
+- `nutrient_goal` - Consecutive days meeting nutrient goals
+- `green_recipe` - Consecutive days using green (eco-friendly) recipes
+
+**Errors**:
+- `401` - Unauthorized
+- `500` - Database error
+
+---
+
+### Update Streak Progress
+
+#### `POST /api/streaks/update`
+
+Update a specific streak type for the current user. Uses atomic database function to handle streak logic.
+
+**Authentication**: Required
+
+**Request Body**:
+```json
+{
+  "streak_type": "daily_log"
+}
+```
+
+**Valid streak_type values**:
+- `daily_log`
+- `nutrient_goal`
+- `green_recipe`
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "message": "Streak updated successfully",
+  "streak": {
+    "streak_type": "daily_log",
+    "current_streak": 36,
+    "longest_streak": 42,
+    "last_activity_date": "2025-11-28"
+  }
+}
+```
+
+**Streak Update Logic** (handled by `update_streak()` database function):
+1. If `last_activity_date` is today → No change (already logged today)
+2. If `last_activity_date` is yesterday → Increment `current_streak`
+3. If `last_activity_date` is older → Reset `current_streak` to 1
+4. Update `longest_streak` if `current_streak` exceeds it
+
+**When to Call**:
+- After user logs a meal → `streak_type: "daily_log"`
+- When user meets daily nutrient goals → `streak_type: "nutrient_goal"`
+- When user logs a green recipe → `streak_type: "green_recipe"`
+
+**Errors**:
+- `400` - Invalid streak_type or missing field
 - `401` - Unauthorized
 - `500` - Database error
 

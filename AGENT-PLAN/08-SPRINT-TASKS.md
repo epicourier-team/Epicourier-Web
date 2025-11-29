@@ -1,8 +1,8 @@
 # Epicourier Sprint Tasks & Milestones
 
-**Document Version**: 1.4  
+**Document Version**: 1.5  
 **Last Updated**: November 28, 2025  
-**Current Phase**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 🚧 | v1.3.0 📝)
+**Current Phase**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 ✅ | v1.3.0 📝)
 
 ---
 
@@ -29,10 +29,10 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 | Version | Feature Area      | Status                | Progress |
 |---------|-------------------|----------------------|----------|
 | v1.1.0  | Nutrient Tracking | ✅ Complete          | 10/10    |
-| v1.2.0  | Gamification      | 🚧 Core Complete     | 6/6 core + 8 extended planned |
+| v1.2.0  | Gamification      | ✅ Complete          | 14/14 (core + extended) |
 | v1.3.0  | Smart Cart        | 📝 Planning          | 0/20     |
 
-**Overall Phase 2 Progress**: ~55% (v1.1.0 + v1.2.0 core shipped, v1.2.0 extended + v1.3.0 pending)
+**Overall Phase 2 Progress**: ~70% (v1.1.0 + v1.2.0 complete, v1.3.0 pending)
 
 ---
 
@@ -73,10 +73,10 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 ### 📋 v1.2.0: Gamified Challenges
 
 **Milestone**: `v1.2.0-gamification`  
-**Status**: 🚧 Core Complete, Extended Features Pending  
-**Core Release Date**: November 28, 2025
+**Status**: ✅ Complete  
+**Release Date**: November 28, 2025
 
-**Summary**: Achievement/badge system with auto-unlock, tier-based styling, and progress tracking.
+**Summary**: Achievement/badge system, challenge system, and streak tracking with animated UI.
 
 #### ✅ Completed Issues (Core Achievement System)
 
@@ -88,6 +88,21 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 | #35   | feat(api): Achievement checking and awarding endpoint         | Backend  | P1       | ✅ Complete (PR #39)          |
 | #36   | feat(frontend): Badge display component and achievements page | Frontend | P1       | ✅ Complete (PR #40)          |
 | #41   | fix(achievements): DB error, missing auto-unlock, icon issues | Bug      | P1       | ✅ Complete (PR #42)          |
+
+#### ✅ Completed Issues (Challenge System - Epic #66)
+
+| Issue | Title                                                     | Type       | Priority | Status               |
+| ----- | --------------------------------------------------------- | ---------- | -------- | -------------------- |
+| #65   | feat(database): Challenge system schema                   | Database   | P1       | ✅ Complete (PR #69) |
+| #66   | feat(api): Challenge CRUD and progress tracking API       | Backend    | P1       | ✅ Complete (PR #69) |
+| #68   | feat(frontend): Challenge participation UI                | Frontend   | P1       | ✅ Complete (PR #69) |
+
+#### ✅ Completed Issues (Streak System - Epic #67)
+
+| Issue | Title                                                     | Type       | Priority | Status               |
+| ----- | --------------------------------------------------------- | ---------- | -------- | -------------------- |
+| #61   | feat(database): Streak tracking schema                    | Database   | P2       | ✅ Complete (PR #70) |
+| #60   | feat(full-stack): Streak tracking dashboard widget        | Full-Stack | P2       | ✅ Complete (PR #70) |
 
 **Core Deliverables** (Shipped):
 
@@ -101,74 +116,37 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 - ✅ Lucide icon map with next/image fallback
 - ✅ Jest tests for achievements API
 
-#### 📝 Planned Issues (Extended Gamification Features)
+**Challenge System Deliverables** (PR #69):
 
-| Issue | Title                                                     | Type       | Priority | Assignee | Status       |
-| ----- | --------------------------------------------------------- | ---------- | -------- | -------- | ------------ |
-| TBD   | feat(database): Challenge system schema                   | Database   | P1       | -        | 📝 To Create |
-| TBD   | feat(backend): Weekly/monthly challenge generation API    | Next.js API| P1       | -        | 📝 To Create |
-| TBD   | feat(frontend): Challenge participation UI                | Frontend   | P1       | -        | 📝 To Create |
-| TBD   | feat(frontend): Streak tracking dashboard widget          | Frontend   | P2       | -        | 📝 To Create |
-| TBD   | feat(backend): Streak calculation and persistence         | Next.js API| P2       | -        | 📝 To Create |
-| TBD   | feat(frontend): Achievement notification toast system     | Frontend   | P2       | -        | 📝 To Create |
-| TBD   | feat(backend): Push notification service for achievements | Next.js API| P3       | -        | 📝 To Create |
-| TBD   | test: Gamification integration tests                      | Testing    | P2       | -        | 📝 To Create |
+- ✅ `challenges` table with 6 seed challenges (weekly/monthly/special)
+- ✅ `user_challenges` table with progress tracking
+- ✅ `/api/challenges` - GET available challenges
+- ✅ `/api/challenges/[id]/join` - POST to join a challenge
+- ✅ `/api/challenges/[id]/progress` - PUT to update progress
+- ✅ `ChallengeCard` component with progress bar
+- ✅ `/dashboard/challenges` - Challenge listing and participation UI
+- ✅ Jest tests for challenges API
 
-**Challenge System Schema Design**:
-```sql
--- challenges: System-defined or admin-created challenges
-challenges (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL UNIQUE,           -- "weekly_green_5"
-  title TEXT NOT NULL,                 -- "Green Week Champion"
-  description TEXT,                    -- "Log 5 green recipes this week"
-  type TEXT NOT NULL,                  -- 'weekly' | 'monthly' | 'special'
-  criteria JSONB NOT NULL,             -- {"metric": "green_recipes", "target": 5}
-  reward_achievement_id INTEGER,       -- FK to achievement_definitions (optional)
-  start_date DATE,                     -- NULL for recurring
-  end_date DATE,                       -- NULL for recurring
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT now()
-)
+**Streak System Deliverables** (PR #70):
 
--- user_challenges: User participation and progress
-user_challenges (
-  id SERIAL PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES auth.users,
-  challenge_id INTEGER NOT NULL REFERENCES challenges,
-  joined_at TIMESTAMP DEFAULT now(),
-  progress JSONB,                      -- {"current": 3, "target": 5}
-  completed_at TIMESTAMP,              -- NULL if not completed
-  UNIQUE(user_id, challenge_id)
-)
-```
+- ✅ `streak_history` table with RLS policies
+- ✅ `update_streak()` PostgreSQL function for atomic updates
+- ✅ `/api/streaks` - GET user streak data
+- ✅ `/api/streaks/update` - POST to update streak progress
+- ✅ `StreakWidget` component with 3-level flame animations
+- ✅ Visual intensity scaling based on streak length
+- ✅ "At Risk!" warning when streak may break
+- ✅ `/dashboard` home page integrating all gamification widgets
+- ✅ Home link added to sidebar navigation
+- ✅ 50 unit tests (92.98% coverage)
 
-**Streak Tracking Design**:
-```sql
--- Option A: Add to nutrient_tracking table
-ALTER TABLE nutrient_tracking ADD COLUMN streak_count INTEGER DEFAULT 0;
+#### 📝 Future Enhancements (Post v1.2.0)
 
--- Option B: Separate streak_history table for detailed tracking
-streak_history (
-  id SERIAL PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES auth.users,
-  streak_type TEXT NOT NULL,           -- 'daily_log' | 'nutrient_goal' | 'green_recipe'
-  current_streak INTEGER DEFAULT 0,
-  longest_streak INTEGER DEFAULT 0,
-  last_activity_date DATE,
-  updated_at TIMESTAMP DEFAULT now(),
-  UNIQUE(user_id, streak_type)
-)
-```
-
-**Extended Deliverables** (Planned):
-
-- [ ] Challenge system database schema (challenges, user_challenges)
-- [ ] Weekly challenge: "Log 5 green recipes this week"
-- [ ] Monthly challenge: "Maintain 80% nutrient goal adherence"
-- [ ] Streak tracking UI with visual indicators
-- [ ] Real-time achievement unlock notifications
-- [ ] Integration tests for gamification workflows
+| Issue | Title                                                     | Type       | Priority | Status       |
+| ----- | --------------------------------------------------------- | ---------- | -------- | ------------ |
+| #62   | feat(frontend): Achievement notification toast system     | Frontend   | P2       | 📝 Backlog   |
+| #63   | feat(backend): Push notification service for achievements | Next.js API| P3       | 📝 Backlog   |
+| #64   | test: Gamification integration tests                      | Testing    | P2       | 📝 Backlog   |
 
 ---
 

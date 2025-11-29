@@ -1,8 +1,8 @@
 # Epicourier Database Design
 
-**Document Version**: 1.2  
+**Document Version**: 1.3  
 **Last Updated**: November 28, 2025  
-**Status**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 🚧 | v1.3.0 📝)
+**Status**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 ✅ | v1.3.0 📝)
 
 ---
 
@@ -581,7 +581,121 @@ progress: {"final_value": 7, "trigger": "auto_check", "source": "GET /api/achiev
 
 ---
 
-## �🔒 Row Level Security (RLS)
+### streak_history Table
+
+Tracks user streaks for various activities like daily logging, meeting nutrient goals, and using green recipes.
+
+**Table Name**: `streak_history`
+
+| Column             | Type        | Constraints                        | Description                              |
+|--------------------|-------------|------------------------------------|-----------------------------------------|
+| id                 | integer     | PRIMARY KEY (SERIAL)               | Unique record identifier                 |
+| user_id            | uuid        | NOT NULL, FOREIGN KEY → auth.users | User who owns the streak                 |
+| streak_type        | text        | NOT NULL                           | Type of streak (daily_log, etc.)         |
+| current_streak     | integer     | DEFAULT 0                          | Current consecutive days                 |
+| longest_streak     | integer     | DEFAULT 0                          | Best streak ever achieved                |
+| last_activity_date | date        |                                    | Last date the streak was updated         |
+| updated_at         | timestamp   | DEFAULT now()                      | Last update timestamp                    |
+
+**Streak Types**:
+- `daily_log` - Consecutive days with at least one meal logged
+- `nutrient_goal` - Consecutive days meeting nutrient goals
+- `green_recipe` - Consecutive days using eco-friendly recipes
+
+**Example Data**:
+```sql
+id: 1
+user_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+streak_type: "daily_log"
+current_streak: 35
+longest_streak: 42
+last_activity_date: "2025-11-28"
+updated_at: "2025-11-28T10:30:00Z"
+
+id: 2
+user_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+streak_type: "nutrient_goal"
+current_streak: 14
+longest_streak: 21
+last_activity_date: "2025-11-27"
+updated_at: "2025-11-27T18:00:00Z"
+```
+
+**Constraints**:
+- Foreign key to auth.users (ON DELETE CASCADE)
+- Unique constraint on (user_id, streak_type) - one streak per type per user
+
+**Indexes**:
+- Primary key index on `id`
+- Composite unique index on `(user_id, streak_type)`
+
+---
+
+### update_streak() Function
+
+PostgreSQL function for atomic streak updates with automatic logic.
+
+```sql
+CREATE OR REPLACE FUNCTION update_streak(
+  p_user_id UUID,
+  p_streak_type TEXT
+) RETURNS TABLE(
+  streak_type TEXT,
+  current_streak INTEGER,
+  longest_streak INTEGER,
+  last_activity_date DATE
+) AS $$
+DECLARE
+  v_today DATE := CURRENT_DATE;
+  v_record streak_history%ROWTYPE;
+BEGIN
+  -- Get existing record or create new one
+  SELECT * INTO v_record 
+  FROM streak_history sh 
+  WHERE sh.user_id = p_user_id AND sh.streak_type = p_streak_type;
+  
+  IF NOT FOUND THEN
+    -- Create new streak record
+    INSERT INTO streak_history (user_id, streak_type, current_streak, longest_streak, last_activity_date)
+    VALUES (p_user_id, p_streak_type, 1, 1, v_today)
+    RETURNING * INTO v_record;
+  ELSIF v_record.last_activity_date = v_today THEN
+    -- Already logged today, no change needed
+    NULL;
+  ELSIF v_record.last_activity_date = v_today - INTERVAL '1 day' THEN
+    -- Consecutive day - increment streak
+    UPDATE streak_history sh
+    SET current_streak = v_record.current_streak + 1,
+        longest_streak = GREATEST(v_record.longest_streak, v_record.current_streak + 1),
+        last_activity_date = v_today,
+        updated_at = NOW()
+    WHERE sh.user_id = p_user_id AND sh.streak_type = p_streak_type
+    RETURNING * INTO v_record;
+  ELSE
+    -- Streak broken - reset to 1
+    UPDATE streak_history sh
+    SET current_streak = 1,
+        last_activity_date = v_today,
+        updated_at = NOW()
+    WHERE sh.user_id = p_user_id AND sh.streak_type = p_streak_type
+    RETURNING * INTO v_record;
+  END IF;
+  
+  RETURN QUERY SELECT v_record.streak_type, v_record.current_streak, 
+                      v_record.longest_streak, v_record.last_activity_date;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+**Logic**:
+1. If no record exists → Create with streak = 1
+2. If last_activity_date is today → No change (already logged)
+3. If last_activity_date is yesterday → Increment streak
+4. If last_activity_date is older → Reset streak to 1
+
+---
+
+## 🔒 Row Level Security (RLS)
 
 ### Enabled Tables
 
@@ -591,6 +705,7 @@ RLS is enabled on user-specific tables:
 - `nutrient_tracking` - Users can only access their own nutrient data
 - `nutrient_goals` - Users can only access their own goals
 - `user_achievements` - Users can only access their own achievements
+- `streak_history` - Users can only access their own streaks
 
 ### Calendar Table Policies
 
@@ -700,6 +815,35 @@ CREATE POLICY "Service role can insert achievements"
 ON user_achievements
 FOR INSERT
 WITH CHECK (true);  -- Service role bypasses RLS
+```
+
+---
+
+### streak_history Table Policies
+
+**SELECT Policy**:
+```sql
+CREATE POLICY "Users can view own streaks"
+ON streak_history
+FOR SELECT
+USING (auth.uid() = user_id);
+```
+
+**INSERT Policy**:
+```sql
+CREATE POLICY "Users can insert own streaks"
+ON streak_history
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+```
+
+**UPDATE Policy**:
+```sql
+CREATE POLICY "Users can update own streaks"
+ON streak_history
+FOR UPDATE
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
 ```
 
 ---
