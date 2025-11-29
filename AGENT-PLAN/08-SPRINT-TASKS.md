@@ -1,6 +1,6 @@
 # Epicourier Sprint Tasks & Milestones
 
-**Document Version**: 1.6  
+**Document Version**: 1.7  
 **Last Updated**: November 29, 2025  
 **Current Phase**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 ✅ | v1.3.0 📝)
 
@@ -155,12 +155,30 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 - ✅ 240+ total tests passing across gamification features
 - ✅ 80%+ overall statement coverage for gamification modules
 
-#### 📝 Future Enhancements (Post v1.2.0)
+#### ⚠️ v1.2.0 Deferred Features (Moved to Future Versions)
 
-| Issue | Title                                                     | Type       | Priority | Status       |
-| ----- | --------------------------------------------------------- | ---------- | -------- | ------------ |
-| #62   | feat(frontend): Achievement notification toast system     | Frontend   | P2       | 📝 Backlog   |
-| #63   | feat(backend): Push notification service for achievements | Next.js API| P3       | 📝 Backlog   |
+The following features were originally planned for v1.2.0 but deferred due to priority adjustments or complexity:
+
+| Feature | Original Description | Status | Deferral Reason | Target Version |
+|---------|---------------------|--------|-----------------|----------------|
+| **Rewards System** | Unlock features through achievements | ❌ Not Implemented | High complexity, requires incentive mechanism design | v2.0.0 |
+| **Leaderboard** | Community rankings (optional) | ❌ Not Implemented | Requires social feature infrastructure | v3.1.0 |
+| **Achievement Toast** | Notify on unlocks (frontend) | 🟡 API Ready, Frontend Not Implemented | Prioritized core functionality | v1.3.0 or v2.0.0 |
+| **Push Notification Trigger** | Auto-send push on achievement unlock | 🟡 API Ready, Trigger Logic Not Implemented | Requires Service Worker completion | v2.0.0 |
+
+**Notes**:
+- `🟡` indicates backend API is ready (`/api/notifications/*`), but frontend integration or trigger logic is incomplete
+- Rewards and Leaderboard are "Nice to Have" and do not affect core Gamification experience
+- Achievement Toast (#62) can be quickly implemented in v1.3.0 as a polish task
+
+#### 📝 Backlog Issues (Post v1.2.0)
+
+| Issue | Title                                                     | Type       | Priority | Target   | Status       |
+| ----- | --------------------------------------------------------- | ---------- | -------- | -------- | ------------ |
+| #62   | feat(frontend): Achievement notification toast system     | Frontend   | P2       | v1.3.0   | 📝 Backlog   |
+| #63   | feat(backend): Push notification service for achievements | Next.js API| P3       | v2.0.0   | 📝 Backlog   |
+| TBD   | feat(gamification): Rewards system - unlock features      | Full-Stack | P3       | v2.0.0   | 📝 To Create |
+| TBD   | feat(gamification): Community leaderboard                 | Full-Stack | P3       | v3.1.0   | 📝 To Create |
 
 ---
 
@@ -612,45 +630,48 @@ feature, frontend, phase-2, priority-p1, good-first-issue
 
 ### v1.2.0: Gamified Challenges
 
-**Status**: 🚀 Core shipped, regression open (#41)  
+**Status**: ✅ Core Complete (Extended features deferred)  
 **Priority**: P2  
 **Milestone**: `v1.2.0-gamification`
-**Target Release**: TBD
+**Release Date**: November 28, 2025
 
 #### Delivered / Planned Features
 
 | Feature      | Description                              | Complexity | Issue # | Status |
 | ------------ | ---------------------------------------- | ---------- | ------- | ------ |
-| Badge System | Earn badges for achievements             | Medium     | #32     | ✅     |
-| Achievements | UI + API to view/unlock badges           | Medium     | #35/#36 | ✅     |
-| Types        | Gamification TS types                    | Low        | #33     | ✅     |
-| Streaks      | Track consecutive days of healthy eating | Low        | #35     | ✅ (in API) |
-| Challenges   | Weekly/monthly challenges                | Medium     | TBD     | 📝 Planned |
-| Rewards      | Unlock features through achievements     | Medium     | TBD     | 📝 Planned |
-| Leaderboard  | Community rankings (optional)            | High       | TBD     | 📝 Planned |
-| Notifications| Notify on unlocks                        | Medium     | TBD     | 📝 Planned |
+| Badge System | Earn badges for achievements             | Medium     | #32     | ✅ Complete |
+| Achievements | UI + API to view/unlock badges           | Medium     | #35/#36 | ✅ Complete |
+| Types        | Gamification TS types                    | Low        | #33     | ✅ Complete |
+| Streaks      | Track consecutive days of healthy eating | Medium     | #60/#61 | ✅ Complete |
+| Challenges   | Weekly/monthly challenges                | Medium     | #65/#66/#68 | ✅ Complete |
+| Rewards      | Unlock features through achievements     | Medium     | TBD     | ⏸️ Deferred to v2.0.0 |
+| Leaderboard  | Community rankings (optional)            | High       | TBD     | ⏸️ Deferred to v3.1.0 |
+| Notifications| Notify on unlocks                        | Medium     | #62/#63 | � API Ready, Frontend Pending |
 
 #### Technical Requirements
 
 **Frontend Tasks**:
 
 - [x] Badges & achievements page (#36)
-- [ ] Challenge tracking UI
-- [ ] Progress animations
-- [ ] Notification system for achievements
+- [x] Challenge tracking UI (#68)
+- [x] Progress animations (StreakWidget)
+- [ ] Notification system for achievements (Toast - #62 Backlog)
 
 **Backend Tasks**:
 
 - [x] Achievement tracking logic + auto-award (#35/#41 follow-up)
 - [x] Badge assignment system (#35)
-- [ ] Challenge creation/management API
-- [ ] Notification service
+- [x] Challenge creation/management API (#66)
+- [x] Streak tracking API (#60)
+- [x] Push notification subscribe/unsubscribe API
+- [ ] Push notification trigger on achievement unlock (#63 Backlog)
 
 **Database**:
 
 - [x] User achievements table & schema (#32)
-- [ ] Challenges table
-- [ ] User progress tracking for challenges
+- [x] Challenges table (#65)
+- [x] User challenges progress tracking (#65)
+- [x] Streak history table (#61)
 
 **Estimated Effort**: Medium to Large  
 **Dependencies**: Nutrient tracking system (v1.1.0)
