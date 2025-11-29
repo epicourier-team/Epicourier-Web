@@ -1,8 +1,8 @@
 # Epicourier Sprint Tasks & Milestones
 
-**Document Version**: 1.7  
+**Document Version**: 1.8  
 **Last Updated**: November 29, 2025  
-**Current Phase**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 ✅ | v1.3.0 📝)
+**Current Phase**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 ✅ | v1.3.0 �)
 
 ---
 
@@ -30,9 +30,9 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 |---------|-------------------|----------------------|----------|
 | v1.1.0  | Nutrient Tracking | ✅ Complete          | 10/10    |
 | v1.2.0  | Gamification      | ✅ Complete          | 15/15 (core + extended + testing) |
-| v1.3.0  | Smart Cart        | 📝 Planning          | 0/20     |
+| v1.3.0  | Smart Cart        | � In Progress       | 0/30 (5 Epics, 25 Sub-Issues) |
 
-**Overall Phase 2 Progress**: ~70% (v1.1.0 + v1.2.0 complete, v1.3.0 pending)
+**Overall Phase 2 Progress**: ~70% (v1.1.0 + v1.2.0 complete, v1.3.0 in progress)
 
 ---
 
@@ -185,53 +185,104 @@ The following features were originally planned for v1.2.0 but deferred due to pr
 ### 📋 v1.3.0: Smart Cart Integration
 
 **Milestone**: `v1.3.0-smart-cart`  
-**Status**: 📝 Planning  
-**Target Release**: TBD
+**Status**: � In Progress  
+**Target Release**: TBD (5 Sprints planned)
 
 **Summary**: Automated shopping list generation from meal plans, inventory tracking, and **AI-powered recipe suggestions based on available ingredients** (extends Python backend).
 
-#### 📝 Database Schema Tasks
+#### Epic Overview
 
-| Issue | Title                                                    | Type     | Priority | Assignee | Status       |
-| ----- | -------------------------------------------------------- | -------- | -------- | -------- | ------------ |
-| TBD   | feat(database): shopping_lists table schema              | Database | P1       | -        | 📝 To Create |
-| TBD   | feat(database): shopping_list_items table schema         | Database | P1       | -        | 📝 To Create |
-| TBD   | feat(database): user_inventory table schema              | Database | P1       | -        | 📝 To Create |
-| TBD   | chore(types): Add TypeScript types for shopping/inventory| Frontend | P2       | -        | 📝 To Create |
+| Epic # | Title                                           | Sub-Issues | Priority | Status        |
+| ------ | ----------------------------------------------- | ---------- | -------- | ------------- |
+| #75    | Epic: Database Foundation (E1)                  | #76-#79    | P0       | 🚧 In Progress |
+| #80    | Epic: Shopping List System (E2)                 | #81-#86    | P0       | 📝 Planned    |
+| #87    | Epic: Inventory Management System (E3)          | #88-#92    | P0       | 📝 Planned    |
+| #93    | Epic: AI Recipe Recommendations (E4)            | #94-#98    | P1       | 📝 Planned    |
+| #99    | Epic: Integration, Polish & Deployment (E5)     | #100-#104  | P0       | 📝 Planned    |
+
+#### 🚧 Epic 1: Database Foundation (Sprint 1)
+
+| Issue | Title                                                    | Type     | Priority | Status        |
+| ----- | -------------------------------------------------------- | -------- | -------- | ------------- |
+| #75   | epic: Smart Cart System - Database Foundation (E1)       | Epic     | P0       | 🚧 In Progress |
+| #76   | feat(database): shopping_lists table schema              | Database | P0       | 📝 To Do      |
+| #77   | feat(database): shopping_list_items table schema         | Database | P0       | 📝 To Do      |
+| #78   | feat(database): user_inventory table schema              | Database | P0       | 📝 To Do      |
+| #79   | chore(types): TypeScript types for shopping/inventory    | Frontend | P1       | 📝 To Do      |
 
 **Schema Design Preview**:
 ```sql
 -- shopping_lists: User's shopping list metadata
 shopping_lists (
-  id, user_id, name, date_range_start, date_range_end, 
-  status: 'draft'|'active'|'completed', created_at
+  id, user_id, name, description, is_archived, created_at, updated_at
 )
 
 -- shopping_list_items: Individual items in a shopping list
 shopping_list_items (
-  id, list_id, ingredient_id, quantity, unit, 
-  is_checked, added_from_recipe_id, notes
+  id, shopping_list_id, ingredient_id, item_name, quantity, unit,
+  category, is_checked, position, created_at
 )
 
 -- user_inventory: User's pantry/fridge items
 user_inventory (
-  id, user_id, ingredient_id, quantity, unit, 
-  expiration_date, location: 'pantry'|'fridge'|'freezer'
+  id, user_id, ingredient_id, quantity, unit, location,
+  expiration_date, min_quantity, notes, created_at, updated_at
 )
 ```
 
-#### 📝 Backend API Tasks
+#### 📝 Epic 2: Shopping List System (Sprint 2)
+
+| Issue | Title                                                    | Type     | Priority | Status     |
+| ----- | -------------------------------------------------------- | -------- | -------- | ---------- |
+| #80   | Epic: Shopping List System (E2)                          | Epic     | P0       | 📝 Planned |
+| #81   | feat(frontend): Shopping list create/read UI             | Frontend | P0       | 📝 To Do   |
+| #82   | feat(frontend): Shopping list update/delete              | Frontend | P0       | 📝 To Do   |
+| #83   | feat(frontend): Shopping list items management           | Frontend | P0       | 📝 To Do   |
+| #84   | feat(frontend): Shopping list sharing                    | Frontend | P2       | 📝 To Do   |
+| #85   | feat(frontend): Recipe to shopping list integration      | Frontend | P1       | 📝 To Do   |
+| #86   | test(frontend): Shopping list unit and integration tests | Testing  | P1       | 📝 To Do   |
+
+#### 📝 Epic 3: Inventory Management System (Sprint 3)
+
+| Issue | Title                                                    | Type     | Priority | Status     |
+| ----- | -------------------------------------------------------- | -------- | -------- | ---------- |
+| #87   | Epic: Inventory Management System (E3)                   | Epic     | P0       | 📝 Planned |
+| #88   | feat(frontend): Inventory CRUD UI                        | Frontend | P0       | 📝 To Do   |
+| #89   | feat(frontend): Expiration tracking and alerts           | Frontend | P0       | 📝 To Do   |
+| #90   | feat(frontend): Low stock alerts                         | Frontend | P1       | 📝 To Do   |
+| #91   | feat(frontend): Recipe match indicator on recipe cards   | Frontend | P1       | 📝 To Do   |
+| #92   | test(frontend): Inventory system tests                   | Testing  | P1       | 📝 To Do   |
+
+#### 📝 Epic 4: AI Recipe Recommendations (Sprint 4)
+
+| Issue | Title                                                    | Type       | Priority | Status     |
+| ----- | -------------------------------------------------------- | ---------- | -------- | ---------- |
+| #93   | Epic: AI Recipe Recommendations from Inventory (E4)      | Epic       | P1       | 📝 Planned |
+| #94   | feat(python): AI recipe suggestions from inventory       | Python API | P0       | 📝 To Do   |
+| #95   | feat(python): Expiration priority in suggestions         | Python API | P0       | 📝 To Do   |
+| #96   | feat(frontend): Suggest recipes from inventory button    | Frontend   | P0       | 📝 To Do   |
+| #97   | feat(frontend): Recipe recommendation modal              | Frontend   | P0       | 📝 To Do   |
+| #98   | test(python): Inventory recommendation API tests         | Testing    | P1       | 📝 To Do   |
+
+#### 📝 Epic 5: Integration, Polish & Deployment (Sprint 5)
+
+| Issue | Title                                                    | Type       | Priority | Status     |
+| ----- | -------------------------------------------------------- | ---------- | -------- | ---------- |
+| #99   | Epic: Integration, Polish & Deployment (E5)              | Epic       | P0       | 📝 Planned |
+| #100  | feat(frontend): Dashboard smart cart widget              | Frontend   | P1       | 📝 To Do   |
+| #101  | feat(frontend): Shopping list → Inventory transfer flow  | Frontend   | P0       | 📝 To Do   |
+| #102  | feat(frontend): Performance optimization                 | Frontend   | P1       | 📝 To Do   |
+| #103  | test(e2e): Smart cart user journey tests                 | Testing    | P1       | 📝 To Do   |
+| #104  | docs: Smart cart feature documentation                   | Docs       | P1       | 📝 To Do   |
+
+#### Backend API Design
 
 > **Note**: Shopping list CRUD uses Next.js API Routes. **AI-powered recipe suggestions** require extending the Python FastAPI backend with a new `/inventory-recommend` endpoint.
 
 | Issue | Title                                                       | Type           | Priority | Assignee | Status       |
 | ----- | ----------------------------------------------------------- | -------------- | -------- | -------- | ------------ |
-| TBD   | feat(api): Shopping list CRUD endpoints                     | Next.js API    | P1       | -        | 📝 To Create |
-| TBD   | feat(api): Auto-generate shopping list from calendar        | Next.js API    | P1       | -        | 📝 To Create |
-| TBD   | feat(api): Inventory CRUD endpoints                         | Next.js API    | P1       | -        | 📝 To Create |
-| TBD   | feat(api): Smart ingredient aggregation algorithm           | Next.js API    | P1       | -        | 📝 To Create |
-| TBD   | feat(python): AI recipe suggestions based on inventory      | **Python API** | P1       | -        | 📝 To Create |
-| TBD   | feat(python): Expiring ingredient priority in suggestions   | **Python API** | P2       | -        | 📝 To Create |
+| #94   | feat(python): AI recipe suggestions from inventory          | Python API     | P0       | -        | 📝 To Do     |
+| #95   | feat(python): Expiration priority in suggestions            | Python API     | P0       | -        | 📝 To Do     |
 
 **AI Inventory Recommendation Design** (Python FastAPI Extension):
 ```python
@@ -296,41 +347,28 @@ POST /inventory-recommend              - AI recipe suggestions from inventory
   Response: { recipes: [...], reasoning: string }
 ```
 
-#### 📝 Frontend UI Tasks
+**v1.3.0 Sprint Plan**:
 
-| Issue | Title                                                      | Type     | Priority | Assignee | Status       |
-| ----- | ---------------------------------------------------------- | -------- | -------- | -------- | ------------ |
-| TBD   | feat(frontend): Shopping List Page `/dashboard/shopping`   | Frontend | P1       | -        | 📝 To Create |
-| TBD   | feat(frontend): Inventory Management `/dashboard/inventory`| Frontend | P1       | -        | 📝 To Create |
-| TBD   | feat(frontend): Shopping list item checkbox interactions   | Frontend | P1       | -        | 📝 To Create |
-| TBD   | feat(frontend): "Add to shopping list" from recipe page    | Frontend | P2       | -        | 📝 To Create |
-| TBD   | feat(frontend): Inventory expiration warnings              | Frontend | P2       | -        | 📝 To Create |
-| TBD   | feat(frontend): Shopping list export (print/email/share)   | Frontend | P2       | -        | 📝 To Create |
-
-#### 📝 Testing Tasks
-
-| Issue | Title                                                   | Type    | Priority | Assignee | Status       |
-| ----- | ------------------------------------------------------- | ------- | -------- | -------- | ------------ |
-| TBD   | test: Shopping list API unit tests                      | Testing | P1       | -        | 📝 To Create |
-| TBD   | test: Inventory API unit tests                          | Testing | P1       | -        | 📝 To Create |
-| TBD   | test: Shopping list generation algorithm tests          | Testing | P1       | -        | 📝 To Create |
-| TBD   | test: Frontend shopping/inventory component tests       | Testing | P2       | -        | 📝 To Create |
-| TBD   | test(python): Inventory recommendation API tests        | Testing | P1       | -        | 📝 To Create |
-| TBD   | test(python): Expiration priority scoring tests         | Testing | P2       | -        | 📝 To Create |
+| Sprint | Focus Area                    | Issues                          | Duration |
+| ------ | ----------------------------- | ------------------------------- | -------- |
+| 1      | Database Foundation           | #75, #76, #77, #78, #79         | 1 week   |
+| 2      | Shopping List System          | #80, #81, #82, #83, #84, #85, #86 | 2 weeks |
+| 3      | Inventory Management          | #87, #88, #89, #90, #91, #92    | 2 weeks  |
+| 4      | AI Recommendations            | #93, #94, #95, #96, #97, #98    | 2 weeks  |
+| 5      | Integration & Polish          | #99, #100, #101, #102, #103, #104 | 2 weeks |
 
 **Expected Deliverables**:
 
-- [ ] Shopping list database schema with RLS policies
-- [ ] Inventory tracking database schema
-- [ ] Auto-generate shopping list from meal calendar (date range)
-- [ ] Smart ingredient aggregation (combine same ingredients from multiple recipes)
-- [ ] `/dashboard/shopping` - Interactive shopping list UI
-- [ ] `/dashboard/inventory` - Inventory management interface
-- [ ] Checkbox to mark items as purchased
-- [ ] Recipe suggestions based on available inventory
-- [ ] Expiration date warnings for inventory items
-- [ ] Export shopping list (print-friendly, email, share link)
-- [ ] Integration with calendar (quick "add ingredients to cart" from meal)
+- [ ] Shopping list database schema with RLS policies (#76)
+- [ ] Shopping list items schema (#77)
+- [ ] Inventory tracking database schema (#78)
+- [ ] TypeScript types for all new entities (#79)
+- [ ] `/dashboard/shopping` - Interactive shopping list UI (#81-#85)
+- [ ] `/dashboard/inventory` - Inventory management interface (#88-#91)
+- [ ] AI recipe suggestions from inventory (#94-#97)
+- [ ] Dashboard smart cart widget (#100)
+- [ ] Shopping → Inventory transfer flow (#101)
+- [ ] E2E tests and documentation (#103, #104)
 
 ---
 
@@ -341,88 +379,41 @@ POST /inventory-recommend              - AI recipe suggestions from inventory
 ```
 Phase 2: Advanced Features (v1.1.0 - v1.3.0)
 ├── v1.1.0 Nutrient Tracking ████████████████████ 100% ✅
-├── v1.2.0 Gamification
-│   ├── Core (Achievements) ████████████████████ 100% ✅
-│   └── Extended (Challenges) ░░░░░░░░░░░░░░░░░░░░ 0% 📝
-└── v1.3.0 Smart Cart       ░░░░░░░░░░░░░░░░░░░░ 0% 📝
+├── v1.2.0 Gamification      ████████████████████ 100% ✅
+└── v1.3.0 Smart Cart        ██░░░░░░░░░░░░░░░░░░  5% �
+    ├── Epic 1 (Database)    🚧 In Progress
+    ├── Epic 2 (Shopping)    📝 Planned
+    ├── Epic 3 (Inventory)   📝 Planned
+    ├── Epic 4 (AI Recs)     📝 Planned
+    └── Epic 5 (Integration) 📝 Planned
 
-Overall Phase 2: ████████████░░░░░░░░ ~55%
+Overall Phase 2: ████████████████░░░░ ~70%
 ```
 
-### Recommended Next Steps
+### v1.3.0 Development Roadmap
 
-#### Option A: Complete v1.2.0 Extended Features First
-**Rationale**: Finish gamification before starting new feature area
+**Current Focus**: Epic 1 - Database Foundation (Issues #75-#79)
 
-1. Create GitHub issues for v1.2.0 extended features (8 issues)
-2. Implement Challenge database schema
-3. Build Weekly/Monthly challenge generation API
-4. Create Challenge participation UI
-5. Add Streak tracking widget
-6. Implement achievement notifications
+**Next Steps**:
+1. ✅ GitHub issues created (30 issues total)
+2. 🚧 Implement database migrations (#76, #77, #78)
+3. 📝 Add TypeScript types (#79)
+4. 📝 Continue with Epic 2 (Shopping List UI)
 
-**Estimated Effort**: 2-3 sprints
+### Issue Labels for v1.3.0
 
-#### Option B: Start v1.3.0 Smart Cart (MVP First)
-**Rationale**: Deliver core shopping functionality, defer gamification extras
-
-1. Create GitHub issues for v1.3.0 core features (focus on P1 items)
-2. Implement database schema (shopping_lists, shopping_list_items, user_inventory)
-3. Build shopping list CRUD API
-4. Create auto-generate from calendar feature
-5. Build basic shopping list UI
-6. Add inventory management later
-
-**Estimated Effort**: 3-4 sprints for MVP
-
-#### Option C: Parallel Development
-**Rationale**: If multiple developers available
-
-- **Stream A**: v1.2.0 extended (challenges, streaks)
-- **Stream B**: v1.3.0 database + API foundation
-
-### Issue Creation Checklist
-
-When ready to start the next milestone, create issues using this template:
-
-```markdown
-## Description
-[Clear description of what needs to be built]
-
-## Acceptance Criteria
-- [ ] Criterion 1
-- [ ] Criterion 2
-
-## Technical Notes
-- Related tables/APIs
-- Dependencies on other issues
-
-## Labels
-`phase-2`, `v1.2.0` or `v1.3.0`, `frontend`/`backend`/`database`, `priority-p1`
-```
-
-### 🚨 How to Create Issues for Phase 2
-
-When ready to start a Phase 2 feature, create a GitHub issue using this workflow:
-
-1. **Use the Issue Template** (from this document's "Issue Tracking Guidelines" section)
-2. **Add to Project Board**: Link to Epicourier Phase 2 project
-3. **Set Milestone**: Choose appropriate version (v1.1.0/v1.2.0/v1.3.0)
-4. **Add Labels**: `feature`, `frontend`/`backend`, `phase-2`, `priority-p1`
-5. **Update This Document**: Add issue number to the table above
-6. **Assign**: Self-assign or leave for team assignment
-
-**Example Issue Title Format**:
-
-```
-feat(frontend): Nutrient Dashboard Page with Chart Components
-```
-
-**Example Labels**:
-
-```
-feature, frontend, phase-2, priority-p1, good-first-issue
-```
+| Label        | Usage                              |
+| ------------ | ---------------------------------- |
+| `epic`       | Epic-level tracking issue          |
+| `v1.3.0`     | Version milestone                  |
+| `phase-2`    | Phase 2 features                   |
+| `frontend`   | Frontend-related work              |
+| `backend`    | Backend-related work               |
+| `database`   | Database changes                   |
+| `testing`    | Test coverage                      |
+| `priority-p0`| Critical (must have)               |
+| `priority-p1`| High (should have)                 |
+| `priority-p2`| Medium (nice to have)              |
 
 ---
 
