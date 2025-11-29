@@ -5,12 +5,18 @@ import RecipeCard from "@/components/ui/recipecard";
 import SearchBar from "@/components/ui/searchbar";
 import { useRecipes } from "@/hooks/use-recipe";
 import { useState } from "react";
+import { Filter } from "lucide-react";
+
+type SortOption = "default" | "match-high" | "match-low";
+type MatchFilter = "all" | "can-make" | "partial" | "need-shopping";
 
 export default function RecipesPage() {
   const [query, setQuery] = useState("");
   const [ingredientIds, setIngredientIds] = useState<number[]>([]);
   const [tagIds, setTagIds] = useState<number[]>([]);
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState<SortOption>("default");
+  const [matchFilter, setMatchFilter] = useState<MatchFilter>("all");
 
   const { recipes, pagination, isLoading } = useRecipes({
     query,
@@ -41,6 +47,52 @@ export default function RecipesPage() {
           setPage(1);
         }}
       />
+
+      {/* Match Filter & Sort Controls */}
+      <div className="brutalism-panel mb-6 flex flex-wrap items-center gap-4 bg-gray-50 p-4">
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-gray-600" />
+          <span className="text-sm font-bold">Match Filter:</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: "all", label: "All Recipes" },
+            { value: "can-make", label: "Can Make Now (≥80%)" },
+            { value: "partial", label: "Partial Match (50-79%)" },
+            { value: "need-shopping", label: "Need Shopping (<50%)" },
+          ].map((option) => (
+            <button
+              key={option.value}
+              onClick={() => {
+                setMatchFilter(option.value as MatchFilter);
+                setPage(1);
+              }}
+              className={`brutalism-border px-3 py-1 text-xs font-bold transition-all hover:-translate-y-[2px] ${
+                matchFilter === option.value
+                  ? "brutalism-shadow bg-yellow-300"
+                  : "bg-white hover:bg-gray-100"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-sm font-bold">Sort:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value as SortOption);
+              setPage(1);
+            }}
+            className="brutalism-border bg-white px-3 py-1 text-xs font-bold"
+          >
+            <option value="default">Default</option>
+            <option value="match-high">Match % (High to Low)</option>
+            <option value="match-low">Match % (Low to High)</option>
+          </select>
+        </div>
+      </div>
 
       {isLoading ? (
         <div className="brutalism-panel mt-10 bg-gray-100 p-6 text-center">
