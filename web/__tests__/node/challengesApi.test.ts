@@ -695,5 +695,426 @@ describe("Challenges API", () => {
       // Streak calculation depends on consecutive dates - just verify structure
       expect(json.joined[0].progress).toHaveProperty("current");
     });
+
+    it("handles nutrient_goal_days metric for monthly challenges", async () => {
+      const nutrientChallenge: Challenge = {
+        ...mockChallenge,
+        id: 4,
+        name: "monthly_nutrient_20",
+        title: "Nutrition Master",
+        type: "monthly",
+        criteria: { metric: "nutrient_goal_days", target: 20, period: "month" },
+      };
+
+      const supabase = await createClient();
+
+      // Helper function to create Calendar mock
+      const createCalendarMock = (meals: unknown[], count: number) => {
+        return {
+          select: jest.fn().mockImplementation((_query: string, opts?: { count?: string; head?: boolean }) => {
+            const isCountQuery = opts?.count === "exact" && opts?.head === true;
+            if (isCountQuery) {
+              return {
+                eq: jest.fn().mockReturnValue({
+                  eq: jest.fn().mockResolvedValue({ count, error: null }),
+                }),
+              };
+            }
+            return {
+              eq: jest.fn().mockReturnValue({
+                eq: jest.fn().mockResolvedValue({ data: meals, error: null }),
+              }),
+            };
+          }),
+        };
+      };
+
+      // Use mockImplementation to handle all table calls dynamically
+      (supabase.from as jest.Mock).mockImplementation((table: string) => {
+        switch (table) {
+          case "challenges":
+            return challengesChain([nutrientChallenge]);
+          case "user_challenges":
+            return userChallengesChain([{ ...mockUserChallenge, challenge_id: 4 }]);
+          case "achievement_definitions":
+            return achievementDefinitionsChain([]);
+          case "Calendar":
+            return createCalendarMock([], 0);
+          case "nutrient_tracking":
+            return {
+              select: jest.fn().mockReturnValue({
+                eq: jest.fn().mockReturnValue({
+                  gte: jest.fn().mockResolvedValue({
+                    data: [
+                      { date: "2024-01-10" },
+                      { date: "2024-01-11" },
+                      { date: "2024-01-11" }, // Duplicate
+                      { date: "2024-01-12" },
+                      { date: "2024-01-13" },
+                      { date: "2024-01-14" },
+                    ],
+                    error: null,
+                  }),
+                }),
+              }),
+            };
+          default:
+            return { select: jest.fn().mockResolvedValue({ data: [], error: null }) };
+        }
+      });
+
+      const res = await GET();
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.joined[0].progress.target).toBe(20);
+      // Should count unique dates only = 5
+      expect(json.joined[0].progress.current).toBe(5);
+    });
+  });
+
+  describe("Green Recipe Tag Matching", () => {
+    it("does not count recipes without green tags", async () => {
+      const supabase = await createClient();
+      const mealsWithOtherTags = [
+        { date: "2024-01-15", Recipe: { "Recipe-Tag_Map": [{ Tag: { name: "Quick & Easy" } }] } },
+        { date: "2024-01-14", Recipe: { "Recipe-Tag_Map": [{ Tag: { name: "Vegetarian" } }] } },
+      ];
+
+      (supabase.from as jest.Mock)
+        .mockImplementationOnce(() => challengesChain([mockChallenge]))
+        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() => achievementDefinitionsChain([]))
+        .mockImplementationOnce(() => ({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({ count: 2, error: null }),
+            }),
+          }),
+        }))
+        .mockImplementationOnce(() => calendarMealsChain(mealsWithOtherTags))
+        .mockImplementationOnce(() => calendarDatesChain(["2024-01-14", "2024-01-15"]))
+        .mockImplementationOnce(() => nutrientTrackingChain([]));
+
+      const res = await GET();
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.joined[0].progress.current).toBe(0);
+    });
+
+    it("handles meals without Recipe data", async () => {
+      const supabase = await createClient();
+      const mealsWithNoRecipe = [
+        { date: "2024-01-15", Recipe: null },
+      ];
+
+      (supabase.from as jest.Mock)
+        .mockImplementationOnce(() => challengesChain([mockChallenge]))
+        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() => achievementDefinitionsChain([]))
+        .mockImplementationOnce(() => ({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({ count: 1, error: null }),
+            }),
+          }),
+        }))
+        .mockImplementationOnce(() => calendarMealsChain(mealsWithNoRecipe))
+        .mockImplementationOnce(() => calendarDatesChain(["2024-01-15"]))
+        .mockImplementationOnce(() => nutrientTrackingChain([]));
+
+      const res = await GET();
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.joined[0].progress.current).toBe(0);
+    });
+
+    it("handles meals without Recipe-Tag_Map", async () => {
+      const supabase = await createClient();
+      const mealsWithNoTagMap = [
+        { date: "2024-01-15", Recipe: { "Recipe-Tag_Map": null } },
+        { date: "2024-01-14", Recipe: { "Recipe-Tag_Map": [] } },
+      ];
+
+      (supabase.from as jest.Mock)
+        .mockImplementationOnce(() => challengesChain([mockChallenge]))
+        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() => achievementDefinitionsChain([]))
+        .mockImplementationOnce(() => ({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({ count: 2, error: null }),
+            }),
+          }),
+        }))
+        .mockImplementationOnce(() => calendarMealsChain(mealsWithNoTagMap))
+        .mockImplementationOnce(() => calendarDatesChain(["2024-01-14", "2024-01-15"]))
+        .mockImplementationOnce(() => nutrientTrackingChain([]));
+
+      const res = await GET();
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.joined[0].progress.current).toBe(0);
+    });
+
+    it("handles Tag with null name", async () => {
+      const supabase = await createClient();
+      const mealsWithNullTagName = [
+        { date: "2024-01-15", Recipe: { "Recipe-Tag_Map": [{ Tag: { name: null } }] } },
+        { date: "2024-01-14", Recipe: { "Recipe-Tag_Map": [{ Tag: null }] } },
+      ];
+
+      (supabase.from as jest.Mock)
+        .mockImplementationOnce(() => challengesChain([mockChallenge]))
+        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() => achievementDefinitionsChain([]))
+        .mockImplementationOnce(() => ({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({ count: 2, error: null }),
+            }),
+          }),
+        }))
+        .mockImplementationOnce(() => calendarMealsChain(mealsWithNullTagName))
+        .mockImplementationOnce(() => calendarDatesChain(["2024-01-14", "2024-01-15"]))
+        .mockImplementationOnce(() => nutrientTrackingChain([]));
+
+      const res = await GET();
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.joined[0].progress.current).toBe(0);
+    });
+  });
+
+  describe("Days Remaining Calculation", () => {
+    it("calculates days remaining with explicit end_date", async () => {
+      const specialChallenge: Challenge = {
+        ...mockChallenge,
+        type: "special",
+        end_date: "2024-01-20T23:59:59.000Z",
+        criteria: { metric: "meals_logged", target: 10 },
+      };
+
+      const supabase = await createClient();
+
+      (supabase.from as jest.Mock)
+        .mockImplementationOnce(() => challengesChain([specialChallenge]))
+        .mockImplementationOnce(() => userChallengesChain([]))
+        .mockImplementationOnce(() => achievementDefinitionsChain([]))
+        .mockImplementationOnce(() => ({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({ count: 0, error: null }),
+            }),
+          }),
+        }))
+        .mockImplementationOnce(() => calendarMealsChain([]))
+        .mockImplementationOnce(() => calendarDatesChain([]))
+        .mockImplementationOnce(() => nutrientTrackingChain([]));
+
+      const res = await GET();
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      // Jan 15 12:00 to Jan 20 23:59 ≈ 5-6 days
+      expect(json.active[0].days_remaining).toBeGreaterThanOrEqual(5);
+      expect(json.active[0].days_remaining).toBeLessThanOrEqual(6);
+    });
+
+    it("returns 0 days remaining for past end_date", async () => {
+      const expiredChallenge: Challenge = {
+        ...mockChallenge,
+        type: "special",
+        end_date: "2024-01-10T23:59:59.000Z", // Past date
+        criteria: { metric: "meals_logged", target: 10 },
+      };
+
+      const supabase = await createClient();
+
+      (supabase.from as jest.Mock)
+        .mockImplementationOnce(() => challengesChain([expiredChallenge]))
+        .mockImplementationOnce(() => userChallengesChain([]))
+        .mockImplementationOnce(() => achievementDefinitionsChain([]))
+        .mockImplementationOnce(() => ({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({ count: 0, error: null }),
+            }),
+          }),
+        }))
+        .mockImplementationOnce(() => calendarMealsChain([]))
+        .mockImplementationOnce(() => calendarDatesChain([]))
+        .mockImplementationOnce(() => nutrientTrackingChain([]));
+
+      const res = await GET();
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.active[0].days_remaining).toBe(0);
+    });
+
+    it("returns 0 days remaining for unknown challenge type without end_date", async () => {
+      const unknownTypeChallenge = {
+        ...mockChallenge,
+        type: "unknown" as "weekly" | "monthly" | "special",
+        end_date: null,
+        criteria: { metric: "meals_logged", target: 10 },
+      };
+
+      const supabase = await createClient();
+
+      (supabase.from as jest.Mock)
+        .mockImplementationOnce(() => challengesChain([unknownTypeChallenge]))
+        .mockImplementationOnce(() => userChallengesChain([]))
+        .mockImplementationOnce(() => achievementDefinitionsChain([]))
+        .mockImplementationOnce(() => ({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({ count: 0, error: null }),
+            }),
+          }),
+        }))
+        .mockImplementationOnce(() => calendarMealsChain([]))
+        .mockImplementationOnce(() => calendarDatesChain([]))
+        .mockImplementationOnce(() => nutrientTrackingChain([]));
+
+      const res = await GET();
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.active[0].days_remaining).toBe(0);
+    });
+  });
+
+  describe("Progress Calculation - Default Cases", () => {
+    it("uses default current=0 for unknown weekly metric", async () => {
+      const unknownMetricChallenge: Challenge = {
+        ...mockChallenge,
+        criteria: { metric: "unknown_metric", target: 10, period: "week" },
+      };
+
+      const supabase = await createClient();
+
+      (supabase.from as jest.Mock)
+        .mockImplementationOnce(() => challengesChain([unknownMetricChallenge]))
+        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() => achievementDefinitionsChain([]))
+        .mockImplementationOnce(() => ({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({ count: 0, error: null }),
+            }),
+          }),
+        }))
+        .mockImplementationOnce(() => calendarMealsChain([]))
+        .mockImplementationOnce(() => calendarDatesChain([]))
+        .mockImplementationOnce(() => nutrientTrackingChain([]));
+
+      const res = await GET();
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.joined[0].progress.current).toBe(0);
+    });
+
+    it("uses default current=0 for unknown monthly metric", async () => {
+      const unknownMetricChallenge: Challenge = {
+        ...mockChallenge,
+        type: "monthly",
+        criteria: { metric: "unknown_metric", target: 10, period: "month" },
+      };
+
+      const supabase = await createClient();
+
+      (supabase.from as jest.Mock)
+        .mockImplementationOnce(() => challengesChain([unknownMetricChallenge]))
+        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() => achievementDefinitionsChain([]))
+        .mockImplementationOnce(() => ({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({ count: 0, error: null }),
+            }),
+          }),
+        }))
+        .mockImplementationOnce(() => calendarMealsChain([]))
+        .mockImplementationOnce(() => calendarDatesChain([]))
+        .mockImplementationOnce(() => nutrientTrackingChain([]));
+
+      const res = await GET();
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.joined[0].progress.current).toBe(0);
+    });
+  });
+
+  describe("Error Handling in Stats Calculation", () => {
+    it("continues with default stats when Calendar query fails", async () => {
+      const supabase = await createClient();
+
+      (supabase.from as jest.Mock)
+        .mockImplementationOnce(() => challengesChain([mockChallenge]))
+        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() => achievementDefinitionsChain([]))
+        // Calendar count fails
+        .mockImplementationOnce(() => ({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({ count: null, error: new Error("Calendar error") }),
+            }),
+          }),
+        }))
+        // Calendar meals fails
+        .mockImplementationOnce(() => calendarMealsChain([], new Error("Meals error")))
+        // Calendar dates fails
+        .mockImplementationOnce(() => calendarDatesChain([], new Error("Dates error")))
+        // nutrient_tracking fails
+        .mockImplementationOnce(() => nutrientTrackingChain([], new Error("Nutrient error")));
+
+      const res = await GET();
+      const json = await res.json();
+
+      // Should still return 200 with default stats
+      expect(res.status).toBe(200);
+      expect(json.joined[0].progress.current).toBe(0);
+    });
+
+    it("handles nutrient_tracking error gracefully", async () => {
+      const nutrientChallenge: Challenge = {
+        ...mockChallenge,
+        type: "monthly",
+        criteria: { metric: "nutrient_goal_days", target: 20, period: "month" },
+      };
+
+      const supabase = await createClient();
+
+      (supabase.from as jest.Mock)
+        .mockImplementationOnce(() => challengesChain([nutrientChallenge]))
+        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() => achievementDefinitionsChain([]))
+        .mockImplementationOnce(() => ({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({ count: 0, error: null }),
+            }),
+          }),
+        }))
+        .mockImplementationOnce(() => calendarMealsChain([]))
+        .mockImplementationOnce(() => calendarDatesChain([]))
+        // nutrient_tracking query fails
+        .mockImplementationOnce(() => nutrientTrackingChain([], new Error("Nutrient DB error")));
+
+      const res = await GET();
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      // Should return 0 as default when nutrient tracking fails
+      expect(json.joined[0].progress.current).toBe(0);
+    });
   });
 });
