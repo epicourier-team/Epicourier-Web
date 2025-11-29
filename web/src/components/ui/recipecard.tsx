@@ -3,9 +3,25 @@ import Link from "next/link";
 import { useState } from "react";
 import { Recipe } from "../../types/data";
 import AddMealModal from "@/components/ui/AddMealModal";
+import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 
 export default function RecipeCard({ recipe }: { recipe: Recipe }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // TODO: Replace with actual inventory-based calculation (Issue #88)
+  // For now, show mock match percentages for demonstration
+  const matchPercentage = Math.floor(Math.random() * 100);
+  const missingCount = Math.floor((100 - matchPercentage) / 10);
+
+  // Color coding based on match percentage
+  const getMatchColor = (percentage: number) => {
+    if (percentage >= 80) return { bg: "bg-green-300", icon: CheckCircle2, text: "High Match" };
+    if (percentage >= 50) return { bg: "bg-yellow-300", icon: AlertTriangle, text: "Partial Match" };
+    return { bg: "bg-red-300", icon: XCircle, text: "Low Match" };
+  };
+
+  const matchInfo = getMatchColor(matchPercentage);
+  const MatchIcon = matchInfo.icon;
 
   return (
     <div className="brutalism-card group flex flex-col overflow-hidden">
@@ -19,6 +35,14 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
+            {/* Match percentage badge */}
+            <div
+              className={`brutalism-border absolute right-2 top-2 ${matchInfo.bg} flex items-center gap-1 px-2 py-1 text-xs font-bold`}
+              title={`${matchInfo.text}: ${missingCount} ingredient(s) needed`}
+            >
+              <MatchIcon className="h-3 w-3" />
+              {matchPercentage}%
+            </div>
           </div>
         )}
         <div className="space-y-2">
