@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { getUserIdentity } from "@/lib/auth";
 import { supabaseServer } from "@/lib/supabaseServer";
+import { sendMultipleAchievementNotifications, isPushConfigured } from "@/lib/pushNotifications";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
@@ -142,6 +143,19 @@ export async function POST(request: Request) {
           ? `Congratulations! You earned ${newlyEarned.length} new achievement(s)!`
           : "No new achievements earned.",
     };
+
+    // Send push notifications for newly earned achievements (async, non-blocking)
+    if (newlyEarned.length > 0 && isPushConfigured()) {
+      sendMultipleAchievementNotifications(authUserId, newlyEarned)
+        .then(({ sent, failed }) => {
+          if (sent > 0) {
+            console.log(`Push notifications sent for ${newlyEarned.length} achievements: ${sent} succeeded, ${failed} failed`);
+          }
+        })
+        .catch((err) => {
+          console.error("Error sending achievement push notifications:", err);
+        });
+    }
 
     return NextResponse.json(response);
   } catch (error) {
