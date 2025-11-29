@@ -1,8 +1,8 @@
 # Epicourier Testing Strategy
 
-**Document Version**: 1.0  
-**Last Updated**: November 17, 2025  
-**Status**: Phase 1 Complete
+**Document Version**: 1.1  
+**Last Updated**: November 29, 2025  
+**Status**: Phase 2 Complete (Gamification Tests)
 
 ---
 
@@ -43,6 +43,7 @@ web/
 │   │   ├── pagination.test.tsx
 │   │   ├── AddMealModal.test.tsx
 │   │   ├── MealDetailModal.test.tsx
+│   │   ├── PushNotifications.test.tsx  # Push notification component tests
 │   │   ├── use-recipe.test.tsx
 │   │   ├── signin.test.tsx
 │   │   ├── signup.test.tsx
@@ -50,7 +51,12 @@ web/
 │   │   └── ui-*.test.tsx
 │   └── node/               # Server-side tests (Node environment)
 │       ├── next-config.test.ts
-│       └── middleware.test.ts
+│       ├── middleware.test.ts
+│       ├── achievementsApi.test.ts      # Achievements API tests
+│       ├── challengesApi.test.ts        # Challenges API tests (37 tests)
+│       ├── streaksApi.test.ts           # Streaks API tests
+│       ├── notificationsApi.test.ts     # Notifications API tests (22 tests)
+│       └── gamificationIntegration.test.ts  # Cross-feature integration (27 tests)
 ├── jest.config.ts          # Main Jest config (projects)
 ├── jest.jsdom.config.ts    # JSDOM environment config
 ├── jest.node.config.ts     # Node environment config
@@ -726,6 +732,23 @@ pytest backend/tests/ -n auto
 | Backend API         | >85%   | 87%     |
 | Backend AI/ML       | >80%   | 83%     |
 | **Overall**         | **>85%** | **87%** |
+
+### Gamification Module Coverage (v1.2.0)
+
+| Module                      | Statements | Branches | Lines   |
+|-----------------------------|------------|----------|---------|
+| achievements/route.ts       | 100%       | 84.93%   | 100% ✅ |
+| achievements/check/route.ts | 95.49%     | 80.3%    | 96.07% ✅|
+| notifications/subscribe     | 91.11%     | 78.26%   | 91.11% ✅|
+| notifications/unsubscribe   | 89.47%     | 75%      | 89.47% ✅|
+| notifications/vapid-key     | 100%       | 100%     | 100% ✅ |
+| streaks/route.ts            | 89.65%     | 100%     | 88.88% ✅|
+| streaks/update/route.ts     | 93.1%      | 76.92%   | 93.1% ✅ |
+| challenges/join/route.ts    | 84.84%     | 75%      | 84.84% ✅|
+| challenges/route.ts         | 73.41%     | 54.95%   | 75.15%  |
+| challenges/[id]/route.ts    | 57.34%     | 35.29%   | 58.69%  |
+| UI Components               | 89.84%     | 83.56%   | 92.62% ✅|
+| usePushNotifications        | 76%        | 60.52%   | 78.35%  |
 
 ### Viewing Coverage Reports
 

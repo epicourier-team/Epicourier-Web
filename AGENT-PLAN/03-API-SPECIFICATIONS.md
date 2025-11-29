@@ -1,7 +1,7 @@
 # Epicourier API Specifications
 
-**Document Version**: 1.3  
-**Last Updated**: November 28, 2025  
+**Document Version**: 1.4  
+**Last Updated**: November 29, 2025  
 **Status**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 ✅ | v1.3.0 📝)
 
 ---
@@ -866,6 +866,256 @@ Update a specific streak type for the current user. Uses atomic database functio
 
 **Errors**:
 - `400` - Invalid streak_type or missing field
+- `401` - Unauthorized
+- `500` - Database error
+
+---
+
+## 🏆 Challenge Endpoints (Phase 2)
+
+### List All Challenges
+
+#### `GET /api/challenges`
+
+Get all active challenges with user participation status. Challenges are categorized as active (available to join), joined (in progress), or completed.
+
+**Authentication**: Required
+
+**Response** (200 OK):
+```json
+{
+  "active": [
+    {
+      "id": 1,
+      "name": "7-Day Green Recipe Challenge",
+      "description": "Log 7 meals with green recipes this week",
+      "type": "weekly",
+      "start_date": "2025-11-25",
+      "end_date": "2025-12-01",
+      "target_count": 7,
+      "target_metric": "green_recipes",
+      "is_active": true,
+      "reward_achievement_id": 5,
+      "is_joined": false,
+      "progress": {
+        "current": 0,
+        "target": 7,
+        "percentage": 0
+      },
+      "days_remaining": 3
+    }
+  ],
+  "joined": [
+    {
+      "id": 2,
+      "name": "Monthly Logging Challenge",
+      "description": "Log at least one meal every day for 30 days",
+      "type": "monthly",
+      "start_date": "2025-11-01",
+      "end_date": "2025-11-30",
+      "target_count": 30,
+      "target_metric": "daily_logs",
+      "is_active": true,
+      "reward_achievement_id": 8,
+      "is_joined": true,
+      "progress": {
+        "current": 25,
+        "target": 30,
+        "percentage": 83.3
+      },
+      "days_remaining": 2,
+      "reward_achievement": {
+        "id": 8,
+        "name": "Monthly Warrior",
+        "description": "Completed the monthly logging challenge",
+        "category": "challenges",
+        "tier": "gold",
+        "icon_name": "trophy",
+        "points": 500
+      }
+    }
+  ],
+  "completed": [
+    {
+      "id": 3,
+      "name": "First Week Challenge",
+      "description": "Log 5 meals in your first week",
+      "type": "weekly",
+      "is_active": true,
+      "is_joined": true,
+      "progress": {
+        "current": 5,
+        "target": 5,
+        "percentage": 100
+      },
+      "days_remaining": 0,
+      "completed_at": "2025-11-15T10:30:00Z"
+    }
+  ]
+}
+```
+
+**Challenge Types**:
+- `weekly` - Weekly challenges (7-day duration)
+- `monthly` - Monthly challenges (30-day duration)
+- `special` - Limited-time or event challenges
+
+**Target Metrics**:
+- `daily_logs` - Number of days with at least one meal logged
+- `green_recipes` - Number of meals with green tag recipes
+- `total_meals` - Total number of meals logged
+- `nutrient_goals` - Days meeting nutrient targets
+
+**Errors**:
+- `401` - Unauthorized
+- `500` - Database error
+
+---
+
+### Get Challenge Detail
+
+#### `GET /api/challenges/[id]`
+
+Get detailed information about a specific challenge including user progress.
+
+**Authentication**: Required
+
+**URL Parameters**:
+- `id` (number, required) - Challenge ID
+
+**Response** (200 OK):
+```json
+{
+  "id": 2,
+  "name": "Monthly Logging Challenge",
+  "description": "Log at least one meal every day for 30 days",
+  "type": "monthly",
+  "start_date": "2025-11-01",
+  "end_date": "2025-11-30",
+  "target_count": 30,
+  "target_metric": "daily_logs",
+  "is_active": true,
+  "reward_achievement_id": 8,
+  "is_joined": true,
+  "progress": {
+    "current": 25,
+    "target": 30,
+    "percentage": 83.3
+  },
+  "days_remaining": 2,
+  "reward_achievement": {
+    "id": 8,
+    "name": "Monthly Warrior",
+    "description": "Completed the monthly logging challenge",
+    "category": "challenges",
+    "tier": "gold",
+    "icon_name": "trophy",
+    "points": 500
+  }
+}
+```
+
+**Errors**:
+- `400` - Invalid challenge ID format
+- `401` - Unauthorized
+- `404` - Challenge not found
+- `500` - Database error
+
+---
+
+### Join a Challenge
+
+#### `POST /api/challenges/join`
+
+Join a challenge. Creates a participation record for the user.
+
+**Authentication**: Required
+
+**Request Body**:
+```json
+{
+  "challenge_id": 2
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "message": "Successfully joined the challenge",
+  "user_challenge": {
+    "id": 123,
+    "user_id": "uuid-string",
+    "challenge_id": 2,
+    "joined_at": "2025-11-28T15:00:00Z",
+    "progress": null,
+    "completed_at": null
+  }
+}
+```
+
+**Errors**:
+- `400` - Invalid or missing challenge_id
+- `401` - Unauthorized
+- `404` - Challenge not found or not active
+- `409` - User already joined this challenge
+- `500` - Database error
+
+---
+
+## 🔔 Notification Endpoints (Phase 2)
+
+### Get VAPID Public Key
+
+#### `GET /api/notifications/vapid-key`
+
+Get the VAPID public key for push notification subscription.
+
+**Authentication**: Not required
+
+**Response** (200 OK):
+```json
+{
+  "publicKey": "BLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+}
+```
+
+**Errors**:
+- `500` - VAPID key not configured
+
+---
+
+### Subscribe to Push Notifications
+
+#### `POST /api/notifications/subscribe`
+
+Subscribe user's device to push notifications.
+
+**Authentication**: Required
+
+**Request Body**:
+```json
+{
+  "subscription": {
+    "endpoint": "https://fcm.googleapis.com/fcm/send/xxx...",
+    "keys": {
+      "p256dh": "BNxxxxx...",
+      "auth": "xxxxx..."
+    }
+  }
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "message": "Push subscription saved"
+}
+```
+
+**Errors**:
+- `400` - Invalid subscription data
 - `401` - Unauthorized
 - `500` - Database error
 

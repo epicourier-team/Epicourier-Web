@@ -1,8 +1,8 @@
 # Epicourier Frontend Patterns
 
-**Document Version**: 1.2  
-**Last Updated**: November 28, 2025  
-**Status**: Phase 2 In Progress
+**Document Version**: 1.3  
+**Last Updated**: November 29, 2025  
+**Status**: Phase 2 Complete (v1.2.0 Gamification)
 
 ---
 
@@ -32,11 +32,13 @@ web/src/
 │   ├── signup/page.tsx      # Sign-up page (Client)
 │   ├── dashboard/           # Protected dashboard routes
 │   │   ├── layout.tsx       # Dashboard layout (Client)
+│   │   ├── page.tsx         # Home page with gamification widgets
 │   │   ├── calendar/        # Calendar page
 │   │   ├── recipes/         # Recipe browsing
 │   │   ├── recommender/     # AI recommendations
 │   │   ├── nutrients/       # Nutrient tracking (Phase 2)
-│   │   └── achievements/    # Achievement badges (Phase 2)
+│   │   ├── achievements/    # Achievement badges (Phase 2)
+│   │   └── challenges/      # Challenges page (Phase 2)
 │   └── api/                 # API route handlers
 │       ├── recipes/route.ts
 │       ├── calendar/route.ts
@@ -47,9 +49,20 @@ web/src/
 │       │   ├── daily/route.ts
 │       │   ├── export/route.ts
 │       │   └── goals/route.ts
-│       └── achievements/    # Phase 2: Gamification APIs
-│           ├── route.ts
-│           └── check/route.ts
+│       ├── achievements/    # Phase 2: Gamification APIs
+│       │   ├── route.ts
+│       │   └── check/route.ts
+│       ├── challenges/      # Phase 2: Challenge APIs
+│       │   ├── route.ts     # GET challenges list
+│       │   ├── [id]/route.ts # GET single challenge
+│       │   └── join/route.ts # POST join challenge
+│       ├── streaks/         # Phase 2: Streak tracking APIs
+│       │   ├── route.ts     # GET user streaks
+│       │   └── update/route.ts # POST update streak
+│       └── notifications/   # Phase 2: Push notifications
+│           ├── subscribe/route.ts
+│           ├── unsubscribe/route.ts
+│           └── vapid-key/route.ts
 ├── components/              # Reusable components
 │   ├── ui/                  # shadcn/ui components + custom UI
 │   │   ├── button.tsx
@@ -60,7 +73,10 @@ web/src/
 │   │   ├── filterpanel.tsx
 │   │   ├── AddMealModal.tsx
 │   │   ├── MealDetailModal.tsx
-│   │   └── BadgeCard.tsx    # Phase 2: Achievement badge
+│   │   ├── BadgeCard.tsx    # Phase 2: Achievement badge
+│   │   ├── ChallengeCard.tsx # Phase 2: Challenge card
+│   │   ├── StreakWidget.tsx # Phase 2: Streak flame widget
+│   │   └── PushNotifications.tsx # Phase 2: Push notification UI
 │   ├── landing/             # Landing page components
 │   │   ├── Hero.tsx
 │   │   ├── Features.tsx
@@ -68,10 +84,12 @@ web/src/
 │   └── sidebar/             # Dashboard navigation
 │       └── AppSidebar.tsx
 ├── hooks/                   # Custom React hooks
-│   └── use-recipe.tsx      # Recipe data fetching hook
+│   ├── use-recipe.tsx      # Recipe data fetching hook
+│   └── usePushNotifications.ts # Push notification hook
 ├── lib/                     # Utility libraries
 │   ├── supabaseClient.ts   # Client-side Supabase
-│   └── supabaseServer.ts   # Server-side Supabase (service role)
+│   ├── supabaseServer.ts   # Server-side Supabase (service role)
+│   └── auth.ts             # Authentication utilities
 ├── types/                   # TypeScript type definitions
 │   └── data.ts             # Shared data types (incl. Phase 2)
 ├── utils/                   # Helper functions
