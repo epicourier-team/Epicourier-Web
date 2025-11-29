@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import AddMealModal from "@/components/ui/AddMealModal";
 import MealDetailModal from "@/components/ui/MealDetailModal";
+import GenerateShoppingListModal from "@/components/shopping/GenerateShoppingListModal";
 import "@/styles/fullcalendar-brutalism.css";
 
 // ------------------------------
@@ -76,6 +77,7 @@ export default function CalendarPage() {
   const [selectedCalendarEntry, setSelectedCalendarEntry] = useState<CalendarApiResponse[] | null>(
     null
   );
+  const [isShoppingModalOpen, setIsShoppingModalOpen] = useState(false);
 
   // ------------------------------
   // load calendar event
@@ -231,9 +233,19 @@ export default function CalendarPage() {
       {/* Header */}
 
       <div className="brutalism-banner mb-6 bg-indigo-300! p-5">
-        <h1 className="text-3xl font-bold tracking-tight">
-          {userName ? `${userName}'s Calendar` : "Loading Calendar..."}
-        </h1>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {userName ? `${userName}'s Calendar` : "Loading Calendar..."}
+            </h1>
+          </div>
+          <button
+            onClick={() => setIsShoppingModalOpen(true)}
+            className="brutalism-button flex items-center gap-2 bg-emerald-500 px-4 py-2 font-bold text-white hover:bg-emerald-600"
+          >
+            🛒 Generate Shopping List
+          </button>
+        </div>
       </div>
       {/*
         <button
@@ -295,6 +307,12 @@ export default function CalendarPage() {
         entries={selectedCalendarEntry}
         onUpdateStatus={handleUpdateStatus}
         reloadEvents={loadEvents}
+      />
+
+      {/* Generate Shopping List Modal */}
+      <GenerateShoppingListModal
+        isOpen={isShoppingModalOpen}
+        onClose={() => setIsShoppingModalOpen(false)}
       />
 
       {/* Calendar */}

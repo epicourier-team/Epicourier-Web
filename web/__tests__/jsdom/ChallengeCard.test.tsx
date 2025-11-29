@@ -15,6 +15,7 @@ const createMockChallenge = (
   title: "Weekly Green Champion",
   description: "Log 5 green recipes this week",
   type: "weekly",
+  category: "sustainability",
   criteria: {
     metric: "green_recipes",
     target: 5,
