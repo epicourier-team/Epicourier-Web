@@ -523,6 +523,81 @@ button {
   animation: flame-intense 1s ease-in-out infinite;
 }
 
+/* ---------------------------------------------------------------------------
+   9. ACHIEVEMENT TOAST ANIMATIONS (Gamification)
+   --------------------------------------------------------------------------- */
+
+/* Achievement pop animation - icon entrance */
+@keyframes achievement-pop {
+  0% {
+    transform: scale(0) rotate(-15deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(5deg);
+  }
+  75% {
+    transform: scale(0.9) rotate(-2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-achievement-pop {
+  animation: achievement-pop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+/* Sparkle animation for confetti effect */
+@keyframes sparkle {
+  0% {
+    transform: scale(0) translateY(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5) translateY(-20px);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0) translateY(-40px);
+    opacity: 0;
+  }
+}
+
+.animate-sparkle {
+  animation: sparkle 1.5s ease-out infinite;
+}
+
+/* Celebration shake animation */
+@keyframes celebrate-shake {
+  0%, 100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  10% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+  20% {
+    transform: translateX(2px) rotate(1deg);
+  }
+  30% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+  40% {
+    transform: translateX(2px) rotate(1deg);
+  }
+  50% {
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+.animate-celebrate-shake {
+  animation: celebrate-shake 0.5s ease-in-out;
+}
+
 /* ===========================================================================
    END OF GLOBAL STYLES
    =========================================================================== */
