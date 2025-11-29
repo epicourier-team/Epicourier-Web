@@ -28,6 +28,7 @@ import {
   Home,
   Lightbulb,
   LogOut,
+  Package,
   ShoppingCart,
   Target,
   Trophy,
@@ -43,6 +44,7 @@ const menuItems = [
   { title: "Recommender", url: "/dashboard/recommender", icon: Lightbulb },
   { title: "Nutrients", url: "/dashboard/nutrients", icon: Activity },
   { title: "Shopping", url: "/dashboard/shopping", icon: ShoppingCart },
+  { title: "Inventory", url: "/dashboard/inventory", icon: Package },
   { title: "Challenges", url: "/dashboard/challenges", icon: Target },
   { title: "Achievements", url: "/dashboard/achievements", icon: Trophy },
 ];
