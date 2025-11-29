@@ -275,3 +275,62 @@ export interface ChallengeJoinResponse {
   user_challenge: UserChallenge;
   message: string;
 }
+
+// Streak System Types (v1.2.0 Extended)
+
+/**
+ * Types of streaks that can be tracked
+ */
+export type StreakType = "daily_log" | "nutrient_goal" | "green_recipe";
+
+/**
+ * Streak history record from streak_history table
+ */
+export interface StreakHistory {
+  id: number;
+  user_id: string;
+  streak_type: StreakType;
+  current_streak: number;
+  longest_streak: number;
+  last_activity_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Streak data for display in UI
+ */
+export interface StreakData {
+  type: StreakType;
+  label: string;
+  current: number;
+  longest: number;
+  lastActivity: string | null;
+  isActiveToday: boolean;
+}
+
+/**
+ * API response structure for GET /api/streaks
+ */
+export interface StreaksResponse {
+  streaks: StreakData[];
+  totalCurrentStreak: number;
+  message?: string;
+}
+
+/**
+ * API request structure for POST /api/streaks/update
+ */
+export interface StreakUpdateRequest {
+  streak_type: StreakType;
+  activity_date?: string; // YYYY-MM-DD format, defaults to today
+}
+
+/**
+ * API response structure for POST /api/streaks/update
+ */
+export interface StreakUpdateResponse {
+  success: boolean;
+  streak: StreakHistory;
+  message: string;
+}
