@@ -1,8 +1,8 @@
 # Epicourier Database Design
 
-**Document Version**: 1.3  
-**Last Updated**: November 28, 2025  
-**Status**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 ✅ | v1.3.0 📝)
+**Document Version**: 1.4  
+**Last Updated**: November 29, 2025  
+**Status**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 ✅ | v1.3.0 �)
 
 ---
 
@@ -695,7 +695,157 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 ---
 
-## 🔒 Row Level Security (RLS)
+## � Smart Cart Tables (v1.3.0)
+
+### shopping_lists Table
+
+Stores user's shopping list metadata for organizing grocery shopping.
+
+**Table Name**: `shopping_lists`
+
+| Column       | Type         | Constraints                        | Description                              |
+|--------------|--------------|------------------------------------|-----------------------------------------|
+| id           | uuid         | PRIMARY KEY, DEFAULT gen_random_uuid() | Unique list identifier               |
+| user_id      | uuid         | NOT NULL, FOREIGN KEY → auth.users | User who owns this list                  |
+| name         | varchar(255) | NOT NULL                           | Display name of the shopping list        |
+| description  | text         |                                    | Optional description or notes            |
+| is_archived  | boolean      | NOT NULL, DEFAULT FALSE            | Soft delete flag                         |
+| created_at   | timestamptz  | NOT NULL, DEFAULT NOW()            | Timestamp when list was created          |
+| updated_at   | timestamptz  | NOT NULL, DEFAULT NOW()            | Timestamp when list was last modified    |
+
+**Example Data**:
+```sql
+id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+user_id: "user-uuid-here"
+name: "Weekly Groceries"
+description: "Regular shopping for the week"
+is_archived: false
+created_at: "2025-11-29T10:00:00Z"
+updated_at: "2025-11-29T10:00:00Z"
+```
+
+**Indexes**:
+- Primary key index on `id`
+- Index on `user_id` for querying user's lists
+- Composite index on `(user_id, is_archived)` for filtering active lists
+- Index on `updated_at DESC` for sorting by most recent
+
+**Trigger**:
+- Auto-update `updated_at` on row modification
+
+---
+
+### shopping_list_items Table
+
+Stores individual items within a shopping list.
+
+**Table Name**: `shopping_list_items`
+
+| Column           | Type           | Constraints                              | Description                          |
+|------------------|----------------|------------------------------------------|--------------------------------------|
+| id               | uuid           | PRIMARY KEY, DEFAULT gen_random_uuid()   | Unique item identifier               |
+| shopping_list_id | uuid           | NOT NULL, FOREIGN KEY → shopping_lists   | Parent shopping list                 |
+| ingredient_id    | integer        | FOREIGN KEY → Ingredient (ON DELETE SET NULL) | Optional link to ingredient DB  |
+| item_name        | varchar(255)   | NOT NULL                                 | Display name (can be custom text)    |
+| quantity         | decimal(10,2)  | DEFAULT 1                                | Amount needed                        |
+| unit             | varchar(50)    |                                          | Unit of measurement                  |
+| category         | varchar(100)   | DEFAULT 'Other'                          | Category for grouping                |
+| is_checked       | boolean        | NOT NULL, DEFAULT FALSE                  | Whether item is purchased            |
+| position         | integer        | NOT NULL, DEFAULT 0                      | Order for drag-and-drop sorting      |
+| notes            | text           |                                          | Optional notes                       |
+| created_at       | timestamptz    | NOT NULL, DEFAULT NOW()                  | Timestamp when item was added        |
+
+**Categories**:
+- Produce, Dairy, Meat, Seafood, Bakery, Frozen, Pantry, Beverages, Snacks, Condiments, Other
+
+**Example Data**:
+```sql
+id: "item-uuid-here"
+shopping_list_id: "list-uuid-here"
+ingredient_id: 123
+item_name: "Milk"
+quantity: 2
+unit: "liters"
+category: "Dairy"
+is_checked: false
+position: 0
+notes: "Prefer organic"
+created_at: "2025-11-29T10:05:00Z"
+```
+
+**Indexes**:
+- Primary key index on `id`
+- Index on `shopping_list_id` for querying items by list
+- Composite index on `(shopping_list_id, position)` for ordered retrieval
+- Composite index on `(shopping_list_id, is_checked)` for filtering
+- Composite index on `(shopping_list_id, category)` for grouping
+- Index on `ingredient_id` (WHERE NOT NULL) for ingredient lookup
+
+---
+
+### user_inventory Table
+
+Tracks user's available ingredients at home (pantry, fridge, freezer).
+
+**Table Name**: `user_inventory`
+
+| Column          | Type           | Constraints                              | Description                          |
+|-----------------|----------------|------------------------------------------|--------------------------------------|
+| id              | uuid           | PRIMARY KEY, DEFAULT gen_random_uuid()   | Unique inventory entry identifier    |
+| user_id         | uuid           | NOT NULL, FOREIGN KEY → auth.users       | User who owns this inventory         |
+| ingredient_id   | integer        | NOT NULL, FOREIGN KEY → Ingredient       | Reference to ingredient database     |
+| quantity        | decimal(10,2)  | NOT NULL, DEFAULT 1                      | Current quantity available           |
+| unit            | varchar(50)    |                                          | Unit of measurement                  |
+| location        | varchar(50)    | NOT NULL, DEFAULT 'pantry', CHECK constraint | Storage location               |
+| expiration_date | date           |                                          | Expected expiration date             |
+| min_quantity    | decimal(10,2)  |                                          | Threshold for low stock alerts       |
+| notes           | text           |                                          | Optional notes                       |
+| created_at      | timestamptz    | NOT NULL, DEFAULT NOW()                  | Timestamp when item was added        |
+| updated_at      | timestamptz    | NOT NULL, DEFAULT NOW()                  | Timestamp when item was modified     |
+
+**Location Values**:
+- `pantry` - Dry storage
+- `fridge` - Refrigerator
+- `freezer` - Freezer
+- `other` - Other storage
+
+**Constraints**:
+- UNIQUE constraint on `(user_id, ingredient_id, location)` - one entry per ingredient per location per user
+- CHECK constraint on `location IN ('pantry', 'fridge', 'freezer', 'other')`
+
+**Example Data**:
+```sql
+id: "inventory-uuid-here"
+user_id: "user-uuid-here"
+ingredient_id: 456
+quantity: 500
+unit: "g"
+location: "fridge"
+expiration_date: "2025-12-05"
+min_quantity: 100
+notes: "Organic chicken breast"
+created_at: "2025-11-29T09:00:00Z"
+updated_at: "2025-11-29T09:00:00Z"
+```
+
+**Indexes**:
+- Primary key index on `id`
+- Index on `user_id` for querying user's inventory
+- Composite index on `(user_id, location)` for filtering by storage location
+- Composite index on `(user_id, expiration_date)` for expiring items query
+- Index for low stock items (WHERE min_quantity IS NOT NULL AND quantity <= min_quantity)
+- Index on `ingredient_id` for recipe matching
+
+**Trigger**:
+- Auto-update `updated_at` on row modification
+
+**Helper Views**:
+- `expiring_inventory` - Items expiring within 7 days
+- `low_stock_inventory` - Items at or below minimum threshold
+
+---
+
+## �🔒 Row Level Security (RLS)
 
 ### Enabled Tables
 
@@ -706,6 +856,9 @@ RLS is enabled on user-specific tables:
 - `nutrient_goals` - Users can only access their own goals
 - `user_achievements` - Users can only access their own achievements
 - `streak_history` - Users can only access their own streaks
+- `shopping_lists` - Users can only access their own shopping lists
+- `shopping_list_items` - Users can only access items in their own lists
+- `user_inventory` - Users can only access their own inventory
 
 ### Calendar Table Policies
 
@@ -844,6 +997,147 @@ ON streak_history
 FOR UPDATE
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
+```
+
+---
+
+### shopping_lists Table Policies
+
+**SELECT Policy**:
+```sql
+CREATE POLICY "Users can view own shopping lists"
+ON shopping_lists
+FOR SELECT
+USING (auth.uid() = user_id);
+```
+
+**INSERT Policy**:
+```sql
+CREATE POLICY "Users can create own shopping lists"
+ON shopping_lists
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+```
+
+**UPDATE Policy**:
+```sql
+CREATE POLICY "Users can update own shopping lists"
+ON shopping_lists
+FOR UPDATE
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+```
+
+**DELETE Policy**:
+```sql
+CREATE POLICY "Users can delete own shopping lists"
+ON shopping_lists
+FOR DELETE
+USING (auth.uid() = user_id);
+```
+
+---
+
+### shopping_list_items Table Policies
+
+**SELECT Policy** (via parent list ownership):
+```sql
+CREATE POLICY "Users can view items in own shopping lists"
+ON shopping_list_items
+FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM shopping_lists sl
+    WHERE sl.id = shopping_list_items.shopping_list_id
+    AND sl.user_id = auth.uid()
+  )
+);
+```
+
+**INSERT Policy**:
+```sql
+CREATE POLICY "Users can add items to own shopping lists"
+ON shopping_list_items
+FOR INSERT
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM shopping_lists sl
+    WHERE sl.id = shopping_list_items.shopping_list_id
+    AND sl.user_id = auth.uid()
+  )
+);
+```
+
+**UPDATE Policy**:
+```sql
+CREATE POLICY "Users can update items in own shopping lists"
+ON shopping_list_items
+FOR UPDATE
+USING (
+  EXISTS (
+    SELECT 1 FROM shopping_lists sl
+    WHERE sl.id = shopping_list_items.shopping_list_id
+    AND sl.user_id = auth.uid()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM shopping_lists sl
+    WHERE sl.id = shopping_list_items.shopping_list_id
+    AND sl.user_id = auth.uid()
+  )
+);
+```
+
+**DELETE Policy**:
+```sql
+CREATE POLICY "Users can delete items from own shopping lists"
+ON shopping_list_items
+FOR DELETE
+USING (
+  EXISTS (
+    SELECT 1 FROM shopping_lists sl
+    WHERE sl.id = shopping_list_items.shopping_list_id
+    AND sl.user_id = auth.uid()
+  )
+);
+```
+
+---
+
+### user_inventory Table Policies
+
+**SELECT Policy**:
+```sql
+CREATE POLICY "Users can view own inventory"
+ON user_inventory
+FOR SELECT
+USING (auth.uid() = user_id);
+```
+
+**INSERT Policy**:
+```sql
+CREATE POLICY "Users can add to own inventory"
+ON user_inventory
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+```
+
+**UPDATE Policy**:
+```sql
+CREATE POLICY "Users can update own inventory"
+ON user_inventory
+FOR UPDATE
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+```
+
+**DELETE Policy**:
+```sql
+CREATE POLICY "Users can delete from own inventory"
+ON user_inventory
+FOR DELETE
+USING (auth.uid() = user_id);
 ```
 
 ---
@@ -1011,11 +1305,128 @@ WHERE user_id = 1
   );
 ```
 
+### Get User's Shopping List with Items (Phase 3)
+
+```sql
+SELECT 
+  sl.id,
+  sl.name,
+  sl.description,
+  sl.is_archived,
+  sl.created_at,
+  json_agg(
+    json_build_object(
+      'id', sli.id,
+      'item_name', sli.item_name,
+      'quantity', sli.quantity,
+      'unit', sli.unit,
+      'category', sli.category,
+      'is_checked', sli.is_checked,
+      'position', sli.position,
+      'ingredient', json_build_object(
+        'id', i.id,
+        'name', i.name
+      )
+    ) ORDER BY sli.position
+  ) FILTER (WHERE sli.id IS NOT NULL) AS items
+FROM shopping_lists sl
+LEFT JOIN shopping_list_items sli ON sl.id = sli.shopping_list_id
+LEFT JOIN Ingredient i ON sli.ingredient_id = i.id
+WHERE sl.user_id = auth.uid()
+  AND sl.is_archived = false
+GROUP BY sl.id
+ORDER BY sl.updated_at DESC;
+```
+
+### Generate Shopping List from Calendar Recipes (Phase 3)
+
+```sql
+-- Get all ingredients needed for meals in a date range
+SELECT 
+  i.id AS ingredient_id,
+  i.name AS item_name,
+  i.aisle AS category,
+  SUM(rim.relative_unit_100 * 4) AS total_quantity,  -- scaled for 4 servings
+  i.unit
+FROM Calendar c
+JOIN "Recipe-Ingredient_Map" rim ON c.recipe_id = rim.recipe_id
+JOIN Ingredient i ON rim.ingredient_id = i.id
+WHERE c.user_id = auth.uid()
+  AND c.date >= '2025-12-01'
+  AND c.date <= '2025-12-07'
+  AND c.status = false  -- Not yet completed
+GROUP BY i.id, i.name, i.aisle, i.unit
+ORDER BY i.aisle, i.name;
+```
+
+### Get User's Inventory with Expiring Items (Phase 3)
+
+```sql
+SELECT 
+  ui.id,
+  ui.quantity,
+  ui.unit,
+  ui.location,
+  ui.expiration_date,
+  ui.min_quantity,
+  ui.notes,
+  i.name AS ingredient_name,
+  i.aisle AS category,
+  CASE 
+    WHEN ui.expiration_date <= CURRENT_DATE THEN 'expired'
+    WHEN ui.expiration_date <= CURRENT_DATE + INTERVAL '3 days' THEN 'expiring_soon'
+    ELSE 'fresh'
+  END AS status
+FROM user_inventory ui
+JOIN Ingredient i ON ui.ingredient_id = i.id
+WHERE ui.user_id = auth.uid()
+ORDER BY ui.expiration_date ASC NULLS LAST;
+```
+
+### Check Missing Ingredients for Recipe (Phase 3)
+
+```sql
+-- Compare recipe ingredients with user's inventory
+SELECT 
+  i.id,
+  i.name,
+  rim.relative_unit_100 * 4 AS needed_quantity,
+  i.unit,
+  COALESCE(ui.quantity, 0) AS in_stock,
+  CASE 
+    WHEN ui.id IS NULL THEN true
+    WHEN ui.quantity < (rim.relative_unit_100 * 4) THEN true
+    ELSE false
+  END AS needs_to_buy
+FROM "Recipe-Ingredient_Map" rim
+JOIN Ingredient i ON rim.ingredient_id = i.id
+LEFT JOIN user_inventory ui ON ui.ingredient_id = i.id AND ui.user_id = auth.uid()
+WHERE rim.recipe_id = 52764
+ORDER BY needs_to_buy DESC, i.name;
+```
+
+### Get Low Stock Items (Phase 3)
+
+```sql
+SELECT 
+  ui.id,
+  i.name,
+  ui.quantity,
+  ui.min_quantity,
+  ui.unit,
+  ui.location
+FROM user_inventory ui
+JOIN Ingredient i ON ui.ingredient_id = i.id
+WHERE ui.user_id = auth.uid()
+  AND ui.quantity <= ui.min_quantity
+ORDER BY i.name;
+```
+
 ---
 
 ## 📈 Database Statistics
 
-### Current Data Volume (Phase 2)
+### Current Data Volume (Phase 3)
 
 | Table                    | Estimated Rows | Notes                           |
 |--------------------------|----------------|---------------------------------|
@@ -1030,6 +1441,10 @@ WHERE user_id = 1
 | nutrient_goals           | Growing        | 1 per user (Phase 2)            |
 | achievement_definitions  | 8              | Seed data (Phase 2)             |
 | user_achievements        | Growing        | Earned badges (Phase 2)         |
+| streak_history           | Growing        | Streak tracking (Phase 2)       |
+| shopping_lists           | Growing        | Per-user lists (Phase 3)        |
+| shopping_list_items      | Growing        | Items per list (Phase 3)        |
+| user_inventory           | Growing        | Per-user inventory (Phase 3)    |
 
 ### Seed Achievement Data
 
@@ -1084,6 +1499,29 @@ The system ships with 8 pre-defined achievements:
    - B-tree index on `user_id`
    - B-tree index on `achievement_id`
    - Unique composite index on `(user_id, achievement_id)`
+
+7. **shopping_lists Table** (Phase 3):
+   - Primary key on `id`
+   - B-tree index on `user_id`
+   - B-tree index on `is_archived`
+   - Composite index on `(user_id, is_archived)` for active lists
+
+8. **shopping_list_items Table** (Phase 3):
+   - Primary key on `id`
+   - B-tree index on `shopping_list_id`
+   - B-tree index on `ingredient_id`
+   - B-tree index on `category` for grouping
+   - B-tree index on `is_checked` for filtering
+   - Composite index on `(shopping_list_id, position)` for ordering
+
+9. **user_inventory Table** (Phase 3):
+   - Primary key on `id`
+   - B-tree index on `user_id`
+   - B-tree index on `ingredient_id`
+   - B-tree index on `location` for grouping
+   - B-tree index on `expiration_date` for expiring items
+   - Unique composite index on `(user_id, ingredient_id, location)`
+   - Partial index on expiring items: `WHERE expiration_date IS NOT NULL`
 
 ### Query Optimization Tips
 
@@ -1162,24 +1600,37 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
    - Auto-award system via API
    - Implemented: November 2025
 
+5. **shopping_lists** ✅ (v1.3.0)
+   - User shopping list metadata
+   - Supports multiple lists per user
+   - Soft delete via is_archived flag
+   - Implemented: November 2025
+
+6. **shopping_list_items** ✅ (v1.3.0)
+   - Individual items in shopping lists
+   - Links to ingredients database
+   - Category grouping and position ordering
+   - Implemented: November 2025
+
+7. **user_inventory** ✅ (v1.3.0)
+   - User's pantry/fridge/freezer items
+   - Expiration date tracking
+   - Low stock alerts via min_quantity
+   - Implemented: November 2025
+
 ### Planned Tables (Phase 3)
 
-1. **Challenge**
+1. **list_shares** (v1.3.0 - future)
+   - Shopping list sharing between users
+   - Permission levels (view/edit)
+   - Real-time collaboration
+
+2. **Challenge**
    - Weekly/monthly nutrition challenges
    - Challenge participation tracking
    - Leaderboards and rankings
 
-2. **ShoppingList**
-   - Generated from meal plans
-   - Smart ingredient aggregation
-   - Store integration
-
-3. **Inventory**
-   - User's pantry items
-   - Expiration date tracking
-   - Auto-suggest recipes based on inventory
-
-4. **UserPreferences**
+3. **UserPreferences**
    - Dietary restrictions
    - Allergen information
    - Cuisine preferences

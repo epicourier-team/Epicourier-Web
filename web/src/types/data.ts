@@ -334,3 +334,321 @@ export interface StreakUpdateResponse {
   streak: StreakHistory;
   message: string;
 }
+
+// ============================================================================
+// Smart Cart Types (v1.3.0)
+// ============================================================================
+
+// --- Shopping List Types ---
+
+/**
+ * Shopping list metadata
+ */
+export interface ShoppingList {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  is_archived: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Shopping list with computed properties for UI
+ */
+export interface ShoppingListWithStats extends ShoppingList {
+  item_count: number;
+  checked_count: number;
+  progress_percentage: number;
+}
+
+/**
+ * Request payload for creating a shopping list
+ */
+export interface CreateShoppingListRequest {
+  name: string;
+  description?: string;
+}
+
+/**
+ * Request payload for updating a shopping list
+ */
+export interface UpdateShoppingListRequest {
+  name?: string;
+  description?: string;
+  is_archived?: boolean;
+}
+
+// --- Shopping List Item Types ---
+
+/**
+ * Category options for shopping list items
+ */
+export type ShoppingItemCategory =
+  | "Produce"
+  | "Dairy"
+  | "Meat"
+  | "Seafood"
+  | "Bakery"
+  | "Frozen"
+  | "Pantry"
+  | "Beverages"
+  | "Snacks"
+  | "Condiments"
+  | "Other";
+
+/**
+ * Individual item in a shopping list
+ */
+export interface ShoppingListItem {
+  id: string;
+  shopping_list_id: string;
+  ingredient_id: number | null;
+  item_name: string;
+  quantity: number;
+  unit: string | null;
+  category: ShoppingItemCategory | string;
+  is_checked: boolean;
+  position: number;
+  notes: string | null;
+  created_at: string;
+}
+
+/**
+ * Shopping list item with ingredient details (for display)
+ */
+export interface ShoppingListItemWithIngredient extends ShoppingListItem {
+  ingredient?: Ingredient | null;
+}
+
+/**
+ * Request payload for creating a shopping list item
+ */
+export interface CreateShoppingListItemRequest {
+  shopping_list_id: string;
+  item_name: string;
+  ingredient_id?: number;
+  quantity?: number;
+  unit?: string;
+  category?: ShoppingItemCategory | string;
+  notes?: string;
+}
+
+/**
+ * Request payload for updating a shopping list item
+ */
+export interface UpdateShoppingListItemRequest {
+  item_name?: string;
+  quantity?: number;
+  unit?: string;
+  category?: ShoppingItemCategory | string;
+  is_checked?: boolean;
+  position?: number;
+  notes?: string;
+}
+
+/**
+ * Request payload for batch updating item positions (drag-and-drop)
+ */
+export interface UpdateItemPositionsRequest {
+  items: { id: string; position: number }[];
+}
+
+// --- User Inventory Types ---
+
+/**
+ * Storage location options for inventory items
+ */
+export type InventoryLocation = "pantry" | "fridge" | "freezer" | "other";
+
+/**
+ * Expiration status for inventory items
+ */
+export type ExpirationStatus =
+  | "expired"
+  | "critical" // 0-2 days
+  | "warning" // 3-7 days
+  | "good" // > 7 days
+  | "unknown"; // no expiration date
+
+/**
+ * User inventory item
+ */
+export interface InventoryItem {
+  id: string;
+  user_id: string;
+  ingredient_id: number;
+  quantity: number;
+  unit: string | null;
+  location: InventoryLocation;
+  expiration_date: string | null; // YYYY-MM-DD format
+  min_quantity: number | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Inventory item with ingredient details and computed properties
+ */
+export interface InventoryItemWithDetails extends InventoryItem {
+  ingredient: Ingredient;
+  expiration_status: ExpirationStatus;
+  days_until_expiration: number | null;
+  is_low_stock: boolean;
+}
+
+/**
+ * Request payload for creating an inventory item
+ */
+export interface CreateInventoryItemRequest {
+  ingredient_id: number;
+  quantity: number;
+  unit?: string;
+  location?: InventoryLocation;
+  expiration_date?: string;
+  min_quantity?: number;
+  notes?: string;
+}
+
+/**
+ * Request payload for updating an inventory item
+ */
+export interface UpdateInventoryItemRequest {
+  quantity?: number;
+  unit?: string;
+  location?: InventoryLocation;
+  expiration_date?: string | null;
+  min_quantity?: number | null;
+  notes?: string;
+}
+
+/**
+ * Request payload for transferring shopping list items to inventory
+ */
+export interface TransferToInventoryRequest {
+  shopping_item_id: string;
+  ingredient_id: number;
+  quantity: number;
+  unit?: string;
+  location?: InventoryLocation;
+  expiration_date?: string;
+}
+
+// --- Inventory API Response Types ---
+
+/**
+ * Summary of user's inventory for dashboard widget
+ */
+export interface InventorySummary {
+  total_items: number;
+  expiring_soon: number; // items expiring within 7 days
+  expired: number;
+  low_stock: number;
+  by_location: {
+    pantry: number;
+    fridge: number;
+    freezer: number;
+    other: number;
+  };
+}
+
+/**
+ * API response for GET /api/inventory
+ */
+export interface InventoryResponse {
+  items: InventoryItemWithDetails[];
+  summary: InventorySummary;
+}
+
+// --- AI Recipe Recommendation Types (from Inventory) ---
+
+/**
+ * Inventory item payload for AI recommendation request
+ */
+export interface InventoryItemForRecommendation {
+  ingredient_id: number;
+  quantity?: number;
+  expiration_date?: string;
+}
+
+/**
+ * Request payload for POST /inventory-recommend (Python API)
+ */
+export interface InventoryRecommendRequest {
+  inventory: InventoryItemForRecommendation[];
+  preferences?: string;
+  num_recipes?: number;
+}
+
+/**
+ * Expiring ingredient info in recommendation response
+ */
+export interface ExpiringIngredientInfo {
+  name: string;
+  expires_in_days: number;
+}
+
+/**
+ * Individual recipe recommendation from inventory
+ */
+export interface InventoryRecipeRecommendation {
+  recipe_id: number;
+  recipe_name: string;
+  recipe_image?: string;
+  coverage_score: number; // 0-1, percentage of ingredients available
+  missing_ingredients: string[];
+  uses_expiring: ExpiringIngredientInfo[];
+  reasoning: string;
+}
+
+/**
+ * Response from POST /inventory-recommend (Python API)
+ */
+export interface InventoryRecommendResponse {
+  recipes: InventoryRecipeRecommendation[];
+  summary: string;
+}
+
+// --- Smart Cart Dashboard Widget Types ---
+
+/**
+ * Active shopping list summary for dashboard widget
+ */
+export interface ActiveListSummary {
+  id: string;
+  name: string;
+  item_count: number;
+  checked_count: number;
+  next_items: string[]; // top 3 unchecked items
+}
+
+/**
+ * Inventory alerts for dashboard widget
+ */
+export interface InventoryAlerts {
+  expiring_soon: number;
+  expired: number;
+  low_stock: number;
+}
+
+/**
+ * Suggested action for smart cart widget
+ */
+export interface SuggestedAction {
+  type: "use_expiring" | "complete_shopping" | "restock" | "none";
+  title: string;
+  description: string;
+  action_label: string;
+  action_href: string;
+}
+
+/**
+ * Complete smart cart widget data for dashboard
+ */
+export interface SmartCartWidgetData {
+  active_list: ActiveListSummary | null;
+  inventory_alerts: InventoryAlerts;
+  suggested_action: SuggestedAction | null;
+}
