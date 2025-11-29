@@ -180,3 +180,98 @@ export interface AchievementCheckResponse {
   newly_earned: Achievement[];
   message: string;
 }
+
+// Challenge System Types (v1.2.0 Extended)
+
+/**
+ * Challenge type: weekly, monthly, or special events
+ */
+export type ChallengeType = "weekly" | "monthly" | "special";
+
+/**
+ * Challenge category: content-based grouping
+ */
+export type ChallengeCategory = "nutrition" | "sustainability" | "habits" | "recipes" | "milestones";
+
+/**
+ * Challenge criteria structure (stored as JSONB in database)
+ */
+export interface ChallengeCriteria {
+  metric: AchievementMetric | "nutrient_goal_days";
+  target: number;
+  period?: "week" | "month";
+}
+
+/**
+ * Challenge definition from challenges table
+ */
+export interface Challenge {
+  id: number;
+  name: string;
+  title: string;
+  description: string | null;
+  type: ChallengeType;
+  category: ChallengeCategory;
+  criteria: ChallengeCriteria;
+  reward_achievement_id: number | null;
+  start_date: string | null;
+  end_date: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+/**
+ * User's challenge participation from user_challenges table
+ */
+export interface UserChallenge {
+  id: number;
+  user_id: string;
+  challenge_id: number;
+  joined_at: string;
+  progress: ChallengeProgress | null;
+  completed_at: string | null;
+  challenge?: Challenge;
+}
+
+/**
+ * Challenge progress tracking
+ */
+export interface ChallengeProgress {
+  current: number;
+  target: number;
+}
+
+/**
+ * Challenge with user participation status (for API responses)
+ */
+export interface ChallengeWithStatus extends Challenge {
+  is_joined: boolean;
+  progress?: ChallengeProgress;
+  reward_achievement?: Achievement;
+  days_remaining?: number;
+}
+
+/**
+ * API response structure for GET /api/challenges
+ */
+export interface ChallengesResponse {
+  active: ChallengeWithStatus[];
+  joined: ChallengeWithStatus[];
+  completed: ChallengeWithStatus[];
+}
+
+/**
+ * API request structure for POST /api/challenges/join
+ */
+export interface ChallengeJoinRequest {
+  challenge_id: number;
+}
+
+/**
+ * API response structure for POST /api/challenges/join
+ */
+export interface ChallengeJoinResponse {
+  success: boolean;
+  user_challenge: UserChallenge;
+  message: string;
+}
