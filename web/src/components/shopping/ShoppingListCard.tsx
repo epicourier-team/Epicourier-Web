@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Trash2, Edit2, ShoppingBag, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import EditListModal from "./EditListModal";
+import DeleteListDialog from "./DeleteListDialog";
 
 import type { ShoppingList } from "@/types/data";
 
@@ -23,6 +25,8 @@ interface ShoppingListCardProps {
 export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardProps) {
   const { toast } = useToast();
   const [isHovered, setIsHovered] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const createdDate = new Date(list.created_at).toLocaleDateString("en-US", {
     year: "numeric",
@@ -31,11 +35,21 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
   });
 
   const handleClick = () => {
-    // TODO: Navigate to list detail page
+    // TODO: Navigate to list detail page (Issue #83)
     toast({
       title: "📝 List Details",
-      description: `Opening "${list.name}"...`,
+      description: `Opening "${list.name}"... (Coming in Issue #83)`,
     });
+  };
+
+  const handleEditSuccess = () => {
+    setIsEditModalOpen(false);
+    onUpdate();
+  };
+
+  const handleDeleteSuccess = () => {
+    setIsDeleteDialogOpen(false);
+    onUpdate();
   };
 
   return (
@@ -78,10 +92,7 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
           <button
             onClick={(e) => {
               e.stopPropagation();
-              toast({
-                title: "✏️ Edit",
-                description: "Edit functionality coming in Issue #82",
-              });
+              setIsEditModalOpen(true);
             }}
             className="brutalism-button-neutral flex-1 px-3 py-2 text-sm"
           >
@@ -90,10 +101,7 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
           <button
             onClick={(e) => {
               e.stopPropagation();
-              toast({
-                title: "🗑️ Delete",
-                description: "Delete functionality coming in Issue #82",
-              });
+              setIsDeleteDialogOpen(true);
             }}
             className="brutalism-button-neutral flex-1 px-3 py-2 text-sm"
           >
@@ -104,6 +112,22 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
 
       {/* Footer accent */}
       <div className="h-2 bg-emerald-400" />
+
+      {/* Edit Modal */}
+      <EditListModal
+        list={list}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSuccess={handleEditSuccess}
+      />
+
+      {/* Delete Dialog */}
+      <DeleteListDialog
+        list={list}
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onSuccess={handleDeleteSuccess}
+      />
     </div>
   );
 }
