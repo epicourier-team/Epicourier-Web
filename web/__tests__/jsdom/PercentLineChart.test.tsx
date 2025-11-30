@@ -27,7 +27,13 @@ jest.mock("recharts", () => ({
   CartesianGrid: ({ strokeDasharray }: { strokeDasharray: string }) => (
     <div data-testid="cartesian-grid" data-dasharray={strokeDasharray} />
   ),
-  Tooltip: ({ formatter, labelFormatter }: { formatter?: (v: number) => string; labelFormatter?: (label: string, payload: unknown[]) => string }) => {
+  Tooltip: ({
+    formatter,
+    labelFormatter,
+  }: {
+    formatter?: (v: number) => string;
+    labelFormatter?: (label: string, payload: unknown[]) => string;
+  }) => {
     const formattedValue = formatter?.(75);
     const formattedLabel = labelFormatter?.("label", []);
     return <div data-testid="tooltip" data-value={formattedValue} data-label={formattedLabel} />;
@@ -369,9 +375,7 @@ describe("PercentLineChart", () => {
     });
 
     it("handles zero values in data", () => {
-      const zeroData: TrendPoint[] = [
-        { label: "Mon", calories: 0, protein: 0, carbs: 0, fats: 0 },
-      ];
+      const zeroData: TrendPoint[] = [{ label: "Mon", calories: 0, protein: 0, carbs: 0, fats: 0 }];
 
       render(
         <PercentLineChart

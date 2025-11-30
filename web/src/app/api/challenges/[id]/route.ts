@@ -4,12 +4,7 @@ import { getUserIdentity } from "@/lib/auth";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
-import type {
-  Challenge,
-  ChallengeWithStatus,
-  ChallengeProgress,
-  Achievement,
-} from "@/types/data";
+import type { Challenge, ChallengeWithStatus, ChallengeProgress, Achievement } from "@/types/data";
 
 type CalendarMealWithTags = {
   date: string | null;
@@ -26,10 +21,7 @@ type CalendarMealWithTags = {
  * Returns detailed information about a specific challenge
  * including user progress and status.
  */
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
   let publicUserId: number;
   let authUserId: string;
@@ -159,9 +151,7 @@ async function calculateUserStats(
         meal.Recipe?.["Recipe-Tag_Map"]?.some((tm) => {
           const tagName = tm.Tag?.name?.toLowerCase() || "";
           return (
-            tagName.includes("sustainable") ||
-            tagName.includes("green") ||
-            tagName.includes("eco")
+            tagName.includes("sustainable") || tagName.includes("green") || tagName.includes("eco")
           );
         });
 
@@ -172,8 +162,7 @@ async function calculateUserStats(
         (meal) => meal.date && new Date(meal.date) >= startOfWeek
       ).length;
       stats.weekly_green_recipes = mealsTyped.filter(
-        (meal) =>
-          meal.date && new Date(meal.date) >= startOfWeek && isGreenMeal(meal)
+        (meal) => meal.date && new Date(meal.date) >= startOfWeek && isGreenMeal(meal)
       ).length;
 
       // Monthly stats
@@ -181,8 +170,7 @@ async function calculateUserStats(
         (meal) => meal.date && new Date(meal.date) >= startOfMonth
       ).length;
       stats.monthly_green_recipes = mealsTyped.filter(
-        (meal) =>
-          meal.date && new Date(meal.date) >= startOfMonth && isGreenMeal(meal)
+        (meal) => meal.date && new Date(meal.date) >= startOfMonth && isGreenMeal(meal)
       ).length;
     }
 
@@ -219,10 +207,7 @@ async function calculateUserStats(
   return stats;
 }
 
-function calculateProgress(
-  challenge: Challenge,
-  stats: Record<string, number>
-): ChallengeProgress {
+function calculateProgress(challenge: Challenge, stats: Record<string, number>): ChallengeProgress {
   const { criteria } = challenge;
   const period = criteria.period;
   let current = 0;
@@ -292,9 +277,7 @@ function calculateDaysRemaining(challenge: Challenge): number {
 function calculateStreak(dates: string[]): number {
   if (dates.length === 0) return 0;
 
-  const sortedDates = dates
-    .map((d) => new Date(d))
-    .sort((a, b) => b.getTime() - a.getTime());
+  const sortedDates = dates.map((d) => new Date(d)).sort((a, b) => b.getTime() - a.getTime());
 
   let streak = 1;
   const today = new Date();
@@ -314,9 +297,7 @@ function calculateStreak(dates: string[]): number {
     current.setHours(0, 0, 0, 0);
     previous.setHours(0, 0, 0, 0);
 
-    const dayDiff = Math.floor(
-      (previous.getTime() - current.getTime()) / (1000 * 60 * 60 * 24)
-    );
+    const dayDiff = Math.floor((previous.getTime() - current.getTime()) / (1000 * 60 * 60 * 24));
     if (dayDiff === 1) {
       streak++;
     } else {

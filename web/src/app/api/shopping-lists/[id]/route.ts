@@ -26,18 +26,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   // Fetch the shopping list with items
   const { data: list, error } = await supabase
     .from("shopping_lists")
-    .select(`
+    .select(
+      `
       *,
       shopping_list_items (
         *,
         Ingredient:ingredient_id (
           id,
           name,
-          aisle,
           unit
         )
       )
-    `)
+    `
+    )
     .eq("id", id)
     .eq("user_id", user.id)
     .single();

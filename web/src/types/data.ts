@@ -8,7 +8,9 @@ export type RecipeTagMap = Database["public"]["Tables"]["Recipe-Tag_Map"]["Row"]
 
 export type RecipeDetail = {
   recipe: Recipe;
-  ingredients: (Pick<RecipeIngredientMap, "relative_unit_100"> & { ingredient: Ingredient })[];
+  ingredients: (Pick<RecipeIngredientMap, "id" | "relative_unit_100"> & {
+    ingredient: Ingredient;
+  })[];
   tags: { tag: Tag }[];
   sumNutrients: Pick<
     Ingredient,
@@ -191,7 +193,12 @@ export type ChallengeType = "weekly" | "monthly" | "special";
 /**
  * Challenge category: content-based grouping
  */
-export type ChallengeCategory = "nutrition" | "sustainability" | "habits" | "recipes" | "milestones";
+export type ChallengeCategory =
+  | "nutrition"
+  | "sustainability"
+  | "habits"
+  | "recipes"
+  | "milestones";
 
 /**
  * Challenge criteria structure (stored as JSONB in database)

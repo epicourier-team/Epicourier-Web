@@ -149,7 +149,9 @@ export async function POST(request: Request) {
       sendMultipleAchievementNotifications(authUserId, newlyEarned)
         .then(({ sent, failed }) => {
           if (sent > 0) {
-            console.log(`Push notifications sent for ${newlyEarned.length} achievements: ${sent} succeeded, ${failed} failed`);
+            console.log(
+              `Push notifications sent for ${newlyEarned.length} achievements: ${sent} succeeded, ${failed} failed`
+            );
           }
         })
         .catch((err) => {

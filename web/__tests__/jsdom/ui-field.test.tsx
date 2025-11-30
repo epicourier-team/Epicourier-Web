@@ -194,9 +194,7 @@ describe("Field Components", () => {
     });
 
     it("filters out duplicate errors", () => {
-      render(
-        <FieldError errors={[{ message: "Same error" }, { message: "Same error" }]} />
-      );
+      render(<FieldError errors={[{ message: "Same error" }, { message: "Same error" }]} />);
       // Should only render once since it's a single unique error
       expect(screen.getByText("Same error")).toBeInTheDocument();
     });

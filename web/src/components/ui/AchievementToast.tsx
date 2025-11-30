@@ -82,11 +82,7 @@ const tierStyles: Record<
  * - Auto-dismiss with configurable duration
  * - Neo-brutalism design consistent with app styling
  */
-export function AchievementToast({
-  achievement,
-  onClose,
-  duration = 5000,
-}: AchievementToastProps) {
+export function AchievementToast({ achievement, onClose, duration = 5000 }: AchievementToastProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -144,21 +140,13 @@ export function AchievementToast({
 
   return (
     <div
-      className={`
-        fixed top-4 right-4 z-[200] w-[380px] max-w-[calc(100vw-2rem)]
-        transform transition-all duration-300 ease-out
-        ${isVisible && !isExiting ? "translate-x-0 scale-100 opacity-100" : "translate-x-full scale-95 opacity-0"}
-      `}
+      className={`fixed top-4 right-4 z-[200] w-[380px] max-w-[calc(100vw-2rem)] transform transition-all duration-300 ease-out ${isVisible && !isExiting ? "translate-x-0 scale-100 opacity-100" : "translate-x-full scale-95 opacity-0"} `}
       role="alert"
       aria-live="polite"
     >
       {/* Main toast container */}
       <div
-        className={`
-          relative overflow-hidden border-2 border-black
-          ${styles.bg}
-          shadow-[6px_6px_0_0_rgba(0,0,0,1)]
-        `}
+        className={`relative overflow-hidden border-2 border-black ${styles.bg} shadow-[6px_6px_0_0_rgba(0,0,0,1)]`}
       >
         {/* Top accent bar with tier color */}
         <div className={`h-2 ${styles.accent}`} />
@@ -182,7 +170,7 @@ export function AchievementToast({
           {/* Header with celebration text */}
           <div className="mb-3 flex items-center gap-2">
             <span className="animate-bounce text-2xl">🎉</span>
-            <span className="text-sm font-bold uppercase tracking-wide text-gray-600">
+            <span className="text-sm font-bold tracking-wide text-gray-600 uppercase">
               Achievement Unlocked!
             </span>
           </div>
@@ -191,11 +179,7 @@ export function AchievementToast({
           <div className="flex items-start gap-4">
             {/* Icon */}
             <div
-              className={`
-                flex size-16 shrink-0 items-center justify-center
-                border-2 border-black ${styles.bg}
-                animate-achievement-pop
-              `}
+              className={`flex size-16 shrink-0 items-center justify-center border-2 border-black ${styles.bg} animate-achievement-pop`}
             >
               {renderIcon()}
             </div>
@@ -207,11 +191,7 @@ export function AchievementToast({
 
               {/* Tier badge */}
               <div
-                className={`
-                  mt-2 inline-block border-2 border-black px-2 py-0.5
-                  text-xs font-bold uppercase
-                  ${styles.bg} ${styles.border}
-                `}
+                className={`mt-2 inline-block border-2 border-black px-2 py-0.5 text-xs font-bold uppercase ${styles.bg} ${styles.border} `}
               >
                 {tier}
               </div>
@@ -242,10 +222,7 @@ function Sparkles({ tier }: { tier: BadgeTier }) {
       {[...Array(8)].map((_, i) => (
         <div
           key={i}
-          className={`
-            absolute size-2 rounded-full ${color}
-            animate-sparkle opacity-0
-          `}
+          className={`absolute size-2 rounded-full ${color} animate-sparkle opacity-0`}
           style={{
             left: `${10 + Math.random() * 80}%`,
             top: `${10 + Math.random() * 80}%`,

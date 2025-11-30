@@ -68,15 +68,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         position: newPosition,
         is_checked: false,
       })
-      .select(`
+      .select(
+        `
         *,
         Ingredient:ingredient_id (
           id,
           name,
-          aisle,
           unit
         )
-      `)
+      `
+      )
       .single();
 
     if (error) {

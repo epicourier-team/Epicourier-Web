@@ -74,9 +74,9 @@ describe("GET /api/nutrients/goals", () => {
 
   it("returns 500 when database fetch fails", async () => {
     // Lines 82-83: error fetching goals
-    const mockMaybeSingle = jest.fn().mockResolvedValue({ 
-      data: null, 
-      error: { message: "DB error" } 
+    const mockMaybeSingle = jest.fn().mockResolvedValue({
+      data: null,
+      error: { message: "DB error" },
     });
     const query = {
       select: jest.fn().mockReturnThis(),
@@ -169,9 +169,9 @@ describe("PUT /api/nutrients/goals", () => {
 
   it("returns 500 when fetch existing goal fails", async () => {
     // Lines 119-120: fetchError handling
-    const fetchMaybeSingle = jest.fn().mockResolvedValue({ 
-      data: null, 
-      error: { message: "Fetch error" } 
+    const fetchMaybeSingle = jest.fn().mockResolvedValue({
+      data: null,
+      error: { message: "Fetch error" },
     });
     const fetchQuery = {
       select: jest.fn().mockReturnThis(),
@@ -196,9 +196,9 @@ describe("PUT /api/nutrients/goals", () => {
       maybeSingle: fetchMaybeSingle,
     };
 
-    const upsertSingle = jest.fn().mockResolvedValue({ 
-      data: null, 
-      error: { message: "Upsert error" } 
+    const upsertSingle = jest.fn().mockResolvedValue({
+      data: null,
+      error: { message: "Upsert error" },
     });
     const upsertSelect = jest.fn().mockReturnValue({ single: upsertSingle });
     const upsert = jest.fn().mockReturnValue({ select: upsertSelect });

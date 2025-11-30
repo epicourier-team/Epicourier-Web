@@ -23,32 +23,30 @@ export default function SettingsPage() {
   }, []);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage your account and preferences
-        </p>
+        <p className="text-muted-foreground mt-1">Manage your account and preferences</p>
       </div>
 
       {/* Settings Sections */}
       <div className="space-y-4">
         {/* Notifications Section */}
-        <section className="border rounded-xl overflow-hidden bg-card">
-          <div className="flex items-center gap-3 p-4 border-b bg-muted/30">
-            <Bell className="w-5 h-5 text-primary" />
+        <section className="bg-card overflow-hidden rounded-xl border">
+          <div className="bg-muted/30 flex items-center gap-3 border-b p-4">
+            <Bell className="text-primary h-5 w-5" />
             <h2 className="font-semibold">Notifications</h2>
           </div>
 
-          <div className="p-4 space-y-4">
+          <div className="space-y-4 p-4">
             {mounted && isSupported ? (
               <>
                 <NotificationPrompt compact className="py-2" />
 
                 {/* Additional notification preferences */}
-                <div className="pt-4 border-t">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3">
+                <div className="border-t pt-4">
+                  <h3 className="text-muted-foreground mb-3 text-sm font-medium">
                     Notification Types
                   </h3>
                   <div className="space-y-3">
@@ -76,7 +74,7 @@ export default function SettingsPage() {
                 </div>
               </>
             ) : (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 Push notifications are not supported in this browser.
               </p>
             )}
@@ -84,11 +82,11 @@ export default function SettingsPage() {
         </section>
 
         {/* Account Section (Coming Soon) */}
-        <section className="border rounded-xl overflow-hidden bg-card opacity-60">
-          <div className="flex items-center gap-3 p-4 border-b bg-muted/30">
-            <User className="w-5 h-5 text-primary" />
+        <section className="bg-card overflow-hidden rounded-xl border opacity-60">
+          <div className="bg-muted/30 flex items-center gap-3 border-b p-4">
+            <User className="text-primary h-5 w-5" />
             <h2 className="font-semibold">Account</h2>
-            <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+            <span className="bg-muted text-muted-foreground ml-auto rounded-full px-2 py-0.5 text-xs">
               Coming Soon
             </span>
           </div>
@@ -108,30 +106,26 @@ export default function SettingsPage() {
         </section>
 
         {/* Appearance Section (Coming Soon) */}
-        <section className="border rounded-xl overflow-hidden bg-card opacity-60">
-          <div className="flex items-center gap-3 p-4 border-b bg-muted/30">
-            <Palette className="w-5 h-5 text-primary" />
+        <section className="bg-card overflow-hidden rounded-xl border opacity-60">
+          <div className="bg-muted/30 flex items-center gap-3 border-b p-4">
+            <Palette className="text-primary h-5 w-5" />
             <h2 className="font-semibold">Appearance</h2>
-            <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+            <span className="bg-muted text-muted-foreground ml-auto rounded-full px-2 py-0.5 text-xs">
               Coming Soon
             </span>
           </div>
 
           <div className="p-4">
-            <SettingRow
-              label="Theme"
-              description="Choose light, dark, or system theme"
-              disabled
-            />
+            <SettingRow label="Theme" description="Choose light, dark, or system theme" disabled />
           </div>
         </section>
 
         {/* Privacy Section (Coming Soon) */}
-        <section className="border rounded-xl overflow-hidden bg-card opacity-60">
-          <div className="flex items-center gap-3 p-4 border-b bg-muted/30">
-            <Shield className="w-5 h-5 text-primary" />
+        <section className="bg-card overflow-hidden rounded-xl border opacity-60">
+          <div className="bg-muted/30 flex items-center gap-3 border-b p-4">
+            <Shield className="text-primary h-5 w-5" />
             <h2 className="font-semibold">Privacy</h2>
-            <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+            <span className="bg-muted text-muted-foreground ml-auto rounded-full px-2 py-0.5 text-xs">
               Coming Soon
             </span>
           </div>
@@ -142,11 +136,7 @@ export default function SettingsPage() {
               description="Manage your data and privacy preferences"
               disabled
             />
-            <SettingRow
-              label="Export Data"
-              description="Download a copy of your data"
-              disabled
-            />
+            <SettingRow label="Export Data" description="Download a copy of your data" disabled />
           </div>
         </section>
       </div>
@@ -176,21 +166,21 @@ function NotificationToggle({
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium">{label}</p>
           {comingSoon && (
-            <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+            <span className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs">
               Soon
             </span>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <p className="text-muted-foreground text-xs">{description}</p>
       </div>
       <button
         disabled={disabled}
-        className={`relative w-11 h-6 rounded-full transition-colors ${
+        className={`relative h-6 w-11 rounded-full transition-colors ${
           enabled ? "bg-primary" : "bg-muted"
         } disabled:cursor-not-allowed`}
       >
         <span
-          className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
+          className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-transform ${
             enabled ? "left-6" : "left-1"
           }`}
         />
@@ -214,15 +204,15 @@ function SettingRow({
   return (
     <button
       disabled={disabled}
-      className={`w-full flex items-center justify-between gap-4 py-3 text-left ${
+      className={`flex w-full items-center justify-between gap-4 py-3 text-left ${
         disabled ? "cursor-not-allowed" : "hover:bg-muted/50"
-      } -mx-2 px-2 rounded-lg transition-colors`}
+      } -mx-2 rounded-lg px-2 transition-colors`}
     >
       <div>
         <p className="text-sm font-medium">{label}</p>
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <p className="text-muted-foreground text-xs">{description}</p>
       </div>
-      <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+      <ChevronRight className="text-muted-foreground h-4 w-4 flex-shrink-0" />
     </button>
   );
 }

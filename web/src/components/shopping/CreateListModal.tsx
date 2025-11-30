@@ -20,7 +20,7 @@ interface CreateListModalProps {
 
 /**
  * Modal for creating a new shopping list
- * 
+ *
  * Features:
  * - Name input (required)
  * - Description input (optional)

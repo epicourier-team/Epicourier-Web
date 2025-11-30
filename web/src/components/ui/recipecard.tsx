@@ -16,7 +16,8 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
   // Color coding based on match percentage
   const getMatchColor = (percentage: number) => {
     if (percentage >= 80) return { bg: "bg-green-300", icon: CheckCircle2, text: "High Match" };
-    if (percentage >= 50) return { bg: "bg-yellow-300", icon: AlertTriangle, text: "Partial Match" };
+    if (percentage >= 50)
+      return { bg: "bg-yellow-300", icon: AlertTriangle, text: "Partial Match" };
     return { bg: "bg-red-300", icon: XCircle, text: "Low Match" };
   };
 
@@ -37,7 +38,7 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
             />
             {/* Match percentage badge */}
             <div
-              className={`brutalism-border absolute right-2 top-2 ${matchInfo.bg} flex items-center gap-1 px-2 py-1 text-xs font-bold`}
+              className={`brutalism-border absolute top-2 right-2 ${matchInfo.bg} flex items-center gap-1 px-2 py-1 text-xs font-bold`}
               title={`${matchInfo.text}: ${missingCount} ingredient(s) needed`}
             >
               <MatchIcon className="h-3 w-3" />

@@ -6,6 +6,7 @@ import AddToShoppingListModal from "@/components/shopping/AddToShoppingListModal
 
 interface Ingredient {
   id: number;
+  ingredientId: number;
   name: string;
   unit?: string | null;
   quantity?: number;
@@ -22,6 +23,7 @@ export default function AddToCartButton({ ingredients, recipeName }: AddToCartBu
   // Transform ingredients to the format expected by the modal
   const formattedIngredients = ingredients.map((i) => ({
     id: i.id,
+    ingredientId: i.ingredientId,
     name: i.name,
     unit: i.unit ?? undefined,
     quantity: i.quantity ?? 1,

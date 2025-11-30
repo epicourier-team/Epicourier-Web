@@ -215,7 +215,10 @@ describe("Challenges API", () => {
         .mockImplementationOnce(() =>
           calendarMealsChain([
             { date: "2024-01-14", Recipe: { "Recipe-Tag_Map": [{ Tag: { name: "green" } }] } },
-            { date: "2024-01-15", Recipe: { "Recipe-Tag_Map": [{ Tag: { name: "sustainable" } }] } },
+            {
+              date: "2024-01-15",
+              Recipe: { "Recipe-Tag_Map": [{ Tag: { name: "sustainable" } }] },
+            },
           ])
         )
         .mockImplementationOnce(() => calendarDatesChain(["2024-01-14", "2024-01-15"]))
@@ -428,7 +431,9 @@ describe("Challenges API", () => {
         .mockImplementationOnce(() => ({
           insert: jest.fn().mockReturnValue({
             select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({ data: null, error: new Error("Insert failed") }),
+              single: jest
+                .fn()
+                .mockResolvedValue({ data: null, error: new Error("Insert failed") }),
             }),
           }),
         }));
@@ -447,10 +452,9 @@ describe("Challenges API", () => {
     it("returns 401 when auth fails", async () => {
       (getUserIdentity as jest.Mock).mockRejectedValue(new Error("Unauthorized"));
 
-      const res = await GET_BY_ID(
-        new Request("http://localhost/api/challenges/1"),
-        { params: createParams("1") }
-      );
+      const res = await GET_BY_ID(new Request("http://localhost/api/challenges/1"), {
+        params: createParams("1"),
+      });
       const json = await res.json();
 
       expect(res.status).toBe(401);
@@ -458,10 +462,9 @@ describe("Challenges API", () => {
     });
 
     it("returns 400 for invalid ID", async () => {
-      const res = await GET_BY_ID(
-        new Request("http://localhost/api/challenges/abc"),
-        { params: createParams("abc") }
-      );
+      const res = await GET_BY_ID(new Request("http://localhost/api/challenges/abc"), {
+        params: createParams("abc"),
+      });
       const json = await res.json();
 
       expect(res.status).toBe(400);
@@ -478,10 +481,9 @@ describe("Challenges API", () => {
         }),
       }));
 
-      const res = await GET_BY_ID(
-        new Request("http://localhost/api/challenges/999"),
-        { params: createParams("999") }
-      );
+      const res = await GET_BY_ID(new Request("http://localhost/api/challenges/999"), {
+        params: createParams("999"),
+      });
       const json = await res.json();
 
       expect(res.status).toBe(404);
@@ -508,10 +510,9 @@ describe("Challenges API", () => {
         // nutrient_tracking
         .mockImplementationOnce(() => nutrientTrackingChain([]));
 
-      const res = await GET_BY_ID(
-        new Request("http://localhost/api/challenges/1"),
-        { params: createParams("1") }
-      );
+      const res = await GET_BY_ID(new Request("http://localhost/api/challenges/1"), {
+        params: createParams("1"),
+      });
       const json = await res.json();
 
       expect(res.status).toBe(200);
@@ -540,10 +541,9 @@ describe("Challenges API", () => {
         .mockImplementationOnce(() => calendarDatesChain([]))
         .mockImplementationOnce(() => nutrientTrackingChain([]));
 
-      const res = await GET_BY_ID(
-        new Request("http://localhost/api/challenges/1"),
-        { params: createParams("1") }
-      );
+      const res = await GET_BY_ID(new Request("http://localhost/api/challenges/1"), {
+        params: createParams("1"),
+      });
       const json = await res.json();
 
       expect(res.status).toBe(200);
@@ -640,7 +640,9 @@ describe("Challenges API", () => {
 
       (supabase.from as jest.Mock)
         .mockImplementationOnce(() => challengesChain([monthlyChallenge]))
-        .mockImplementationOnce(() => userChallengesChain([{ ...mockUserChallenge, challenge_id: 2 }]))
+        .mockImplementationOnce(() =>
+          userChallengesChain([{ ...mockUserChallenge, challenge_id: 2 }])
+        )
         .mockImplementationOnce(() => achievementDefinitionsChain([]))
         .mockImplementationOnce(() => ({
           select: jest.fn().mockReturnValue({
@@ -674,7 +676,9 @@ describe("Challenges API", () => {
 
       (supabase.from as jest.Mock)
         .mockImplementationOnce(() => challengesChain([streakChallenge]))
-        .mockImplementationOnce(() => userChallengesChain([{ ...mockUserChallenge, challenge_id: 3 }]))
+        .mockImplementationOnce(() =>
+          userChallengesChain([{ ...mockUserChallenge, challenge_id: 3 }])
+        )
         .mockImplementationOnce(() => achievementDefinitionsChain([]))
         .mockImplementationOnce(() => ({
           select: jest.fn().mockReturnValue({
@@ -684,7 +688,9 @@ describe("Challenges API", () => {
           }),
         }))
         .mockImplementationOnce(() => calendarMealsChain([]))
-        .mockImplementationOnce(() => calendarDatesChain(["2024-01-12", "2024-01-13", "2024-01-14", "2024-01-15"]))
+        .mockImplementationOnce(() =>
+          calendarDatesChain(["2024-01-12", "2024-01-13", "2024-01-14", "2024-01-15"])
+        )
         .mockImplementationOnce(() => nutrientTrackingChain([]));
 
       const res = await GET();
@@ -711,21 +717,23 @@ describe("Challenges API", () => {
       // Helper function to create Calendar mock
       const createCalendarMock = (meals: unknown[], count: number) => {
         return {
-          select: jest.fn().mockImplementation((_query: string, opts?: { count?: string; head?: boolean }) => {
-            const isCountQuery = opts?.count === "exact" && opts?.head === true;
-            if (isCountQuery) {
+          select: jest
+            .fn()
+            .mockImplementation((_query: string, opts?: { count?: string; head?: boolean }) => {
+              const isCountQuery = opts?.count === "exact" && opts?.head === true;
+              if (isCountQuery) {
+                return {
+                  eq: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockResolvedValue({ count, error: null }),
+                  }),
+                };
+              }
               return {
                 eq: jest.fn().mockReturnValue({
-                  eq: jest.fn().mockResolvedValue({ count, error: null }),
+                  eq: jest.fn().mockResolvedValue({ data: meals, error: null }),
                 }),
               };
-            }
-            return {
-              eq: jest.fn().mockReturnValue({
-                eq: jest.fn().mockResolvedValue({ data: meals, error: null }),
-              }),
-            };
-          }),
+            }),
         };
       };
 
@@ -805,9 +813,7 @@ describe("Challenges API", () => {
 
     it("handles meals without Recipe data", async () => {
       const supabase = await createClient();
-      const mealsWithNoRecipe = [
-        { date: "2024-01-15", Recipe: null },
-      ];
+      const mealsWithNoRecipe = [{ date: "2024-01-15", Recipe: null }];
 
       (supabase.from as jest.Mock)
         .mockImplementationOnce(() => challengesChain([mockChallenge]))

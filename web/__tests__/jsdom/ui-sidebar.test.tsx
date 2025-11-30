@@ -154,7 +154,7 @@ describe("Sidebar Components", () => {
 
     // Initial state should be open
     const trigger = screen.getByRole("button", { name: /toggle sidebar/i });
-    
+
     // Toggle to close - this uses the internal _setOpen (line 75)
     fireEvent.click(trigger);
     expect(document.cookie).toContain("sidebar_state=false");
@@ -246,7 +246,9 @@ describe("Sidebar Components", () => {
   test("SidebarMenuButton with object tooltip wraps in Tooltip", () => {
     render(
       <SidebarProvider>
-        <SidebarMenuButton tooltip={{ children: "Object Tooltip" }}>With Object Tooltip</SidebarMenuButton>
+        <SidebarMenuButton tooltip={{ children: "Object Tooltip" }}>
+          With Object Tooltip
+        </SidebarMenuButton>
       </SidebarProvider>
     );
     expect(screen.getByRole("button", { name: /with object tooltip/i })).toBeInTheDocument();

@@ -44,7 +44,6 @@ interface ShoppingListItem {
   Ingredient?: {
     id: number;
     name: string;
-    aisle: string | null;
     unit: string | null;
   } | null;
 }
@@ -249,7 +248,10 @@ export default function ShoppingListDetailPage() {
       text += `📦 ${category}\n`;
       for (const item of items) {
         const checkbox = item.is_checked ? "✓" : "○";
-        const quantity = item.quantity > 1 || item.unit ? ` (${item.quantity}${item.unit ? " " + item.unit : ""})` : "";
+        const quantity =
+          item.quantity > 1 || item.unit
+            ? ` (${item.quantity}${item.unit ? " " + item.unit : ""})`
+            : "";
         text += `  ${checkbox} ${item.item_name}${quantity}\n`;
       }
       text += `\n`;
@@ -359,10 +361,10 @@ export default function ShoppingListDetailPage() {
   if (error || !list) {
     return (
       <div className="flex min-h-[400px] items-center justify-center p-4">
-        <div className="rounded-xl border bg-card p-6 text-center max-w-md">
-          <p className="font-bold mb-2 text-red-600">Error</p>
-          <p className="text-sm text-muted-foreground">{error || "List not found"}</p>
-          <div className="mt-4 flex gap-2 justify-center">
+        <div className="bg-card max-w-md rounded-xl border p-6 text-center">
+          <p className="mb-2 font-bold text-red-600">Error</p>
+          <p className="text-muted-foreground text-sm">{error || "List not found"}</p>
+          <div className="mt-4 flex justify-center gap-2">
             <Button variant="outline" onClick={() => router.push("/dashboard/shopping")}>
               Back to Lists
             </Button>
@@ -377,20 +379,20 @@ export default function ShoppingListDetailPage() {
   const { groups, sortedCategories } = groupItemsByCategory(list.shopping_list_items);
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
+    <div className="mx-auto max-w-3xl space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
           <Link
             href="/dashboard/shopping"
-            className="mt-1 p-2 rounded-lg hover:bg-muted transition-colors"
+            className="hover:bg-muted mt-1 rounded-lg p-2 transition-colors"
           >
             <ArrowLeft className="size-5" />
           </Link>
           <div>
             <h1 className="text-2xl font-bold">{list.name}</h1>
             {list.description && (
-              <p className="text-muted-foreground text-sm mt-1">{list.description}</p>
+              <p className="text-muted-foreground mt-1 text-sm">{list.description}</p>
             )}
           </div>
         </div>
@@ -417,16 +419,16 @@ export default function ShoppingListDetailPage() {
       </div>
 
       {/* Progress */}
-      <div className="rounded-xl border bg-card p-4 shadow-sm">
-        <div className="flex items-center justify-between mb-2">
+      <div className="bg-card rounded-xl border p-4 shadow-sm">
+        <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-medium">
             {progress.checked} of {progress.total} items checked
           </span>
           <span className="text-sm font-bold text-emerald-600">{progress.percentage}%</span>
         </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
+        <div className="bg-muted h-2 overflow-hidden rounded-full">
           <div
-            className="h-full bg-emerald-500 rounded-full transition-all"
+            className="h-full rounded-full bg-emerald-500 transition-all"
             style={{ width: `${progress.percentage}%` }}
           />
         </div>
@@ -449,49 +451,49 @@ export default function ShoppingListDetailPage() {
 
       {/* Items List */}
       {list.shopping_list_items.length === 0 ? (
-        <div className="rounded-xl border bg-card p-12 text-center">
-          <ShoppingCart className="mx-auto size-12 text-muted-foreground/50" />
-          <h3 className="mt-4 font-semibold text-lg">No items yet</h3>
-          <p className="mt-2 text-muted-foreground text-sm">
+        <div className="bg-card rounded-xl border p-12 text-center">
+          <ShoppingCart className="text-muted-foreground/50 mx-auto size-12" />
+          <h3 className="mt-4 text-lg font-semibold">No items yet</h3>
+          <p className="text-muted-foreground mt-2 text-sm">
             Add items to your shopping list above
           </p>
         </div>
       ) : (
         <div className="space-y-4">
           {sortedCategories.map((category) => (
-            <div key={category} className="rounded-xl border bg-card shadow-sm overflow-hidden">
-              <div className="px-4 py-2 bg-muted/50 border-b">
-                <h3 className="font-semibold text-sm">{category}</h3>
+            <div key={category} className="bg-card overflow-hidden rounded-xl border shadow-sm">
+              <div className="bg-muted/50 border-b px-4 py-2">
+                <h3 className="text-sm font-semibold">{category}</h3>
               </div>
               <div className="divide-y">
                 {groups[category].map((item) => (
                   <div
                     key={item.id}
-                    className={`flex items-center gap-3 p-3 hover:bg-muted/30 transition-colors ${
+                    className={`hover:bg-muted/30 flex items-center gap-3 p-3 transition-colors ${
                       item.is_checked ? "opacity-60" : ""
                     }`}
                   >
                     <button
                       onClick={() => handleToggleItem(item)}
-                      className="flex-shrink-0 p-1 rounded hover:bg-muted transition-colors"
+                      className="hover:bg-muted flex-shrink-0 rounded p-1 transition-colors"
                     >
                       {item.is_checked ? (
                         <CheckSquare className="size-5 text-emerald-500" />
                       ) : (
-                        <Square className="size-5 text-muted-foreground" />
+                        <Square className="text-muted-foreground size-5" />
                       )}
                     </button>
 
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p
-                        className={`font-medium truncate ${
-                          item.is_checked ? "line-through text-muted-foreground" : ""
+                        className={`truncate font-medium ${
+                          item.is_checked ? "text-muted-foreground line-through" : ""
                         }`}
                       >
                         {item.item_name}
                       </p>
                       {(item.quantity > 1 || item.unit) && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-muted-foreground text-xs">
                           {item.quantity} {item.unit || ""}
                         </p>
                       )}

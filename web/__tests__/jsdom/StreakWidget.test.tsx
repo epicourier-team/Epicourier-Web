@@ -388,7 +388,9 @@ describe("StreakWidget", () => {
       render(<StreakWidget />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Amazing dedication! You've built lasting habits!/)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Amazing dedication! You've built lasting habits!/)
+        ).toBeInTheDocument();
       });
     });
 

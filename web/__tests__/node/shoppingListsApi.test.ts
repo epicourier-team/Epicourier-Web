@@ -142,9 +142,7 @@ describe("Shopping Lists API", () => {
         },
         {
           ...createMockShoppingList({ id: "list-2", name: "Party", is_archived: true }),
-          shopping_list_items: [
-            { id: "item-3", is_checked: false },
-          ],
+          shopping_list_items: [{ id: "item-3", is_checked: false }],
         },
       ];
 
@@ -310,9 +308,9 @@ describe("Shopping Lists API", () => {
           select: jest.fn().mockReturnValue({
             eq: jest.fn().mockReturnValue({
               eq: jest.fn().mockReturnValue({
-                single: jest.fn().mockResolvedValue({ 
-                  data: null, 
-                  error: { code: "PGRST116", message: "not found" } 
+                single: jest.fn().mockResolvedValue({
+                  data: null,
+                  error: { code: "PGRST116", message: "not found" },
                 }),
               }),
             }),

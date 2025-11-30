@@ -49,7 +49,7 @@ describe("Button", () => {
         <a href="/test">Link as button</a>
       </Button>
     );
-    
+
     const link = screen.getByRole("link", { name: "Link as button" });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute("href", "/test");
@@ -69,7 +69,7 @@ describe("Button", () => {
   it("exports buttonVariants for external use", () => {
     expect(buttonVariants).toBeDefined();
     expect(typeof buttonVariants).toBe("function");
-    
+
     const classes = buttonVariants({ variant: "default", size: "default" });
     expect(classes).toContain("bg-primary");
   });

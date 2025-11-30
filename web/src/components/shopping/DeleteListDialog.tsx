@@ -25,7 +25,7 @@ interface DeleteListDialogProps {
 
 /**
  * Confirmation dialog for deleting a shopping list
- * 
+ *
  * Features:
  * - Confirmation prompt
  * - Archive (soft delete) functionality
