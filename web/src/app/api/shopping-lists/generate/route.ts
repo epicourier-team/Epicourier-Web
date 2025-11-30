@@ -35,6 +35,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "startDate and endDate are required" }, { status: 400 });
     }
 
+    // Get user's integer ID from User table (Calendar uses bigint user_id)
+    const { data: userRecord, error: userError } = await supabase
+      .from("User")
+      .select("id")
+      .eq("auth_id", user.id)
+      .single();
+
+    if (userError || !userRecord) {
+      console.error("Error fetching user record:", userError);
+      return NextResponse.json({ error: "User profile not found" }, { status: 404 });
+    }
+
+    const userId = userRecord.id;
+
     // Fetch calendar entries within the date range
     let calendarQuery = supabase
       .from("Calendar")
@@ -49,7 +63,7 @@ export async function POST(req: Request) {
         )
       `
       )
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .gte("date", startDate)
       .lte("date", endDate)
       .not("recipe_id", "is", null);
