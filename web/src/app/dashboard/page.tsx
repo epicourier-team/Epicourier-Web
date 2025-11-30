@@ -3,16 +3,17 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { StreakWidget } from "@/components/ui/StreakWidget";
+import { SmartCartWidget } from "@/components/ui/SmartCartWidget";
 import {
   Calendar,
   Trophy,
   ChefHat,
-  TrendingUp,
   Target,
-  Flame,
   ArrowRight,
   CheckCircle2,
   Clock,
+  ShoppingCart,
+  Package,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -321,10 +322,13 @@ export default function DashboardPage() {
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Streak Widget - Left Column */}
-        <div className="lg:col-span-1">
-          <div className="bg-card h-full rounded-xl border p-5 shadow-sm">
+        {/* Left Column - Streak Widget and Smart Cart Widget */}
+        <div className="space-y-6 lg:col-span-1">
+          <div className="bg-card rounded-xl border p-5 shadow-sm">
             <StreakWidget variant="full" title="Your Streaks" />
+          </div>
+          <div className="bg-card rounded-xl border p-5 shadow-sm">
+            <SmartCartWidget title="Smart Cart" />
           </div>
         </div>
 
@@ -488,7 +492,7 @@ export default function DashboardPage() {
       {/* Quick Actions Footer */}
       <div className="bg-card rounded-xl border p-5 shadow-sm">
         <h3 className="mb-4 font-semibold">Quick Actions</h3>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <Link
             href="/dashboard/calendar"
             className="flex flex-col items-center gap-2 rounded-lg bg-blue-50 p-4 transition-colors hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/40"
@@ -502,6 +506,20 @@ export default function DashboardPage() {
           >
             <ChefHat className="h-6 w-6 text-green-600 dark:text-green-400" />
             <span className="text-sm font-medium">Browse Recipes</span>
+          </Link>
+          <Link
+            href="/dashboard/shopping"
+            className="flex flex-col items-center gap-2 rounded-lg bg-emerald-50 p-4 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40"
+          >
+            <ShoppingCart className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-sm font-medium">Shopping</span>
+          </Link>
+          <Link
+            href="/dashboard/inventory"
+            className="flex flex-col items-center gap-2 rounded-lg bg-cyan-50 p-4 transition-colors hover:bg-cyan-100 dark:bg-cyan-950/20 dark:hover:bg-cyan-950/40"
+          >
+            <Package className="h-6 w-6 text-cyan-600 dark:text-cyan-400" />
+            <span className="text-sm font-medium">Inventory</span>
           </Link>
           <Link
             href="/dashboard/challenges"
