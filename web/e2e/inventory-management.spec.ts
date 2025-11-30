@@ -46,8 +46,10 @@ test.describe("Inventory Management", () => {
       .then((count) => count > 0)
       .catch(() => false);
 
-    // One of these should be true
-    expect(hasEmptyState || hasItems || true).toBeTruthy();
+    // Page should show either inventory items or empty state
+    // Since inventory may be empty, we just verify the page loaded correctly
+    const hasPageContent = await page.locator('h1:has-text("Inventory")').isVisible();
+    expect(hasEmptyState || hasItems || hasPageContent).toBeTruthy();
   });
 
   test("suggest recipes button is present", async ({ page }) => {
@@ -80,11 +82,17 @@ test.describe("Inventory Management", () => {
       await page.waitForTimeout(500);
 
       // Should show a toast or message about empty inventory
-      const feedbackMessage = page.locator('text=/empty|add.*ingredient/i, [role="alert"]');
+      const feedbackMessage = page.locator(
+        'text=/empty|add.*ingredient/i, [role="alert"]'
+      );
       const hasFeedback = await feedbackMessage.isVisible().catch(() => false);
 
-      // Either disabled or shows feedback
-      expect(isDisabled || hasFeedback || true).toBeTruthy();
+      // Button should either be disabled or provide feedback when clicked
+      // Both are valid UI patterns for handling empty inventory
+      expect(isDisabled || hasFeedback).toBeTruthy();
+    } else {
+      // If disabled, the test passes - this is valid behavior
+      expect(isDisabled).toBeTruthy();
     }
   });
 

@@ -89,9 +89,12 @@ test.describe("AI Recommendations", () => {
     );
     const hasError = await errorMessage.isVisible().catch(() => false);
 
-    // Form validation should prevent empty submission
-    // HTML5 required attribute or JavaScript validation should trigger
-    expect(hasError || true).toBeTruthy();
+    // Check if form has required attribute which would prevent submission
+    const goalInput = page.locator('textarea').first();
+    const hasRequired = await goalInput.getAttribute("required").catch(() => null);
+
+    // Form validation should prevent empty submission via HTML5 required or JS validation
+    expect(hasError || hasRequired !== null).toBeTruthy();
   });
 
   test("shows loading state during recommendation generation", async ({ page }) => {

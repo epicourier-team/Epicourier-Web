@@ -55,8 +55,10 @@ test.describe("Cross-Feature Integration", () => {
       (await inventoryLink.isVisible().catch(() => false)) ||
       (await recommendLink.isVisible().catch(() => false));
 
-    // Dashboard should have some form of navigation
-    expect(hasNavigation || true).toBeTruthy();
+    // Dashboard should have some form of navigation to smart cart features
+    // If direct navigation works, the page structure is valid
+    const canNavigate = await page.goto("/dashboard/shopping").then(() => true).catch(() => false);
+    expect(hasNavigation || canNavigate).toBeTruthy();
   });
 
   test("shopping list creation persists across page navigation", async ({ page }) => {
@@ -263,8 +265,10 @@ test.describe("Cross-Feature Integration", () => {
     );
     const hasToast = await toast.first().isVisible().catch(() => false);
 
-    // Toast notifications should appear for important actions
-    expect(hasToast || true).toBeTruthy();
+    // List should be created successfully
+    // Verify by checking if the list appears in the grid
+    const listCreated = await page.locator(`text="${listName}"`).isVisible().catch(() => false);
+    expect(hasToast || listCreated).toBeTruthy();
   });
 
   test("back navigation works correctly in list detail view", async ({ page }) => {

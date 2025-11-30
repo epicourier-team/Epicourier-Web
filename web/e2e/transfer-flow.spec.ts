@@ -80,7 +80,8 @@ test.describe("Shopping to Inventory Transfer", () => {
       .evaluate((el) => window.getComputedStyle(el).textDecoration.includes("line-through"))
       .catch(() => false);
 
-    expect(hasCheckedStyle || hasStrikethrough || true).toBeTruthy();
+    // Either visual indicator should be present for a checked item
+    expect(hasCheckedStyle || hasStrikethrough).toBeTruthy();
   });
 
   test("cross-navigation between features maintains state", async ({ page }) => {
