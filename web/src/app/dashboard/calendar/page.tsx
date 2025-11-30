@@ -6,12 +6,12 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import AddMealModal from "@/components/ui/AddMealModal";
 import MealDetailModal from "@/components/ui/MealDetailModal";
-import { SidebarInset } from "@/components/ui/sidebar";
 
 // ------------------------------
 // Type Definitions
@@ -103,14 +103,15 @@ export default function CalendarPage() {
 
       const recipeNames = items.map((x) => x.Recipe?.name ?? "Meal").join(", ");
 
-      let bgColor = "#3b82f6";
-      let borderColor = "#2563eb";
+      // Greenish sustainability colors
+      let bgColor = "#10b981"; // emerald-500
+      let borderColor = "#059669"; // emerald-600
       if (isCompleted) {
-        bgColor = "#22c55e";
-        borderColor = "#16a34a";
+        bgColor = "#22c55e"; // green-500
+        borderColor = "#16a34a"; // green-600
       } else if (isPast) {
-        bgColor = "#9ca3af";
-        borderColor = "#6b7280";
+        bgColor = "#9ca3af"; // gray-400
+        borderColor = "#6b7280"; // gray-500
       }
 
       return {
@@ -129,21 +130,6 @@ export default function CalendarPage() {
 
     setEvents(formatted);
   }, [router]);
-
-  // ------------------------------
-  // load recommendation
-  // ------------------------------
-  {
-    /*}
-  const loadRecommendations = async () => {
-    const res = await fetch("/api/recommendations");
-    const data: Recipe[] = await res.json();
-    if (Array.isArray(data)) {
-      setRecommendations(data);
-    }
-  };
-  */
-  }
 
   // ------------------------------
   // click handle
@@ -220,40 +206,39 @@ export default function CalendarPage() {
   // Render
   // ------------------------------
   return (
-    <SidebarInset className="bg-gray-50 p-6 pl-12">
+    <div className="mx-auto max-w-7xl">
       {/* Header */}
-
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-800">
-          {userName ? `${userName}'s Calendar` : "Loading Calendar..."}
-        </h1>
-        {/*
-        <button
-          onClick={loadRecommendations}
-          className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-        >
-          🍽️ Get Recommendations
-        </button>
-        */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <CalendarIcon className="h-8 w-8 text-emerald-400" />
+          <h1 className="text-3xl font-bold text-neutral-100">
+            {userName ? `${userName}'s Calendar` : "Meal Calendar"}
+          </h1>
+        </div>
+        <p className="text-neutral-400">
+          Plan and track your sustainable meal journey
+        </p>
       </div>
 
       {/* Recommendations */}
       {recommendations.length > 0 && (
-        <div className="mb-6 rounded-xl bg-white p-4 shadow">
-          <h2 className="mb-3 text-lg font-semibold">Recommended Recipes</h2>
+        <div className="mb-6 rounded-xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-emerald-100">
+            Recommended Recipes
+          </h2>
           <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {recommendations.map((r) => (
               <li
                 key={r.id}
-                className="overflow-hidden rounded-lg border shadow transition hover:shadow-md"
+                className="overflow-hidden rounded-lg border border-neutral-800 shadow transition hover:shadow-md"
               >
                 {r.image_url && (
                   <img src={r.image_url} alt={r.name} className="h-40 w-full object-cover" />
                 )}
                 <div className="p-3">
-                  <h3 className="font-semibold">{r.name}</h3>
-                  <p className="text-sm text-gray-500">{r.description}</p>
-                  <p className="mt-1 text-xs text-gray-400">
+                  <h3 className="font-semibold text-emerald-100">{r.name}</h3>
+                  <p className="text-sm text-emerald-300">{r.description}</p>
+                  <p className="mt-1 text-xs text-emerald-400">
                     ⏱ {r.min_prep_time ?? 0} mins • 🌿 Score {r.green_score ?? "?"}
                   </p>
                   <button
@@ -261,7 +246,7 @@ export default function CalendarPage() {
                       setSelectedRecipe(r);
                       setShowDateModal(true);
                     }}
-                    className="mt-2 w-full rounded bg-blue-600 py-1 text-white hover:bg-blue-700"
+                    className="mt-2 w-full rounded-lg bg-emerald-700 py-2 text-white hover:bg-emerald-600"
                   >
                     + Add to Calendar
                   </button>
@@ -292,7 +277,57 @@ export default function CalendarPage() {
       />
 
       {/* Calendar */}
-      <div className="rounded-xl bg-white p-4 shadow">
+      <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm">
+        <style jsx global>{`
+          /* FullCalendar Dark Mode Styles */
+          .fc {
+            color: #e5e5e5;
+          }
+          .fc-theme-standard .fc-scrollgrid {
+            border-color: #404040;
+          }
+          .fc-theme-standard td,
+          .fc-theme-standard th {
+            border-color: #404040;
+          }
+          .fc-col-header-cell {
+            background-color: #262626;
+            color: #10b981;
+          }
+          .fc-daygrid-day {
+            background-color: #171717;
+          }
+          .fc-daygrid-day:hover {
+            background-color: #262626;
+          }
+          .fc-daygrid-day-number {
+            color: #d4d4d4;
+          }
+          .fc-day-today {
+            background-color: #064e3b !important;
+          }
+          .fc-toolbar-title {
+            color: #10b981;
+          }
+          .fc-button {
+            background-color: #10b981;
+            border-color: #059669;
+            color: white;
+          }
+          .fc-button:hover {
+            background-color: #059669;
+            border-color: #047857;
+          }
+          .fc-button-active {
+            background-color: #047857 !important;
+            border-color: #065f46 !important;
+          }
+          .fc-button:disabled {
+            background-color: #404040;
+            border-color: #525252;
+            color: #737373;
+          }
+        `}</style>
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
@@ -308,6 +343,6 @@ export default function CalendarPage() {
           eventClick={handleEventClick}
         />
       </div>
-    </SidebarInset>
+    </div>
   );
 }
