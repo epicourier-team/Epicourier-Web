@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react";
 import { Plus, ShoppingCart, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { createClient } from "@/utils/supabase/client";
 import CreateListModal from "@/components/shopping/CreateListModal";
 import ShoppingListCard from "@/components/shopping/ShoppingListCard";
 
-import type { ShoppingList } from "@/types/data";
+import type { ShoppingListWithStats } from "@/types/data";
 
 /**
  * Shopping Lists page - manage multiple shopping lists
@@ -19,45 +18,30 @@ import type { ShoppingList } from "@/types/data";
  * - Loading and error states
  */
 export default function ShoppingPage() {
-  const [lists, setLists] = useState<ShoppingList[]>([]);
+  const [lists, setLists] = useState<ShoppingListWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
-  const supabase = createClient();
 
   const fetchLists = async () => {
     setLoading(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // Use API endpoint to get lists with stats
+      const response = await fetch("/api/shopping-lists");
 
-      if (!user) {
-        toast({
-          title: "⚠️ Authentication Required",
-          description: "Please sign in to view shopping lists",
-          variant: "destructive",
-        });
-        return;
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast({
+            title: "⚠️ Authentication Required",
+            description: "Please sign in to view shopping lists",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw new Error("Failed to fetch shopping lists");
       }
 
-      const { data, error } = await supabase
-        .from("shopping_lists")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("is_archived", false)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching shopping lists:", error);
-        toast({
-          title: "❌ Error",
-          description: "Failed to load shopping lists",
-          variant: "destructive",
-        });
-        return;
-      }
-
+      const data = await response.json();
       setLists(data || []);
     } catch (error) {
       console.error("Unexpected error:", error);
@@ -73,6 +57,7 @@ export default function ShoppingPage() {
 
   useEffect(() => {
     fetchLists();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCreateSuccess = () => {

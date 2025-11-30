@@ -6,10 +6,10 @@ import { Trash2, Edit2, ShoppingBag, Calendar } from "lucide-react";
 import EditListModal from "./EditListModal";
 import DeleteListDialog from "./DeleteListDialog";
 
-import type { ShoppingList } from "@/types/data";
+import type { ShoppingListWithStats } from "@/types/data";
 
 interface ShoppingListCardProps {
-  list: ShoppingList;
+  list: ShoppingListWithStats;
   onUpdate: () => void;
 }
 
@@ -75,7 +75,9 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
         <div className="mb-3 flex items-center gap-4 text-sm font-semibold text-gray-700">
           <div className="flex items-center gap-1">
             <ShoppingBag className="size-4" />
-            <span>0 items</span>
+            <span>
+              {list.item_count} {list.item_count === 1 ? "item" : "items"}
+            </span>
           </div>
           <div className="flex items-center gap-1">
             <Calendar className="size-4" />
@@ -90,7 +92,7 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
               e.stopPropagation();
               setIsEditModalOpen(true);
             }}
-            className="brutalism-button-neutral flex-1 px-3 py-2 text-sm"
+            className="brutalism-button-neutral flex-1 px-3 py-2 text-sm text-black"
           >
             <Edit2 className="size-4" />
           </button>
@@ -99,7 +101,7 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
               e.stopPropagation();
               setIsDeleteDialogOpen(true);
             }}
-            className="brutalism-button-neutral flex-1 px-3 py-2 text-sm"
+            className="brutalism-button-neutral flex-1 px-3 py-2 text-sm text-black"
           >
             <Trash2 className="size-4" />
           </button>
