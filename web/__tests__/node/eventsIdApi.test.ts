@@ -261,7 +261,7 @@ describe("PATCH /api/events/[id]", () => {
     const res = await PATCH(makeRequest({ status: true }), {
       params: Promise.resolve({ id: "1" }),
     });
-    const json = await res.json();
+    await res.json();
 
     expect(res.status).toBe(200);
     expect(mockSyncDailyNutrientTracking).not.toHaveBeenCalled();

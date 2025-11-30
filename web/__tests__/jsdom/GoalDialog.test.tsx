@@ -3,7 +3,7 @@
  */
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { GoalDialog } from "@/app/dashboard/nutrients/components/GoalDialog";
 import type { GoalFormValues, GoalField } from "@/app/dashboard/nutrients/types";
 

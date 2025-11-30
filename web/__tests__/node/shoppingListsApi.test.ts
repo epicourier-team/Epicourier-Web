@@ -65,47 +65,6 @@ const createMockItem = (overrides: Partial<ShoppingListItem> = {}): ShoppingList
   ...overrides,
 });
 
-// Chain builder helpers
-const mockSelectChain = (data: unknown, error: Error | null = null) => ({
-  select: jest.fn().mockReturnValue({
-    eq: jest.fn().mockReturnValue({
-      order: jest.fn().mockResolvedValue({ data, error }),
-    }),
-  }),
-});
-
-const mockSelectSingleChain = (data: unknown, error: Error | null = null) => ({
-  select: jest.fn().mockReturnValue({
-    eq: jest.fn().mockReturnValue({
-      single: jest.fn().mockResolvedValue({ data, error }),
-    }),
-  }),
-});
-
-const mockInsertChain = (data: unknown, error: Error | null = null) => ({
-  insert: jest.fn().mockReturnValue({
-    select: jest.fn().mockReturnValue({
-      single: jest.fn().mockResolvedValue({ data, error }),
-    }),
-  }),
-});
-
-const mockUpdateChain = (data: unknown, error: Error | null = null) => ({
-  update: jest.fn().mockReturnValue({
-    eq: jest.fn().mockReturnValue({
-      select: jest.fn().mockReturnValue({
-        single: jest.fn().mockResolvedValue({ data, error }),
-      }),
-    }),
-  }),
-});
-
-const mockDeleteChain = (error: Error | null = null) => ({
-  delete: jest.fn().mockReturnValue({
-    eq: jest.fn().mockResolvedValue({ error }),
-  }),
-});
-
 describe("Shopping Lists API", () => {
   beforeEach(() => {
     jest.clearAllMocks();

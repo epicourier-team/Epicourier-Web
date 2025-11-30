@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Call the database function to update streak
-    const { data, error } = await supabase.rpc("update_streak", {
+    const { error } = await supabase.rpc("update_streak", {
       p_user_id: user.id,
       p_streak_type: body.streak_type,
     });

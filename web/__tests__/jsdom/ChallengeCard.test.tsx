@@ -268,7 +268,11 @@ describe("ChallengeCard Component", () => {
 
     it("renders default icon for unknown metric", () => {
       const challenge = createMockChallenge({
-        criteria: { metric: "unknown_metric" as any, target: 10, period: "week" },
+        criteria: {
+          metric: "unknown_metric" as "meals_logged",
+          target: 10,
+          period: "week",
+        },
       });
       render(<ChallengeCard challenge={challenge} />);
 

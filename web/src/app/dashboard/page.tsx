@@ -3,17 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { StreakWidget } from "@/components/ui/StreakWidget";
-import {
-  Calendar,
-  Trophy,
-  ChefHat,
-  TrendingUp,
-  Target,
-  Flame,
-  ArrowRight,
-  CheckCircle2,
-  Clock,
-} from "lucide-react";
+import { Calendar, Trophy, ChefHat, Target, ArrowRight, CheckCircle2, Clock } from "lucide-react";
 import Link from "next/link";
 
 interface QuickStat {

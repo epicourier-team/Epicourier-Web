@@ -30,8 +30,6 @@ type Definition = {
   criteria: { type: "count" | "streak" | "threshold"; metric: string; target: number };
 };
 
-const asPromise = <T>(value: T) => Promise.resolve(value);
-
 const definitionChain = (data: Definition[], error: Error | null = null) => {
   const response = { data, error };
   return {

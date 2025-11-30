@@ -31,7 +31,7 @@ self.addEventListener("push", (event) => {
   let payload;
   try {
     payload = event.data.json();
-  } catch (e) {
+  } catch {
     console.error("[Service Worker] Error parsing push data");
     return;
   }
