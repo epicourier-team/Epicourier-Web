@@ -5,7 +5,7 @@
  * @returns True if item is low on stock
  */
 export function isLowStock(quantity: number, minQuantity: number | null): boolean {
-  if (minQuantity === null || minQuantity === undefined) {
+  if (minQuantity === null) {
     return false;
   }
   return quantity <= minQuantity;
@@ -109,8 +109,9 @@ export function getStockStatusColor(
 
 /**
  * Sort items by stock status (critical and low first)
+ * Returns a new sorted array without mutating the original.
  * @param items - Array of items with quantity and min_quantity
- * @returns Sorted array
+ * @returns New sorted array
  */
 export function sortByStockStatus<
   T extends { quantity: number; min_quantity: number | null },

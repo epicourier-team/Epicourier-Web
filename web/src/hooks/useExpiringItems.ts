@@ -74,22 +74,16 @@ export function useExpiringItems(
   }, [autoFetch, fetchItems]);
 
   // Transform items to have expiration_date property for utility functions
-  const itemsWithExpirationDate = useMemo(() => {
-    return allItems.map((item) => ({
-      ...item,
-      expiration_date: item.expiration_date,
-    }));
-  }, [allItems]);
-
+  // Using allItems directly since items already have expiration_date
   const expiringItems = useMemo(() => {
-    const expiring = getExpiringItems(itemsWithExpirationDate, days);
+    const expiring = getExpiringItems(allItems, days);
     return sortByExpiration(expiring) as InventoryItemWithDetails[];
-  }, [itemsWithExpirationDate, days]);
+  }, [allItems, days]);
 
   const expiredItems = useMemo(() => {
-    const expired = getExpiredItems(itemsWithExpirationDate);
+    const expired = getExpiredItems(allItems);
     return sortByExpiration(expired) as InventoryItemWithDetails[];
-  }, [itemsWithExpirationDate]);
+  }, [allItems]);
 
   const totalCount = useMemo(() => {
     return expiringItems.length + (includeExpired ? expiredItems.length : 0);

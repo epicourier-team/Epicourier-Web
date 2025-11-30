@@ -144,11 +144,12 @@ export function formatExpirationDate(expirationDate: string | Date | null | unde
 
 /**
  * Sort items by expiration date (expired/expiring first)
+ * Returns a new sorted array without mutating the original.
  * @param items - Array of items with expiration_date property
- * @returns Sorted array (mutates original)
+ * @returns New sorted array (soonest expiring first)
  */
 export function sortByExpiration<T extends { expiration_date: string | null }>(items: T[]): T[] {
-  return items.sort((a, b) => {
+  return [...items].sort((a, b) => {
     const daysA = getDaysUntilExpiration(a.expiration_date);
     const daysB = getDaysUntilExpiration(b.expiration_date);
 

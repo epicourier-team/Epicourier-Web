@@ -222,6 +222,18 @@ describe("sortByExpiration", () => {
     const sorted = sortByExpiration(items);
     expect(sorted.length).toBe(2);
   });
+
+  it("does not mutate original array", () => {
+    const items = [
+      { id: 1, expiration_date: formatDateString(addDays(10)) },
+      { id: 2, expiration_date: formatDateString(addDays(2)) },
+    ];
+
+    const originalFirstId = items[0].id;
+    sortByExpiration(items);
+
+    expect(items[0].id).toBe(originalFirstId);
+  });
 });
 
 describe("getExpiringItems", () => {

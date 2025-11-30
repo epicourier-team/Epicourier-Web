@@ -73,23 +73,15 @@ export function useLowStockItems(
     }
   }, [autoFetch, fetchItems]);
 
-  // Transform items to have the required properties for utility functions
-  const itemsWithStockInfo = useMemo(() => {
-    return allItems.map((item) => ({
-      ...item,
-      quantity: item.quantity,
-      min_quantity: item.min_quantity,
-    }));
+  // Use allItems directly since items already have quantity and min_quantity
+  const lowStockItems = useMemo(() => {
+    const lowItems = getLowStockItems(allItems);
+    return sortByStockStatus(lowItems) as InventoryItemWithDetails[];
   }, [allItems]);
 
-  const lowStockItems = useMemo(() => {
-    const lowItems = getLowStockItems(itemsWithStockInfo);
-    return sortByStockStatus(lowItems) as InventoryItemWithDetails[];
-  }, [itemsWithStockInfo]);
-
   const summary = useMemo(() => {
-    return getLowStockSummary(itemsWithStockInfo);
-  }, [itemsWithStockInfo]);
+    return getLowStockSummary(allItems);
+  }, [allItems]);
 
   return {
     lowStockItems,
