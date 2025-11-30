@@ -64,10 +64,10 @@ export default function AddInventoryModal({ isOpen, onClose, onSuccess }: AddInv
 
     setSearching(true);
     try {
-      const response = await fetch(`/api/ingredients?search=${encodeURIComponent(query)}&limit=10`);
+      const response = await fetch(`/api/ingredients?query=${encodeURIComponent(query)}&limit=10`);
       if (response.ok) {
         const data = await response.json();
-        setSearchResults(data.ingredients || data || []);
+        setSearchResults(data.data || []);
       }
     } catch (error) {
       console.error("Error searching ingredients:", error);
@@ -195,7 +195,7 @@ export default function AddInventoryModal({ isOpen, onClose, onSuccess }: AddInv
 
           <div className="space-y-4 p-6">
             {/* Ingredient Search */}
-            <div>
+            <div className="relative">
               <label className="mb-2 block text-sm font-bold">
                 Ingredient <span className="text-red-600">*</span>
               </label>
@@ -230,7 +230,7 @@ export default function AddInventoryModal({ isOpen, onClose, onSuccess }: AddInv
 
               {/* Search Results Dropdown */}
               {searchResults.length > 0 && !selectedIngredient && (
-                <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border-2 border-black bg-white shadow-lg">
+                <div className="absolute right-0 left-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-lg border-2 border-black bg-white shadow-lg">
                   {searchResults.map((ingredient) => (
                     <button
                       key={ingredient.id}
