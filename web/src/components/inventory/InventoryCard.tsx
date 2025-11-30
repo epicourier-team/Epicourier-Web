@@ -26,10 +26,10 @@ const locationLabels: Record<InventoryLocation, string> = {
 };
 
 const locationColors: Record<InventoryLocation, string> = {
-  pantry: "bg-amber-100 text-amber-800",
-  fridge: "bg-blue-100 text-blue-800",
-  freezer: "bg-cyan-100 text-cyan-800",
-  other: "bg-gray-100 text-gray-800",
+  pantry: "bg-amber-100 text-amber-800 border-2 border-black",
+  fridge: "bg-sky-100 text-sky-800 border-2 border-black",
+  freezer: "bg-cyan-100 text-cyan-800 border-2 border-black",
+  other: "bg-gray-100 text-gray-800 border-2 border-black",
 };
 
 /**
@@ -40,24 +40,26 @@ export function InventoryCard({ item, onEdit, onDelete, className = "" }: Invent
   const stockLabel = getStockStatusLabel(stockStatus);
   const stockColor = getStockStatusColor(stockStatus);
 
-  const stockBorderColor = {
-    red: "border-l-red-500",
-    orange: "border-l-orange-500",
-    green: "border-l-green-500",
-    gray: "border-l-gray-300",
+  const stockAccentColor = {
+    red: "bg-red-100",
+    orange: "bg-orange-100",
+    green: "bg-emerald-100",
+    gray: "bg-gray-100",
   }[stockColor];
 
   return (
     <div
-      className={`rounded-lg border border-l-4 bg-white p-4 shadow-sm ${stockBorderColor} ${className}`}
+      className={`brutalism-card overflow-hidden ${className} p-4`}
       data-testid="inventory-card"
       data-item-id={item.id}
     >
-      {/* Header */}
-      <div className="mb-3 flex items-start justify-between">
+      {/* Header with accent color */}
+      <div
+        className={`-mx-4 -mt-4 mb-3 flex items-start justify-between border-b-2 border-black p-3 ${stockAccentColor}`}
+      >
         <div className="flex items-center gap-2">
-          <Package className="size-5 text-gray-500" />
-          <h3 className="font-semibold text-gray-900" data-testid="item-name">
+          <Package className="size-5 text-black" />
+          <h3 className="brutalism-text-bold text-black" data-testid="item-name">
             {item.ingredient?.name || `Item #${item.ingredient_id}`}
           </h3>
         </div>
@@ -65,7 +67,7 @@ export function InventoryCard({ item, onEdit, onDelete, className = "" }: Invent
           {onEdit && (
             <button
               onClick={() => onEdit(item)}
-              className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+              className="brutalism-border bg-white p-1 transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
               title="Edit item"
               data-testid="edit-button"
             >
@@ -75,7 +77,7 @@ export function InventoryCard({ item, onEdit, onDelete, className = "" }: Invent
           {onDelete && (
             <button
               onClick={() => onDelete(item)}
-              className="rounded p-1 text-gray-500 hover:bg-red-100 hover:text-red-600"
+              className="brutalism-border bg-white p-1 transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-red-100 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
               title="Delete item"
               data-testid="delete-button"
             >
@@ -86,20 +88,20 @@ export function InventoryCard({ item, onEdit, onDelete, className = "" }: Invent
       </div>
 
       {/* Info Grid */}
-      <div className="mb-3 grid grid-cols-2 gap-2 text-sm">
+      <div className="mb-3 grid grid-cols-2 gap-2 p-4 text-sm">
         {/* Quantity */}
         <div>
-          <span className="text-gray-500">Quantity:</span>
-          <span className="ml-1 font-medium" data-testid="item-quantity">
+          <span className="text-gray-600">Quantity:</span>
+          <span className="ml-1 font-bold" data-testid="item-quantity">
             {item.quantity} {item.unit || ""}
           </span>
         </div>
 
         {/* Location */}
         <div className="flex items-center gap-1">
-          <MapPin className="size-3 text-gray-400" />
+          <MapPin className="size-3 text-black" />
           <span
-            className={`rounded px-1.5 py-0.5 text-xs font-medium ${locationColors[item.location]}`}
+            className={`px-1.5 py-0.5 text-xs font-bold ${locationColors[item.location]}`}
             data-testid="item-location"
           >
             {locationLabels[item.location]}
@@ -136,11 +138,11 @@ export function InventoryCard({ item, onEdit, onDelete, className = "" }: Invent
       </div>
 
       {/* Footer with Expiration Badge */}
-      <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+      <div className="flex items-center justify-between border-t-2 border-black px-4 pt-3">
         <ExpirationBadge expirationDate={item.expiration_date} showDetails />
 
         {item.notes && (
-          <span className="truncate text-xs text-gray-500" title={item.notes}>
+          <span className="truncate text-xs font-medium text-gray-600" title={item.notes}>
             {item.notes}
           </span>
         )}

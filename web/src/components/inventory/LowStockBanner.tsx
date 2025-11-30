@@ -25,30 +25,28 @@ export function LowStockBanner({
   }
 
   const hasCritical = criticalCount > 0;
-  const bannerStyle = hasCritical
-    ? "bg-red-50 border-red-200 text-red-800"
-    : "bg-yellow-50 border-yellow-200 text-yellow-800";
-
-  const iconStyle = hasCritical ? "text-red-500" : "text-yellow-500";
+  const bannerStyle = hasCritical ? "bg-red-200" : "bg-yellow-200";
 
   return (
     <div
-      className={`flex items-center justify-between rounded-lg border p-3 ${bannerStyle} ${className}`}
+      className={`flex items-center justify-between border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${bannerStyle} ${className}`}
       data-testid="low-stock-banner"
     >
       <div className="flex items-center gap-3">
-        <div className={`rounded-full p-2 ${hasCritical ? "bg-red-100" : "bg-yellow-100"}`}>
+        <div
+          className={`border-2 border-black p-2 ${hasCritical ? "bg-red-300" : "bg-yellow-300"}`}
+        >
           {hasCritical ? (
-            <AlertTriangle className={`size-5 ${iconStyle}`} />
+            <AlertTriangle className="size-5 text-black" />
           ) : (
-            <Package className={`size-5 ${iconStyle}`} />
+            <Package className="size-5 text-black" />
           )}
         </div>
         <div>
-          <p className="font-semibold" data-testid="low-stock-title">
+          <p className="brutalism-text-bold text-black" data-testid="low-stock-title">
             {hasCritical ? "Stock Alert!" : "Low Stock Warning"}
           </p>
-          <p className="text-sm opacity-80" data-testid="low-stock-message">
+          <p className="text-sm font-medium text-black" data-testid="low-stock-message">
             {hasCritical
               ? `${criticalCount} item${criticalCount === 1 ? " is" : "s are"} out of stock`
               : `${lowStockCount} item${lowStockCount === 1 ? " is" : "s are"} running low`}
@@ -59,9 +57,7 @@ export function LowStockBanner({
       {onViewItems && (
         <button
           onClick={onViewItems}
-          className={`flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-            hasCritical ? "bg-red-100 hover:bg-red-200" : "bg-yellow-100 hover:bg-yellow-200"
-          }`}
+          className="brutalism-button-inverse flex items-center gap-1 px-3 py-1.5 text-sm"
           data-testid="view-low-stock-button"
         >
           View Items

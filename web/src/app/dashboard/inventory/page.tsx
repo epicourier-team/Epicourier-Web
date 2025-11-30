@@ -359,13 +359,13 @@ export default function InventoryPage() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           {/* Search */}
           <div className="relative flex-1 md:max-w-xs">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-black" />
             <input
               type="text"
               placeholder="Search ingredients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-md border border-gray-300 py-2 pr-4 pl-10 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              className="brutalism-input w-full py-2 pr-4 pl-10"
             />
           </div>
 
@@ -373,11 +373,11 @@ export default function InventoryPage() {
           <div className="flex flex-wrap items-center gap-3">
             {/* Location Filter */}
             <div className="flex items-center gap-2">
-              <Filter className="size-4 text-gray-500" />
+              <Filter className="size-4 text-black" />
               <select
                 value={locationFilter}
                 onChange={(e) => setLocationFilter(e.target.value as LocationFilter)}
-                className="rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                className="brutalism-input cursor-pointer px-3 py-2"
               >
                 <option value="all">All Locations</option>
                 <option value="pantry">Pantry</option>
@@ -391,7 +391,7 @@ export default function InventoryPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              className="brutalism-input cursor-pointer px-3 py-2"
             >
               <option value="updated">Recently Updated</option>
               <option value="expiration">Expiring Soon</option>
@@ -402,10 +402,8 @@ export default function InventoryPage() {
             {/* Low Stock Toggle */}
             <button
               onClick={() => setShowLowStockOnly(!showLowStockOnly)}
-              className={`flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                showLowStockOnly
-                  ? "bg-orange-100 text-orange-700"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              className={`flex items-center gap-1 px-3 py-2 text-sm font-bold transition-all ${
+                showLowStockOnly ? "brutalism-tag-active" : "brutalism-tag"
               }`}
             >
               <AlertTriangle className="size-4" />
@@ -422,14 +420,12 @@ export default function InventoryPage() {
             <button
               key={loc}
               onClick={() => setLocationFilter(locationFilter === loc ? "all" : loc)}
-              className={`rounded-lg border-2 p-3 text-center transition-colors ${
-                locationFilter === loc
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 bg-white hover:border-gray-300"
+              className={`p-3 text-center transition-all ${
+                locationFilter === loc ? "brutalism-tag-active" : "brutalism-card"
               }`}
             >
-              <div className="text-2xl font-bold text-gray-800">{summary.by_location[loc]}</div>
-              <div className="text-sm text-gray-600 capitalize">{loc}</div>
+              <div className="text-2xl font-bold text-black">{summary.by_location[loc]}</div>
+              <div className="text-sm font-semibold text-gray-700 capitalize">{loc}</div>
             </button>
           ))}
         </div>

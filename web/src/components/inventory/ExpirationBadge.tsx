@@ -18,11 +18,11 @@ interface ExpirationBadgeProps {
 }
 
 const statusStyles: Record<ExpirationStatus, string> = {
-  expired: "bg-red-100 text-red-800 border-red-300",
-  critical: "bg-orange-100 text-orange-800 border-orange-300",
-  warning: "bg-yellow-100 text-yellow-800 border-yellow-300",
-  good: "bg-green-100 text-green-800 border-green-300",
-  unknown: "bg-gray-100 text-gray-600 border-gray-300",
+  expired: "bg-red-200 text-black border-2 border-black",
+  critical: "bg-orange-200 text-black border-2 border-black",
+  warning: "bg-yellow-200 text-black border-2 border-black",
+  good: "bg-emerald-200 text-black border-2 border-black",
+  unknown: "bg-gray-200 text-black border-2 border-black",
 };
 
 const StatusIcon = ({ status }: { status: ExpirationStatus }) => {
@@ -57,7 +57,7 @@ export function ExpirationBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${statusStyles[status]} ${className}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${statusStyles[status]} ${className}`}
       title={details}
       data-testid="expiration-badge"
       data-status={status}

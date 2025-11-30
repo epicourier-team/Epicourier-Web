@@ -106,16 +106,16 @@ export function AddInventoryModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
       data-testid="add-inventory-modal"
     >
-      <div className="mx-4 w-full max-w-md rounded-lg bg-white shadow-xl">
+      <div className="brutalism-panel mx-4 w-full max-w-md shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b p-4">
-          <h2 className="text-lg font-semibold">Add Inventory Item</h2>
+        <div className="flex items-center justify-between border-b-2 border-black bg-emerald-200 p-4">
+          <h2 className="brutalism-heading">Add Inventory Item</h2>
           <button
             onClick={handleClose}
-            className="rounded p-1 hover:bg-gray-100"
+            className="brutalism-border bg-white p-1 transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
             data-testid="close-modal-button"
           >
             <X className="size-5" />
@@ -126,7 +126,7 @@ export function AddInventoryModal({
         <form onSubmit={handleSubmit} className="p-4">
           {error && (
             <div
-              className="mb-4 rounded bg-red-50 p-3 text-sm text-red-600"
+              className="mb-4 border-2 border-black bg-red-200 p-3 text-sm font-bold text-black"
               data-testid="form-error"
             >
               {error}
@@ -135,14 +135,14 @@ export function AddInventoryModal({
 
           {/* Ingredient Select */}
           <div className="mb-4">
-            <label htmlFor="ingredient" className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="ingredient" className="brutalism-text-bold mb-1 block text-sm">
               Ingredient *
             </label>
             <select
               id="ingredient"
               value={ingredientId}
               onChange={(e) => setIngredientId(e.target.value ? Number(e.target.value) : "")}
-              className="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              className="brutalism-input w-full p-2"
               data-testid="ingredient-select"
               required
             >
@@ -158,7 +158,7 @@ export function AddInventoryModal({
           {/* Quantity and Unit */}
           <div className="mb-4 grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="quantity" className="mb-1 block text-sm font-medium text-gray-700">
+              <label htmlFor="quantity" className="brutalism-text-bold mb-1 block text-sm">
                 Quantity *
               </label>
               <input
@@ -168,13 +168,13 @@ export function AddInventoryModal({
                 onChange={(e) => setQuantity(Number(e.target.value))}
                 min="0.01"
                 step="0.01"
-                className="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                className="brutalism-input w-full p-2"
                 data-testid="quantity-input"
                 required
               />
             </div>
             <div>
-              <label htmlFor="unit" className="mb-1 block text-sm font-medium text-gray-700">
+              <label htmlFor="unit" className="brutalism-text-bold mb-1 block text-sm">
                 Unit
               </label>
               <input
@@ -183,7 +183,7 @@ export function AddInventoryModal({
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 placeholder="kg, L, pcs"
-                className="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                className="brutalism-input w-full p-2"
                 data-testid="unit-input"
               />
             </div>
@@ -191,14 +191,14 @@ export function AddInventoryModal({
 
           {/* Location */}
           <div className="mb-4">
-            <label htmlFor="location" className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="location" className="brutalism-text-bold mb-1 block text-sm">
               Location
             </label>
             <select
               id="location"
               value={location}
               onChange={(e) => setLocation(e.target.value as InventoryLocation)}
-              className="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              className="brutalism-input w-full p-2"
               data-testid="location-select"
             >
               {locations.map((loc) => (
@@ -211,7 +211,7 @@ export function AddInventoryModal({
 
           {/* Expiration Date */}
           <div className="mb-4">
-            <label htmlFor="expiration" className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="expiration" className="brutalism-text-bold mb-1 block text-sm">
               Expiration Date
             </label>
             <input
@@ -219,14 +219,14 @@ export function AddInventoryModal({
               id="expiration"
               value={expirationDate}
               onChange={(e) => setExpirationDate(e.target.value)}
-              className="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              className="brutalism-input w-full p-2"
               data-testid="expiration-input"
             />
           </div>
 
           {/* Min Quantity */}
           <div className="mb-4">
-            <label htmlFor="minQuantity" className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="minQuantity" className="brutalism-text-bold mb-1 block text-sm">
               Minimum Quantity (for low stock alerts)
             </label>
             <input
@@ -237,14 +237,14 @@ export function AddInventoryModal({
               min="0"
               step="0.01"
               placeholder="Optional"
-              className="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              className="brutalism-input w-full p-2"
               data-testid="min-quantity-input"
             />
           </div>
 
           {/* Notes */}
           <div className="mb-4">
-            <label htmlFor="notes" className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="notes" className="brutalism-text-bold mb-1 block text-sm">
               Notes
             </label>
             <textarea
@@ -253,7 +253,7 @@ export function AddInventoryModal({
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Optional notes"
               rows={2}
-              className="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              className="brutalism-input w-full p-2"
               data-testid="notes-input"
             />
           </div>
@@ -262,7 +262,7 @@ export function AddInventoryModal({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="brutalism-button-primary flex w-full items-center justify-center gap-2 px-4 py-2 disabled:opacity-40"
             data-testid="submit-button"
           >
             {isSubmitting ? (

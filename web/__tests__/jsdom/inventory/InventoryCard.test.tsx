@@ -187,21 +187,27 @@ describe("InventoryCard", () => {
     expect(screen.getByTestId("inventory-card")).toHaveClass("custom-class");
   });
 
-  it("has border styling based on stock status - adequate", () => {
+  it("uses Neo-Brutalism card styling", () => {
+    render(<InventoryCard item={createMockItem()} />);
+    const card = screen.getByTestId("inventory-card");
+    expect(card.className).toContain("brutalism-card");
+  });
+
+  it("has header accent color based on stock status - adequate", () => {
     render(<InventoryCard item={createMockItem({ quantity: 10, min_quantity: 5 })} />);
-    const card = screen.getByTestId("inventory-card");
-    expect(card.className).toContain("border-l-green");
+    // Check that the stock status shows "In Stock" which corresponds to green accent
+    expect(screen.getByTestId("stock-status")).toHaveTextContent("In Stock");
   });
 
-  it("has border styling based on stock status - low", () => {
+  it("has header accent color based on stock status - low", () => {
     render(<InventoryCard item={createMockItem({ quantity: 3, min_quantity: 5 })} />);
-    const card = screen.getByTestId("inventory-card");
-    expect(card.className).toContain("border-l-orange");
+    // Check that the stock status shows "Low Stock" which corresponds to orange accent
+    expect(screen.getByTestId("stock-status")).toHaveTextContent("Low Stock");
   });
 
-  it("has border styling based on stock status - critical", () => {
+  it("has header accent color based on stock status - critical", () => {
     render(<InventoryCard item={createMockItem({ quantity: 0, min_quantity: 5 })} />);
-    const card = screen.getByTestId("inventory-card");
-    expect(card.className).toContain("border-l-red");
+    // Check that the stock status shows "Out of Stock" which corresponds to red accent
+    expect(screen.getByTestId("stock-status")).toHaveTextContent("Out of Stock");
   });
 });
