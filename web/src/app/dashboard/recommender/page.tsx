@@ -59,40 +59,9 @@ export default function RecommendPage() {
 
       // backend sends expanded goal once, not per recipe
       setExpandedGoal(data.goal_expanded || "");
-      // attach Supabase Recipe.id to each recipe (if a matching name exists)
-      try {
-        const recipesFromBackend: Recipe[] = data.recipes || [];
 
-        const recipesWithIds = await Promise.all(
-          recipesFromBackend.map(async (r) => {
-            try {
-              const { data: row, error } = await supabase
-                .from("Recipe")
-                .select("id")
-                .eq("name", r.name)
-                .maybeSingle();
-
-              if (error) {
-                console.error("Supabase lookup error for", r.name, error);
-                return { ...r }; // return original if lookup fails
-              }
-
-              // row may be null if not found; keep id only when present
-              const id = row?.id ?? null;
-              return { ...r, id };
-            } catch (e) {
-              console.error("Unexpected error looking up recipe id:", e);
-              return { ...r };
-            }
-          })
-        );
-
-        setRecipes(recipesWithIds);
-      } catch (e) {
-        console.error("Could not import supabase client or fetch ids:", e);
-        // fallback to original data if anything goes wrong
-        setRecipes(data.recipes || []);
-      }
+      // Backend now returns the ID directly, so we don't need to look it up!
+      setRecipes(data.recipes || []);
     } catch (err: unknown) {
       console.error("Error fetching recommendations:", err);
       setError((err as { message: string }).message || "Unknown error occurred");

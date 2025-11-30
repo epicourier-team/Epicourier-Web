@@ -43,9 +43,9 @@ def load_recipe_data():
 
     ingredients = pd.DataFrame(supabase.table("Ingredient").select("*").execute().data)
     recipes = pd.DataFrame(supabase.table("Recipe").select("*").execute().data)
-    recipe_ing_map = pd.DataFrame(supabase.table("Recipe-Ingredient_Map").select("*").execute().data)
+    recipe_ing_map = pd.DataFrame(supabase.table("Recipe_Ingredient_Map").select("*").execute().data)
     tags = pd.DataFrame(supabase.table("RecipeTag").select("*").execute().data)
-    recipe_tag_map = pd.DataFrame(supabase.table("Recipe-Tag_Map").select("*").execute().data)
+    recipe_tag_map = pd.DataFrame(supabase.table("Recipe_Tag_Map").select("*").execute().data)
 
     # Merge metadata
     recipe_tags = recipe_tag_map.merge(tags, left_on="tag_id", right_on="id", suffixes=("", "_tag"))
@@ -177,6 +177,7 @@ def create_meal_plan(goal_text, n_meals=3):
     for i, row in enumerate(diverse.itertuples(), 1):
         meal_plan.append({
             "meal_number": i,
+            "id": int(row.id),
             "name": row.name,
             "tags": row.tags,
             "key_ingredients": row.ingredients[:10],  # limit to first few
