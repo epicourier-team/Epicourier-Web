@@ -53,11 +53,11 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
-      className={`brutalism-card group cursor-pointer overflow-hidden transition-all ${
+      className={`brutalism-card group flex cursor-pointer flex-col overflow-hidden transition-all ${
         isHovered ? "-translate-x-0.5 -translate-y-0.5" : ""
       }`}
     >
-      <div className="p-5">
+      <div className="flex flex-1 flex-col p-5">
         {/* Header */}
         <div className="mb-3 flex items-start justify-between">
           <div className="flex items-center gap-2">
@@ -69,6 +69,9 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
         {list.description && (
           <p className="mb-3 line-clamp-2 text-sm text-gray-600">{list.description}</p>
         )}
+
+        {/* Spacer to push actions to bottom */}
+        <div className="flex-1" />
 
         {/* Stats */}
         <div className="mb-3 flex items-center gap-4 text-sm font-semibold text-gray-700">
