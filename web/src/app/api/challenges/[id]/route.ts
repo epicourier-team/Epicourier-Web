@@ -10,7 +10,7 @@ type CalendarMealWithTags = {
   date: string | null;
   Recipe?: {
     "Recipe-Tag_Map"?: Array<{
-      Tag?: { name?: string | null } | null;
+      RecipeTag?: { name?: string | null } | null;
     }>;
   } | null;
 };
@@ -115,6 +115,7 @@ async function calculateUserStats(
     streak_days: 0,
     weekly_meals_logged: 0,
     weekly_green_recipes: 0,
+    weekly_unique_days: 0, // Number of unique days with meals this week (for Week Warrior)
     monthly_meals_logged: 0,
     monthly_green_recipes: 0,
     monthly_nutrient_goal_days: 0,
@@ -122,10 +123,16 @@ async function calculateUserStats(
 
   try {
     const now = new Date();
-    const startOfWeek = getStartOfWeek(now);
-    const startOfMonth = getStartOfMonth(now);
+    const startOfWeekDate = getStartOfWeek(now);
+    const startOfMonthDate = getStartOfMonth(now);
+
+    // Convert to YYYY-MM-DD strings for reliable date comparison
+    // This avoids timezone issues when comparing with database DATE type
+    const startOfWeekStr = toDateString(startOfWeekDate);
+    const startOfMonthStr = toDateString(startOfMonthDate);
 
     // Get meals with tags
+    // Note: The tag table is named "RecipeTag", not "Tag"
     const { data: meals, error: mealsError } = await supabase
       .from("Calendar")
       .select(
@@ -133,7 +140,7 @@ async function calculateUserStats(
         date,
         Recipe (
           "Recipe-Tag_Map" (
-            Tag (name)
+            RecipeTag (name)
           )
         )
       `
@@ -149,7 +156,7 @@ async function calculateUserStats(
       // Count green recipes
       const isGreenMeal = (meal: CalendarMealWithTags) =>
         meal.Recipe?.["Recipe-Tag_Map"]?.some((tm) => {
-          const tagName = tm.Tag?.name?.toLowerCase() || "";
+          const tagName = tm.RecipeTag?.name?.toLowerCase() || "";
           return (
             tagName.includes("sustainable") || tagName.includes("green") || tagName.includes("eco")
           );
@@ -157,20 +164,24 @@ async function calculateUserStats(
 
       stats.green_recipes = mealsTyped.filter(isGreenMeal).length;
 
-      // Weekly stats
-      stats.weekly_meals_logged = mealsTyped.filter(
-        (meal) => meal.date && new Date(meal.date) >= startOfWeek
-      ).length;
-      stats.weekly_green_recipes = mealsTyped.filter(
-        (meal) => meal.date && new Date(meal.date) >= startOfWeek && isGreenMeal(meal)
-      ).length;
+      // Weekly stats - use string comparison for YYYY-MM-DD dates
+      const weeklyMeals = mealsTyped.filter((meal) => meal.date && meal.date >= startOfWeekStr);
+      stats.weekly_meals_logged = weeklyMeals.length;
 
-      // Monthly stats
+      // Count unique days with meals this week (for Week Warrior streak challenge)
+      const weeklyUniqueDays = new Set(
+        weeklyMeals.map((m) => m.date).filter((d): d is string => d !== null)
+      );
+      stats.weekly_unique_days = weeklyUniqueDays.size;
+
+      stats.weekly_green_recipes = weeklyMeals.filter(isGreenMeal).length;
+
+      // Monthly stats - use string comparison for YYYY-MM-DD dates
       stats.monthly_meals_logged = mealsTyped.filter(
-        (meal) => meal.date && new Date(meal.date) >= startOfMonth
+        (meal) => meal.date && meal.date >= startOfMonthStr
       ).length;
       stats.monthly_green_recipes = mealsTyped.filter(
-        (meal) => meal.date && new Date(meal.date) >= startOfMonth && isGreenMeal(meal)
+        (meal) => meal.date && meal.date >= startOfMonthStr && isGreenMeal(meal)
       ).length;
     }
 
@@ -193,7 +204,7 @@ async function calculateUserStats(
       .from("nutrient_tracking")
       .select("date")
       .eq("user_id", authUserId)
-      .gte("date", startOfMonth.toISOString().split("T")[0]);
+      .gte("date", startOfMonthStr);
 
     if (!nutrientError && nutrientData) {
       const uniqueNutrientDays = new Set(nutrientData.map((n) => n.date));
@@ -221,7 +232,9 @@ function calculateProgress(challenge: Challenge, stats: Record<string, number>):
         current = stats.weekly_green_recipes || 0;
         break;
       case "streak_days":
-        current = stats.streak_days || 0;
+        // For weekly streak challenges, use the number of unique days with meals this week
+        // This makes more sense for a weekly challenge than requiring consecutive days
+        current = stats.weekly_unique_days || 0;
         break;
       default:
         current = 0;
@@ -331,4 +344,14 @@ function getStartOfMonth(date: Date): Date {
 
 function getEndOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+}
+
+/**
+ * Convert Date to YYYY-MM-DD string for database comparison
+ */
+function toDateString(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
