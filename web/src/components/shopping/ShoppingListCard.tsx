@@ -61,7 +61,6 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
         {/* Header */}
         <div className="mb-3 flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <ShoppingBag className="size-5 text-gray-700" />
             <h3 className="brutalism-text-bold text-lg leading-tight">{list.name}</h3>
           </div>
         </div>
@@ -92,18 +91,20 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
               e.stopPropagation();
               setIsEditModalOpen(true);
             }}
-            className="brutalism-button-neutral flex-1 px-3 py-2 text-sm"
+            className="brutalism-button-neutral r flex flex-1 items-center gap-1 px-3 py-2 text-sm"
           >
             <Edit2 className="size-4 text-black" />
+            Edit
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
               setIsDeleteDialogOpen(true);
             }}
-            className="brutalism-button-neutral flex-1 px-3 py-2 text-sm"
+            className="brutalism-button-neutral flex flex-1 items-center gap-1 px-3 py-2 text-sm"
           >
             <Trash2 className="size-4 text-black" />
+            Delete
           </button>
         </div>
       </div>
