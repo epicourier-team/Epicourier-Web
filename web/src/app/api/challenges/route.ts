@@ -98,9 +98,6 @@ export async function GET() {
     // Calculate user stats for progress
     const stats = await calculateUserStats(supabase, publicUserId, authUserId);
 
-    // Debug: Log calculated stats
-    console.log("[Challenges API] Calculated stats:", JSON.stringify(stats, null, 2));
-
     // Build challenge maps
     const userChallengeMap = new Map<number, UserChallengeRow>();
     (userChallenges ?? []).forEach((uc) => {
@@ -163,10 +160,6 @@ export async function GET() {
 
     // Sync progress to database for joined challenges (fire-and-forget, don't block response)
     if (progressUpdates.length > 0) {
-      console.log(
-        "[Challenges API] Progress updates to sync:",
-        JSON.stringify(progressUpdates, null, 2)
-      );
       syncProgressToDatabase(supabase, progressUpdates).catch((err) => {
         console.error("Error syncing challenge progress to database:", err);
       });
@@ -219,14 +212,6 @@ async function calculateUserStats(
     const startOfWeekStr = toDateString(startOfWeekDate);
     const startOfMonthStr = toDateString(startOfMonthDate);
 
-    // Debug: Log date boundaries
-    console.log("[Challenges API] Date boundaries:", {
-      today: toDateString(now),
-      startOfWeek: startOfWeekStr,
-      startOfMonth: startOfMonthStr,
-      publicUserId,
-    });
-
     // Count total meals logged
     const { count: mealsCount, error: mealsError } = await supabase
       .from("Calendar")
@@ -244,13 +229,6 @@ async function calculateUserStats(
       .select("id, date")
       .eq("user_id", publicUserId)
       .eq("status", true);
-
-    // Debug: Log all meals
-    console.log("[Challenges API] All meals query:", {
-      error: allMealsError?.message,
-      count: allMeals?.length,
-      dates: allMeals?.map((m) => m.date),
-    });
 
     if (!allMealsError && allMeals) {
       // Weekly stats - use string comparison for YYYY-MM-DD dates
@@ -286,21 +264,8 @@ async function calculateUserStats(
       .eq("user_id", publicUserId)
       .eq("status", true);
 
-    // Debug: Log raw meals query result
-    console.log("[Challenges API] Meals with tags query result:", {
-      error: mealsDataError?.message,
-      mealsCount: meals?.length,
-      firstMeal: meals?.[0],
-    });
-
     if (!mealsDataError && meals) {
       const mealsTyped = meals as CalendarMealWithTags[];
-
-      // Debug: Log meal dates
-      console.log(
-        "[Challenges API] Meal dates (status=true):",
-        mealsTyped.map((m) => m.date)
-      );
 
       // Count green recipes
       stats.green_recipes = mealsTyped.filter((meal) => {
@@ -348,13 +313,6 @@ async function calculateUserStats(
       );
       const datesArray = Array.from(uniqueDates);
       stats.streak_days = calculateStreak(datesArray);
-
-      // Debug: Log streak calculation details
-      console.log("[Challenges API] Streak calculation:", {
-        uniqueDates: datesArray.sort().reverse().slice(0, 10), // Last 10 dates
-        calculatedStreak: stats.streak_days,
-        today: new Date().toISOString().split("T")[0],
-      });
     }
 
     // Count nutrient goal achievement days (from nutrient_tracking)
@@ -553,8 +511,6 @@ async function syncProgressToDatabase(
 
     if (error) {
       console.error(`Failed to update user_challenge ${update.id}:`, error.message, error.details);
-    } else {
-      console.log(`[Challenges API] Successfully updated user_challenge ${update.id}`);
     }
   }
 }
