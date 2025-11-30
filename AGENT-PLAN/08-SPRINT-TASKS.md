@@ -1,8 +1,8 @@
 # Epicourier Sprint Tasks & Milestones
 
-**Document Version**: 1.8  
+**Document Version**: 1.9  
 **Last Updated**: November 29, 2025  
-**Current Phase**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 ✅ | v1.3.0 �)
+**Current Phase**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 ✅ | v1.3.0 🚧)
 
 ---
 
@@ -30,9 +30,9 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 |---------|-------------------|----------------------|----------|
 | v1.1.0  | Nutrient Tracking | ✅ Complete          | 10/10    |
 | v1.2.0  | Gamification      | ✅ Complete          | 15/15 (core + extended + testing) |
-| v1.3.0  | Smart Cart        | � In Progress       | 0/30 (5 Epics, 25 Sub-Issues) |
+| v1.3.0  | Smart Cart        | 🚧 In Progress       | 15/30 (E1 ✅, E2 ✅, E3-E5 📝) |
 
-**Overall Phase 2 Progress**: ~70% (v1.1.0 + v1.2.0 complete, v1.3.0 in progress)
+**Overall Phase 2 Progress**: ~83% (v1.1.0 + v1.2.0 complete, v1.3.0 50% complete)
 
 ---
 
@@ -185,8 +185,8 @@ The following features were originally planned for v1.2.0 but deferred due to pr
 ### 📋 v1.3.0: Smart Cart Integration
 
 **Milestone**: `v1.3.0-smart-cart`  
-**Status**: � In Progress  
-**Target Release**: TBD (5 Sprints planned)
+**Status**: 🚧 In Progress  
+**Target Release**: TBD (3 Sprints remaining)
 
 **Summary**: Automated shopping list generation from meal plans, inventory tracking, and **AI-powered recipe suggestions based on available ingredients** (extends Python backend).
 
@@ -194,21 +194,21 @@ The following features were originally planned for v1.2.0 but deferred due to pr
 
 | Epic # | Title                                           | Sub-Issues | Priority | Status        |
 | ------ | ----------------------------------------------- | ---------- | -------- | ------------- |
-| #75    | Epic: Database Foundation (E1)                  | #76-#79    | P0       | 🚧 In Progress |
-| #80    | Epic: Shopping List System (E2)                 | #81-#86    | P0       | 📝 Planned    |
-| #87    | Epic: Inventory Management System (E3)          | #88-#92    | P0       | 📝 Planned    |
+| #75    | Epic: Database Foundation (E1)                  | #76-#79    | P0       | ✅ Complete   |
+| #80    | Epic: Shopping List System (E2)                 | #81-#86    | P0       | ✅ Complete   |
+| #87    | Epic: Inventory Management System (E3)          | #88-#92    | P0       | 🚧 In Progress |
 | #93    | Epic: AI Recipe Recommendations (E4)            | #94-#98    | P1       | 📝 Planned    |
 | #99    | Epic: Integration, Polish & Deployment (E5)     | #100-#104  | P0       | 📝 Planned    |
 
-#### 🚧 Epic 1: Database Foundation (Sprint 1)
+#### ✅ Epic 1: Database Foundation (Sprint 1) - COMPLETE
 
 | Issue | Title                                                    | Type     | Priority | Status        |
 | ----- | -------------------------------------------------------- | -------- | -------- | ------------- |
-| #75   | epic: Smart Cart System - Database Foundation (E1)       | Epic     | P0       | 🚧 In Progress |
-| #76   | feat(database): shopping_lists table schema              | Database | P0       | 📝 To Do      |
-| #77   | feat(database): shopping_list_items table schema         | Database | P0       | 📝 To Do      |
-| #78   | feat(database): user_inventory table schema              | Database | P0       | 📝 To Do      |
-| #79   | chore(types): TypeScript types for shopping/inventory    | Frontend | P1       | 📝 To Do      |
+| #75   | epic: Smart Cart System - Database Foundation (E1)       | Epic     | P0       | ✅ Complete (PR #105) |
+| #76   | feat(database): shopping_lists table schema              | Database | P0       | ✅ Complete (PR #105) |
+| #77   | feat(database): shopping_list_items table schema         | Database | P0       | ✅ Complete (PR #105) |
+| #78   | feat(database): user_inventory table schema              | Database | P0       | ✅ Complete (PR #105) |
+| #79   | chore(types): TypeScript types for shopping/inventory    | Frontend | P1       | ✅ Complete (PR #105) |
 
 **Schema Design Preview**:
 ```sql
@@ -230,50 +230,60 @@ user_inventory (
 )
 ```
 
-#### 📝 Epic 2: Shopping List System (Sprint 2)
+#### ✅ Epic 2: Shopping List System (Sprint 2) - COMPLETE
 
 | Issue | Title                                                    | Type     | Priority | Status     |
 | ----- | -------------------------------------------------------- | -------- | -------- | ---------- |
-| #80   | Epic: Shopping List System (E2)                          | Epic     | P0       | 📝 Planned |
-| #81   | feat(frontend): Shopping list create/read UI             | Frontend | P0       | 📝 To Do   |
-| #82   | feat(frontend): Shopping list update/delete              | Frontend | P0       | 📝 To Do   |
-| #83   | feat(frontend): Shopping list items management           | Frontend | P0       | 📝 To Do   |
-| #84   | feat(frontend): Shopping list sharing                    | Frontend | P2       | 📝 To Do   |
-| #85   | feat(frontend): Recipe to shopping list integration      | Frontend | P1       | 📝 To Do   |
-| #86   | test(frontend): Shopping list unit and integration tests | Testing  | P1       | 📝 To Do   |
+| #80   | Epic: Shopping List System (E2)                          | Epic     | P0       | ✅ Complete |
+| #81   | feat(frontend): Shopping list create/read UI             | Frontend | P0       | ✅ Complete (PR #106) |
+| #82   | feat(frontend): Shopping list update/delete              | Frontend | P0       | ✅ Complete (PR #107) |
+| #83   | feat(frontend): Shopping list items management           | Frontend | P0       | ✅ Complete (PR #112) |
+| #84   | feat(frontend): Shopping list export (copy/print)        | Frontend | P2       | ✅ Complete (PR #112) |
+| #85   | feat(frontend): Recipe to shopping list integration      | Frontend | P1       | ✅ Complete (PR #112) |
+| #86   | test(frontend): Shopping list unit and integration tests | Testing  | P1       | ✅ Complete (PR #112) |
 
-#### 📝 Epic 3: Inventory Management System (Sprint 3)
+**Epic 2 Deliverables**:
+- ✅ Shopping list CRUD UI with cards
+- ✅ Shopping list detail page with item management
+- ✅ Generate shopping list from calendar date range
+- ✅ Add recipe ingredients to shopping list
+- ✅ Export: Copy to clipboard & Print
+- ✅ 5 API routes (CRUD + Generate)
+- ✅ 8 React components
+- ✅ 12 unit tests (100% pass)
+
+#### 🚧 Epic 3: Inventory Management System (Sprint 3) - IN PROGRESS
 
 | Issue | Title                                                    | Type     | Priority | Status     |
 | ----- | -------------------------------------------------------- | -------- | -------- | ---------- |
-| #87   | Epic: Inventory Management System (E3)                   | Epic     | P0       | 📝 Planned |
+| #87   | Epic: Inventory Management System (E3)                   | Epic     | P0       | 🚧 In Progress |
 | #88   | feat(frontend): Inventory CRUD UI                        | Frontend | P0       | 📝 To Do   |
 | #89   | feat(frontend): Expiration tracking and alerts           | Frontend | P0       | 📝 To Do   |
 | #90   | feat(frontend): Low stock alerts                         | Frontend | P1       | 📝 To Do   |
-| #91   | feat(frontend): Recipe match indicator on recipe cards   | Frontend | P1       | 📝 To Do   |
+| #91   | feat(frontend): Recipe match indicator on recipe cards   | Frontend | P1       | ✅ Complete (PR #109) |
 | #92   | test(frontend): Inventory system tests                   | Testing  | P1       | 📝 To Do   |
 
-#### 📝 Epic 4: AI Recipe Recommendations (Sprint 4)
+#### 🚧 Epic 4: AI Recipe Recommendations (Sprint 4) - IN PROGRESS
 
 | Issue | Title                                                    | Type       | Priority | Status     |
 | ----- | -------------------------------------------------------- | ---------- | -------- | ---------- |
-| #93   | Epic: AI Recipe Recommendations from Inventory (E4)      | Epic       | P1       | 📝 Planned |
+| #93   | Epic: AI Recipe Recommendations from Inventory (E4)      | Epic       | P1       | � In Progress |
 | #94   | feat(python): AI recipe suggestions from inventory       | Python API | P0       | 📝 To Do   |
 | #95   | feat(python): Expiration priority in suggestions         | Python API | P0       | 📝 To Do   |
-| #96   | feat(frontend): Suggest recipes from inventory button    | Frontend   | P0       | 📝 To Do   |
+| #96   | feat(frontend): Suggest recipes from inventory button    | Frontend   | P0       | ✅ Complete (PR #108) |
 | #97   | feat(frontend): Recipe recommendation modal              | Frontend   | P0       | 📝 To Do   |
 | #98   | test(python): Inventory recommendation API tests         | Testing    | P1       | 📝 To Do   |
 
-#### 📝 Epic 5: Integration, Polish & Deployment (Sprint 5)
+#### � Epic 5: Integration, Polish & Deployment (Sprint 5) - IN PROGRESS
 
 | Issue | Title                                                    | Type       | Priority | Status     |
 | ----- | -------------------------------------------------------- | ---------- | -------- | ---------- |
-| #99   | Epic: Integration, Polish & Deployment (E5)              | Epic       | P0       | 📝 Planned |
+| #99   | Epic: Integration, Polish & Deployment (E5)              | Epic       | P0       | � In Progress |
 | #100  | feat(frontend): Dashboard smart cart widget              | Frontend   | P1       | 📝 To Do   |
 | #101  | feat(frontend): Shopping list → Inventory transfer flow  | Frontend   | P0       | 📝 To Do   |
 | #102  | feat(frontend): Performance optimization                 | Frontend   | P1       | 📝 To Do   |
 | #103  | test(e2e): Smart cart user journey tests                 | Testing    | P1       | 📝 To Do   |
-| #104  | docs: Smart cart feature documentation                   | Docs       | P1       | 📝 To Do   |
+| #104  | docs: Smart cart feature documentation                   | Docs       | P1       | ✅ Complete (PR #110) |
 
 #### Backend API Design
 
@@ -380,7 +390,7 @@ POST /inventory-recommend              - AI recipe suggestions from inventory
 Phase 2: Advanced Features (v1.1.0 - v1.3.0)
 ├── v1.1.0 Nutrient Tracking ████████████████████ 100% ✅
 ├── v1.2.0 Gamification      ████████████████████ 100% ✅
-└── v1.3.0 Smart Cart        ██░░░░░░░░░░░░░░░░░░  5% �
+└── v1.3.0 Smart Cart        ██░░░░░░░░░░░░░░░░░░  5% 🚧
     ├── Epic 1 (Database)    🚧 In Progress
     ├── Epic 2 (Shopping)    📝 Planned
     ├── Epic 3 (Inventory)   📝 Planned
@@ -637,7 +647,7 @@ Overall Phase 2: ████████████████░░░░ ~7
 | Challenges   | Weekly/monthly challenges                | Medium     | #65/#66/#68 | ✅ Complete |
 | Rewards      | Unlock features through achievements     | Medium     | TBD     | ⏸️ Deferred to v2.0.0 |
 | Leaderboard  | Community rankings (optional)            | High       | TBD     | ⏸️ Deferred to v3.1.0 |
-| Notifications| Notify on unlocks                        | Medium     | #62/#63 | � API Ready, Frontend Pending |
+| Notifications| Notify on unlocks                        | Medium     | #62/#63 | 🚧 API Ready, Frontend Pending |
 
 #### Technical Requirements
 
