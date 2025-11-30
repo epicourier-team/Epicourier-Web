@@ -16,14 +16,23 @@ import {
   Copy,
   Printer,
   Share2,
+  Package,
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import {
+  TransferToInventoryModal,
+  BatchTransferModal,
+  type ShoppingItemForTransfer,
+} from "@/components/shopping/TransferFlow";
+import { useTransferToInventory } from "@/hooks/useTransferToInventory";
+import type { TransferToInventoryRequest } from "@/types/data";
 
 interface ShoppingListItem {
   id: string;
@@ -70,6 +79,11 @@ export default function ShoppingListDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [newItemName, setNewItemName] = useState("");
   const [isAddingItem, setIsAddingItem] = useState(false);
+
+  // Transfer to inventory state
+  const [transferModalItem, setTransferModalItem] = useState<ShoppingItemForTransfer | null>(null);
+  const [isBatchTransferOpen, setIsBatchTransferOpen] = useState(false);
+  const { transfer, isTransferring } = useTransferToInventory();
 
   // Fetch list details
   const fetchList = useCallback(async () => {
@@ -195,6 +209,30 @@ export default function ShoppingListDetailPage() {
       });
       fetchList(); // Revert on error
     }
+  };
+
+  // Transfer item to inventory
+  const handleTransferToInventory = async (items: TransferToInventoryRequest[]) => {
+    const success = await transfer(items);
+    if (success) {
+      fetchList(); // Refresh the list
+      router.refresh(); // Refresh any server components
+    }
+  };
+
+  // Get checked items for batch transfer
+  const getCheckedItems = (): ShoppingItemForTransfer[] => {
+    if (!list) return [];
+    return list.shopping_list_items
+      .filter((item) => item.is_checked && item.ingredient_id !== null)
+      .map((item) => ({
+        id: item.id,
+        item_name: item.item_name,
+        quantity: item.quantity,
+        unit: item.unit,
+        category: item.category,
+        ingredient_id: item.ingredient_id,
+      }));
   };
 
   // Group items by category
@@ -513,7 +551,27 @@ export default function ShoppingListDetailPage() {
                             <MoreVertical className="size-4" />
                           </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-32">
+                        <DropdownMenuContent align="end" className="w-44">
+                          {item.ingredient_id && (
+                            <>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setTransferModalItem({
+                                    id: item.id,
+                                    item_name: item.item_name,
+                                    quantity: item.quantity,
+                                    unit: item.unit,
+                                    category: item.category,
+                                    ingredient_id: item.ingredient_id,
+                                  })
+                                }
+                              >
+                                <Package className="mr-2 size-4" />
+                                Mark as Purchased
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                            </>
+                          )}
                           <DropdownMenuItem
                             onClick={() => handleDeleteItem(item)}
                             className="text-red-600 focus:text-red-600"
@@ -531,9 +589,10 @@ export default function ShoppingListDetailPage() {
           </div>
         )}
 
-        {/* Complete All Button */}
-        {list.shopping_list_items.length > 0 && progress.checked < progress.total && (
-          <div className="flex justify-center">
+        {/* Action Buttons */}
+        <div className="flex flex-wrap justify-center gap-3">
+          {/* Mark All Complete Button */}
+          {list.shopping_list_items.length > 0 && progress.checked < progress.total && (
             <button
               onClick={async () => {
                 // Check all unchecked items
@@ -547,9 +606,38 @@ export default function ShoppingListDetailPage() {
               <Check className="size-4" />
               Mark All Complete
             </button>
-          </div>
-        )}
+          )}
+
+          {/* Complete Shopping (Batch Transfer) Button */}
+          {list.shopping_list_items.some((i) => i.is_checked && i.ingredient_id) && (
+            <button
+              onClick={() => setIsBatchTransferOpen(true)}
+              disabled={isTransferring}
+              className="brutalism-button-primary flex items-center gap-2 px-6 py-3 disabled:opacity-40"
+            >
+              <Package className="size-4" />
+              Complete Shopping ({getCheckedItems().length})
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Transfer Modals */}
+      {transferModalItem && (
+        <TransferToInventoryModal
+          isOpen={true}
+          onClose={() => setTransferModalItem(null)}
+          item={transferModalItem}
+          onTransfer={handleTransferToInventory}
+        />
+      )}
+
+      <BatchTransferModal
+        isOpen={isBatchTransferOpen}
+        onClose={() => setIsBatchTransferOpen(false)}
+        items={getCheckedItems()}
+        onTransfer={handleTransferToInventory}
+      />
     </div>
   );
 }
