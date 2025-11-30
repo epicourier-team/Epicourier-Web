@@ -215,8 +215,49 @@ export default function ShoppingListDetailPage() {
   const handleTransferToInventory = async (items: TransferToInventoryRequest[]) => {
     const success = await transfer(items);
     if (success) {
-      fetchList(); // Refresh the list
-      router.refresh(); // Refresh any server components
+      // Get the IDs of transferred items
+      const transferredIds = new Set(items.map((item) => item.shopping_item_id));
+
+      // Check if all items will be processed after this transfer
+      const remainingItems =
+        list?.shopping_list_items.filter((item) => !transferredIds.has(item.id)) || [];
+
+      if (remainingItems.length === 0) {
+        // All items transferred - archive or delete the list
+        await handleCompleteList();
+      } else {
+        fetchList(); // Refresh the list
+        router.refresh(); // Refresh any server components
+      }
+    }
+  };
+
+  // Complete and archive the shopping list
+  const handleCompleteList = async () => {
+    try {
+      const res = await fetch(`/api/shopping-lists/${listId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to complete shopping list");
+      }
+
+      toast({
+        title: "🎉 Shopping Complete!",
+        description: "All items have been added to your inventory. List has been removed.",
+      });
+
+      // Navigate back to shopping lists
+      router.push("/dashboard/shopping");
+      router.refresh();
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to complete list",
+        variant: "destructive",
+      });
+      fetchList();
     }
   };
 
