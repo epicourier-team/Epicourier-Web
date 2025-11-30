@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ShoppingBag, Loader2, CheckCircle, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -43,11 +43,9 @@ export default function BatchTransferModal({
   const [isTransferring, setIsTransferring] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
-  // Initialize items when modal opens
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      onClose();
-    } else {
+  // Initialize items when modal opens or items change
+  useEffect(() => {
+    if (isOpen && items.length > 0) {
       setTransferItems(
         items
           .filter((item) => item.ingredient_id !== null)
@@ -59,6 +57,13 @@ export default function BatchTransferModal({
           }))
       );
       setExpandedItemId(null);
+    }
+  }, [isOpen, items]);
+
+  // Initialize items when modal opens
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
     }
   };
 
@@ -206,7 +211,18 @@ export default function BatchTransferModal({
               <p className="font-medium text-yellow-800">
                 {itemsWithoutIngredient.length} item(s) cannot be transferred
               </p>
-              <p className="text-yellow-700">Items without linked ingredients will be skipped.</p>
+              <p className="text-yellow-700">
+                Items without linked ingredients will be skipped. Try re-adding these items to match
+                them with known ingredients.
+              </p>
+              <ul className="mt-2 list-inside list-disc text-yellow-700">
+                {itemsWithoutIngredient.slice(0, 5).map((item) => (
+                  <li key={item.id}>{item.item_name}</li>
+                ))}
+                {itemsWithoutIngredient.length > 5 && (
+                  <li>...and {itemsWithoutIngredient.length - 5} more</li>
+                )}
+              </ul>
             </div>
           )}
 
@@ -215,6 +231,13 @@ export default function BatchTransferModal({
             <div className="flex flex-col items-center justify-center p-6 text-center">
               <Package className="text-muted-foreground mb-2 size-8" />
               <p className="text-muted-foreground text-sm">No items available for transfer</p>
+              {items.length > 0 && (
+                <p className="text-muted-foreground mt-1 text-xs">
+                  {items.length} checked item(s) don&apos;t have linked ingredients.
+                  <br />
+                  Items need to match known ingredients to be added to inventory.
+                </p>
+              )}
             </div>
           )}
         </div>

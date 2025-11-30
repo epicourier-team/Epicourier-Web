@@ -43,6 +43,31 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Item name is required" }, { status: 400 });
     }
 
+    const trimmedName = item_name.trim();
+
+    // Try to find a matching ingredient if ingredient_id is not provided
+    let resolvedIngredientId = ingredient_id || null;
+    let resolvedUnit = unit?.trim() || null;
+    const resolvedCategory = category?.trim() || "Other";
+
+    if (!resolvedIngredientId) {
+      // Search for ingredient by name (case-insensitive)
+      const { data: matchedIngredient } = await supabase
+        .from("Ingredient")
+        .select("id, name, unit")
+        .ilike("name", trimmedName)
+        .limit(1)
+        .single();
+
+      if (matchedIngredient) {
+        resolvedIngredientId = matchedIngredient.id;
+        // Use ingredient's unit if not specified
+        if (!resolvedUnit && matchedIngredient.unit) {
+          resolvedUnit = matchedIngredient.unit;
+        }
+      }
+    }
+
     // Get the current max position
     const { data: maxPositionResult } = await supabase
       .from("shopping_list_items")
@@ -59,11 +84,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .from("shopping_list_items")
       .insert({
         shopping_list_id: listId,
-        item_name: item_name.trim(),
-        ingredient_id: ingredient_id || null,
+        item_name: trimmedName,
+        ingredient_id: resolvedIngredientId,
         quantity: quantity || 1,
-        unit: unit?.trim() || null,
-        category: category?.trim() || "Other",
+        unit: resolvedUnit,
+        category: resolvedCategory,
         notes: notes?.trim() || null,
         position: newPosition,
         is_checked: false,

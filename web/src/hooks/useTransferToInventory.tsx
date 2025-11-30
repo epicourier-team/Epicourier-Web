@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import type { TransferToInventoryRequest } from "@/types/data";
@@ -28,6 +29,15 @@ export function useTransferToInventory(): UseTransferToInventoryResult {
   const [canUndo, setCanUndo] = useState(false);
   const undoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const toastIdRef = useRef<string | null>(null);
+  // Use refs to store current state for undo callback to avoid stale closure
+  const lastTransferredItemsRef = useRef<TransferToInventoryRequest[]>([]);
+  const canUndoRef = useRef(false);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    lastTransferredItemsRef.current = lastTransferredItems;
+    canUndoRef.current = canUndo;
+  }, [lastTransferredItems, canUndo]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -41,6 +51,8 @@ export function useTransferToInventory(): UseTransferToInventoryResult {
   const clearUndoState = useCallback(() => {
     setCanUndo(false);
     setLastTransferredItems([]);
+    canUndoRef.current = false;
+    lastTransferredItemsRef.current = [];
     if (undoTimeoutRef.current) {
       clearTimeout(undoTimeoutRef.current);
       undoTimeoutRef.current = null;
@@ -51,16 +63,19 @@ export function useTransferToInventory(): UseTransferToInventoryResult {
     }
   }, [dismiss]);
 
-  const undo = useCallback(async (): Promise<boolean> => {
-    if (!canUndo || lastTransferredItems.length === 0) {
+  // Use ref-based undo for toast action to avoid stale closure
+  const handleUndoClick = useCallback(async (): Promise<boolean> => {
+    if (!canUndoRef.current || lastTransferredItemsRef.current.length === 0) {
       return false;
     }
+
+    const itemsToUndo = lastTransferredItemsRef.current;
 
     try {
       const response = await fetch("/api/inventory/transfer", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: lastTransferredItems }),
+        body: JSON.stringify({ items: itemsToUndo }),
       });
 
       if (!response.ok) {
@@ -69,7 +84,7 @@ export function useTransferToInventory(): UseTransferToInventoryResult {
 
       toast({
         title: "↩️ Transfer Undone",
-        description: `${lastTransferredItems.length} item(s) removed from inventory`,
+        description: `${itemsToUndo.length} item(s) removed from inventory`,
       });
 
       clearUndoState();
@@ -82,7 +97,11 @@ export function useTransferToInventory(): UseTransferToInventoryResult {
       });
       return false;
     }
-  }, [canUndo, lastTransferredItems, toast, clearUndoState]);
+  }, [toast, clearUndoState]);
+
+  const undo = useCallback(async (): Promise<boolean> => {
+    return handleUndoClick();
+  }, [handleUndoClick]);
 
   const transfer = useCallback(
     async (items: TransferToInventoryRequest[]): Promise<boolean> => {
@@ -108,16 +127,26 @@ export function useTransferToInventory(): UseTransferToInventoryResult {
 
         const result = await response.json();
 
-        // Store transferred items for potential undo
-        setLastTransferredItems(result.transferred_items || items);
+        // Store transferred items for potential undo (both state and ref)
+        const transferredItems = result.transferred_items || items;
+        setLastTransferredItems(transferredItems);
+        lastTransferredItemsRef.current = transferredItems;
         setCanUndo(true);
+        canUndoRef.current = true;
 
-        // Show success toast with undo action
+        // Show success toast with undo action and inventory link
         const { id } = toast({
           title: "✅ Added to Inventory",
-          description: `${result.transferred_count || items.length} item(s) transferred`,
+          description: (
+            <span>
+              {result.transferred_count || items.length} item(s) transferred.{" "}
+              <Link href="/dashboard/inventory" className="underline hover:no-underline">
+                View Inventory
+              </Link>
+            </span>
+          ),
           action: (
-            <ToastAction altText="Undo transfer" onClick={undo}>
+            <ToastAction altText="Undo transfer" onClick={handleUndoClick}>
               Undo
             </ToastAction>
           ),
@@ -141,7 +170,7 @@ export function useTransferToInventory(): UseTransferToInventoryResult {
         setIsTransferring(false);
       }
     },
-    [toast, clearUndoState, undo]
+    [toast, clearUndoState, handleUndoClick]
   );
 
   return {
