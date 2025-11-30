@@ -1,7 +1,7 @@
 # Epicourier Sprint Tasks & Milestones
 
-**Document Version**: 1.9  
-**Last Updated**: November 29, 2025  
+**Document Version**: 2.0  
+**Last Updated**: November 30, 2025  
 **Current Phase**: Phase 2 In Progress (v1.1.0 ✅ | v1.2.0 ✅ | v1.3.0 🚧)
 
 ---
@@ -30,9 +30,9 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 |---------|-------------------|----------------------|----------|
 | v1.1.0  | Nutrient Tracking | ✅ Complete          | 10/10    |
 | v1.2.0  | Gamification      | ✅ Complete          | 15/15 (core + extended + testing) |
-| v1.3.0  | Smart Cart        | 🚧 In Progress       | 15/30 (E1 ✅, E2 ✅, E3-E5 📝) |
+| v1.3.0  | Smart Cart        | 🚧 In Progress       | 19/30 (E1 ✅, E2 ✅, E3-E5 �) |
 
-**Overall Phase 2 Progress**: ~83% (v1.1.0 + v1.2.0 complete, v1.3.0 50% complete)
+**Overall Phase 2 Progress**: ~87% (v1.1.0 + v1.2.0 complete, v1.3.0 63% complete)
 
 ---
 
@@ -267,23 +267,40 @@ user_inventory (
 
 | Issue | Title                                                    | Type       | Priority | Status     |
 | ----- | -------------------------------------------------------- | ---------- | -------- | ---------- |
-| #93   | Epic: AI Recipe Recommendations from Inventory (E4)      | Epic       | P1       | � In Progress |
+| #93   | Epic: AI Recipe Recommendations from Inventory (E4)      | Epic       | P1       | 🚧 In Progress |
 | #94   | feat(python): AI recipe suggestions from inventory       | Python API | P0       | 📝 To Do   |
 | #95   | feat(python): Expiration priority in suggestions         | Python API | P0       | 📝 To Do   |
 | #96   | feat(frontend): Suggest recipes from inventory button    | Frontend   | P0       | ✅ Complete (PR #108) |
 | #97   | feat(frontend): Recipe recommendation modal              | Frontend   | P0       | 📝 To Do   |
 | #98   | test(python): Inventory recommendation API tests         | Testing    | P1       | 📝 To Do   |
 
-#### � Epic 5: Integration, Polish & Deployment (Sprint 5) - IN PROGRESS
+#### 🚧 Epic 5: Integration, Polish & Deployment (Sprint 5) - IN PROGRESS
 
 | Issue | Title                                                    | Type       | Priority | Status     |
 | ----- | -------------------------------------------------------- | ---------- | -------- | ---------- |
-| #99   | Epic: Integration, Polish & Deployment (E5)              | Epic       | P0       | � In Progress |
+| #99   | Epic: Integration, Polish & Deployment (E5)              | Epic       | P0       | 🚧 In Progress |
 | #100  | feat(frontend): Dashboard smart cart widget              | Frontend   | P1       | 📝 To Do   |
 | #101  | feat(frontend): Shopping list → Inventory transfer flow  | Frontend   | P0       | 📝 To Do   |
 | #102  | feat(frontend): Performance optimization                 | Frontend   | P1       | 📝 To Do   |
 | #103  | test(e2e): Smart cart user journey tests                 | Testing    | P1       | 📝 To Do   |
 | #104  | docs: Smart cart feature documentation                   | Docs       | P1       | ✅ Complete (PR #110) |
+
+---
+
+### 📋 Recent Bug Fixes & Improvements (v1.3.x)
+
+The following issues were addressed during v1.3.0 development:
+
+| Issue | Title                                                    | Type     | Status     | PR     |
+| ----- | -------------------------------------------------------- | -------- | ---------- | ------ |
+| #113  | fix(Database): Missing 'aisle' column in shopping list   | Bug      | ✅ Fixed   | #114   |
+| #115  | fix(frontend): Shopping list feature locked              | Bug      | ✅ Fixed   | #122   |
+| #123  | fix(Challenge): Progress not saved, calculations wrong   | Bug      | ✅ Fixed   | #125   |
+| #124  | fix(API): Fail to generate shopping list from calendar   | Bug      | ✅ Fixed   | #125   |
+| #126  | fix(test): StreakWidget timezone test failure            | Bug      | ✅ Fixed   | #127   |
+| #128  | fix: Hydration mismatch in AppSidebar DropdownMenu       | Bug      | ✅ Fixed   | #129   |
+| #130  | feat: Add concurrently for dev:full command              | DX       | ✅ Done    | #131   |
+| #133  | fix: Improve Recommender page layout and styling         | UI       | ✅ Fixed   | #134   |
 
 #### Backend API Design
 
@@ -369,16 +386,21 @@ POST /inventory-recommend              - AI recipe suggestions from inventory
 
 **Expected Deliverables**:
 
-- [ ] Shopping list database schema with RLS policies (#76)
-- [ ] Shopping list items schema (#77)
-- [ ] Inventory tracking database schema (#78)
-- [ ] TypeScript types for all new entities (#79)
-- [ ] `/dashboard/shopping` - Interactive shopping list UI (#81-#85)
-- [ ] `/dashboard/inventory` - Inventory management interface (#88-#91)
-- [ ] AI recipe suggestions from inventory (#94-#97)
+- [x] Shopping list database schema with RLS policies (#76) ✅
+- [x] Shopping list items schema (#77) ✅
+- [x] Inventory tracking database schema (#78) ✅
+- [x] TypeScript types for all new entities (#79) ✅
+- [x] `/dashboard/shopping` - Interactive shopping list UI (#81-#85) ✅
+- [ ] `/dashboard/inventory` - Inventory management interface (#88-#90)
+- [x] Recipe match indicator on cards (#91) ✅
+- [ ] AI recipe suggestions from inventory (#94-#95)
+- [x] Suggest recipes from inventory button (#96) ✅
+- [ ] Recipe recommendation modal (#97)
 - [ ] Dashboard smart cart widget (#100)
 - [ ] Shopping → Inventory transfer flow (#101)
-- [ ] E2E tests and documentation (#103, #104)
+- [ ] Performance optimization (#102)
+- [ ] E2E tests (#103)
+- [x] Smart cart documentation (#104) ✅
 
 ---
 
@@ -390,25 +412,35 @@ POST /inventory-recommend              - AI recipe suggestions from inventory
 Phase 2: Advanced Features (v1.1.0 - v1.3.0)
 ├── v1.1.0 Nutrient Tracking ████████████████████ 100% ✅
 ├── v1.2.0 Gamification      ████████████████████ 100% ✅
-└── v1.3.0 Smart Cart        ██░░░░░░░░░░░░░░░░░░  5% 🚧
-    ├── Epic 1 (Database)    🚧 In Progress
-    ├── Epic 2 (Shopping)    📝 Planned
-    ├── Epic 3 (Inventory)   📝 Planned
-    ├── Epic 4 (AI Recs)     📝 Planned
-    └── Epic 5 (Integration) 📝 Planned
+└── v1.3.0 Smart Cart        ████████████░░░░░░░░  63% 🚧
+    ├── Epic 1 (Database)    ████████████████████ 100% ✅
+    ├── Epic 2 (Shopping)    ████████████████████ 100% ✅
+    ├── Epic 3 (Inventory)   ████░░░░░░░░░░░░░░░░  20% 🚧
+    ├── Epic 4 (AI Recs)     ████░░░░░░░░░░░░░░░░  20% �
+    └── Epic 5 (Integration) ████░░░░░░░░░░░░░░░░  20% �
 
-Overall Phase 2: ████████████████░░░░ ~70%
+Overall Phase 2: ██████████████████░░ ~87%
 ```
 
 ### v1.3.0 Development Roadmap
 
-**Current Focus**: Epic 1 - Database Foundation (Issues #75-#79)
+**Current Focus**: Epic 3-5 - Inventory, AI Recommendations, Integration
 
-**Next Steps**:
+**Completed**:
 1. ✅ GitHub issues created (30 issues total)
-2. 🚧 Implement database migrations (#76, #77, #78)
-3. 📝 Add TypeScript types (#79)
-4. 📝 Continue with Epic 2 (Shopping List UI)
+2. ✅ Epic 1: Database migrations (#76, #77, #78)
+3. ✅ Epic 1: TypeScript types (#79)
+4. ✅ Epic 2: Shopping List UI (#81-#86)
+5. ✅ Epic 3: Recipe match indicator (#91)
+6. ✅ Epic 4: Suggest recipes button (#96)
+7. ✅ Epic 5: Documentation (#104)
+
+**In Progress**:
+- 🚧 Epic 3: Inventory CRUD UI (#88)
+- 🚧 Epic 3: Expiration tracking (#89)
+- 🚧 Epic 3: Low stock alerts (#90)
+- 🚧 Epic 4: AI recipe suggestions API (#94, #95)
+- 🚧 Epic 5: Dashboard widget & transfer flow (#100, #101)
 
 ### Issue Labels for v1.3.0
 
