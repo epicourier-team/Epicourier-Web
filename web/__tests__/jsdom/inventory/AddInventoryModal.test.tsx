@@ -24,10 +24,11 @@ describe("AddInventoryModal", () => {
           ok: true,
           json: () =>
             Promise.resolve({
-              ingredients: [
+              data: [
                 { id: 1, name: "Rice", unit: "kg", created_at: "2024-01-01" },
                 { id: 2, name: "Milk", unit: "L", created_at: "2024-01-01" },
               ],
+              pagination: { page: 1, limit: 10, total: 2, totalPages: 1 },
             }),
         });
       }
