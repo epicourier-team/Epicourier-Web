@@ -34,8 +34,6 @@ type StreakRecord = {
 const createMockSupabase = (options: {
   user?: { id: string; email: string } | null;
   authError?: Error | null;
-  streakRecords?: StreakRecord[];
-  streakError?: Error | null;
   rpcResult?: { data: unknown; error: Error | null };
   singleRecord?: StreakRecord | null;
   singleError?: Error | null;
@@ -43,8 +41,6 @@ const createMockSupabase = (options: {
   const {
     user = { id: "test-user-id", email: "test@example.com" },
     authError = null,
-    streakRecords = [],
-    streakError = null,
     rpcResult = { data: null, error: null },
     singleRecord = null,
     singleError = null,

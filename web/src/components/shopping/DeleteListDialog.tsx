@@ -3,7 +3,6 @@
 import { useState } from "react";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -59,7 +58,7 @@ export default function DeleteListDialog({
         title: "🗑️ List Deleted",
         description: (
           <div>
-            <p className="mb-2">"{list.name}" has been deleted</p>
+            <p className="mb-2">&quot;{list.name}&quot; has been deleted</p>
             <button
               onClick={() => handleUndo()}
               className="brutalism-button-neutral px-3 py-1 text-xs"
@@ -116,7 +115,7 @@ export default function DeleteListDialog({
             Delete Shopping List?
           </AlertDialogTitle>
           <AlertDialogDescription className="text-sm font-bold text-gray-800">
-            This will archive "{list.name}". You can undo this action within 10 seconds.
+            This will archive &quot;{list.name}&quot;. You can undo this action within 10 seconds.
           </AlertDialogDescription>
         </AlertDialogHeader>
 

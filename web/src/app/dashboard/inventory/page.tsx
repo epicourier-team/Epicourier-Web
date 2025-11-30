@@ -13,9 +13,17 @@ import { useToast } from "@/hooks/use-toast";
  * - Expiration tracking (coming in Issue #89)
  * - Low stock alerts (coming in Issue #90)
  */
+interface InventoryItem {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  expiry_date?: string;
+}
+
 export default function InventoryPage() {
   const [suggesting, setSuggesting] = useState(false);
-  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+  const [inventoryItems] = useState<InventoryItem[]>([]);
   const { toast } = useToast();
 
   const handleSuggestRecipes = async () => {
@@ -47,14 +55,6 @@ export default function InventoryPage() {
       });
     } finally {
       setSuggesting(false);
-    }
-  };
-
-  // Keyboard shortcut: Cmd/Ctrl + R
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "r") {
-      e.preventDefault();
-      handleSuggestRecipes();
     }
   };
 

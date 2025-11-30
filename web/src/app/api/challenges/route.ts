@@ -25,7 +25,7 @@ type CalendarMealWithTags = {
   date: string | null;
   Recipe?: {
     "Recipe-Tag_Map"?: Array<{
-      Tag?: { name?: string | null } | null;
+      RecipeTag?: { name?: string | null } | null;
     }>;
   } | null;
 };
@@ -112,6 +112,13 @@ export async function GET() {
     const joined: ChallengeWithStatus[] = [];
     const completed: ChallengeWithStatus[] = [];
 
+    // Collect progress updates for joined challenges
+    const progressUpdates: Array<{
+      id: number;
+      progress: ChallengeProgress;
+      isCompleted: boolean;
+    }> = [];
+
     for (const challenge of challenges ?? []) {
       const userChallenge = userChallengeMap.get(challenge.id);
       const isJoined = !!userChallenge;
@@ -121,6 +128,16 @@ export async function GET() {
       // Calculate progress
       const progress = calculateProgress(challenge as Challenge, stats);
       const daysRemaining = calculateDaysRemaining(challenge as Challenge);
+
+      // Track progress updates for joined but not completed challenges
+      if (isJoined && !isCompleted && userChallenge) {
+        const newlyCompleted = progress.current >= progress.target;
+        progressUpdates.push({
+          id: userChallenge.id,
+          progress,
+          isCompleted: newlyCompleted,
+        });
+      }
 
       const challengeWithStatus: ChallengeWithStatus = {
         ...(challenge as Challenge),
@@ -139,6 +156,13 @@ export async function GET() {
       } else {
         active.push(challengeWithStatus);
       }
+    }
+
+    // Sync progress to database for joined challenges (fire-and-forget, don't block response)
+    if (progressUpdates.length > 0) {
+      syncProgressToDatabase(supabase, progressUpdates).catch((err) => {
+        console.error("Error syncing challenge progress to database:", err);
+      });
     }
 
     const response: ChallengesResponse = {
@@ -171,6 +195,7 @@ async function calculateUserStats(
     // Weekly stats
     weekly_meals_logged: 0,
     weekly_green_recipes: 0,
+    weekly_unique_days: 0, // Number of unique days with meals this week (for Week Warrior)
     // Monthly stats
     monthly_meals_logged: 0,
     monthly_green_recipes: 0,
@@ -179,8 +204,13 @@ async function calculateUserStats(
 
   try {
     const now = new Date();
-    const startOfWeek = getStartOfWeek(now);
-    const startOfMonth = getStartOfMonth(now);
+    const startOfWeekDate = getStartOfWeek(now);
+    const startOfMonthDate = getStartOfMonth(now);
+
+    // Convert to YYYY-MM-DD strings for reliable date comparison
+    // This avoids timezone issues when comparing with database DATE type
+    const startOfWeekStr = toDateString(startOfWeekDate);
+    const startOfMonthStr = toDateString(startOfMonthDate);
 
     // Count total meals logged
     const { count: mealsCount, error: mealsError } = await supabase
@@ -193,7 +223,32 @@ async function calculateUserStats(
       stats.meals_logged = mealsCount;
     }
 
-    // Get meals with tags for green recipe counting
+    // Get all meals for this user (status=true) for counting
+    const { data: allMeals, error: allMealsError } = await supabase
+      .from("Calendar")
+      .select("id, date")
+      .eq("user_id", publicUserId)
+      .eq("status", true);
+
+    if (!allMealsError && allMeals) {
+      // Weekly stats - use string comparison for YYYY-MM-DD dates
+      const weeklyMeals = allMeals.filter((meal) => meal.date && meal.date >= startOfWeekStr);
+      stats.weekly_meals_logged = weeklyMeals.length;
+
+      // Count unique days with meals this week (for Week Warrior streak challenge)
+      const weeklyUniqueDays = new Set(
+        weeklyMeals.map((m) => m.date).filter((d): d is string => d !== null)
+      );
+      stats.weekly_unique_days = weeklyUniqueDays.size;
+
+      // Monthly stats
+      stats.monthly_meals_logged = allMeals.filter(
+        (meal) => meal.date && meal.date >= startOfMonthStr
+      ).length;
+    }
+
+    // Get meals with tags for green recipe counting (separate query)
+    // Note: The tag table is named "RecipeTag", not "Tag"
     const { data: meals, error: mealsDataError } = await supabase
       .from("Calendar")
       .select(
@@ -201,7 +256,7 @@ async function calculateUserStats(
         date,
         Recipe (
           "Recipe-Tag_Map" (
-            Tag (name)
+            RecipeTag (name)
           )
         )
       `
@@ -215,37 +270,29 @@ async function calculateUserStats(
       // Count green recipes
       stats.green_recipes = mealsTyped.filter((meal) => {
         return meal.Recipe?.["Recipe-Tag_Map"]?.some((tm) => {
-          const tagName = tm.Tag?.name?.toLowerCase() || "";
+          const tagName = tm.RecipeTag?.name?.toLowerCase() || "";
           return (
             tagName.includes("sustainable") || tagName.includes("green") || tagName.includes("eco")
           );
         });
       }).length;
 
-      // Weekly stats
-      stats.weekly_meals_logged = mealsTyped.filter(
-        (meal) => meal.date && new Date(meal.date) >= startOfWeek
-      ).length;
-
+      // Weekly green recipes
       stats.weekly_green_recipes = mealsTyped.filter((meal) => {
-        if (!meal.date || new Date(meal.date) < startOfWeek) return false;
+        if (!meal.date || meal.date < startOfWeekStr) return false;
         return meal.Recipe?.["Recipe-Tag_Map"]?.some((tm) => {
-          const tagName = tm.Tag?.name?.toLowerCase() || "";
+          const tagName = tm.RecipeTag?.name?.toLowerCase() || "";
           return (
             tagName.includes("sustainable") || tagName.includes("green") || tagName.includes("eco")
           );
         });
       }).length;
 
-      // Monthly stats
-      stats.monthly_meals_logged = mealsTyped.filter(
-        (meal) => meal.date && new Date(meal.date) >= startOfMonth
-      ).length;
-
+      // Monthly green recipes
       stats.monthly_green_recipes = mealsTyped.filter((meal) => {
-        if (!meal.date || new Date(meal.date) < startOfMonth) return false;
+        if (!meal.date || meal.date < startOfMonthStr) return false;
         return meal.Recipe?.["Recipe-Tag_Map"]?.some((tm) => {
-          const tagName = tm.Tag?.name?.toLowerCase() || "";
+          const tagName = tm.RecipeTag?.name?.toLowerCase() || "";
           return (
             tagName.includes("sustainable") || tagName.includes("green") || tagName.includes("eco")
           );
@@ -264,7 +311,8 @@ async function calculateUserStats(
       const uniqueDates = new Set(
         calendarDates.map((c) => c.date).filter((d): d is string => d !== null)
       );
-      stats.streak_days = calculateStreak(Array.from(uniqueDates));
+      const datesArray = Array.from(uniqueDates);
+      stats.streak_days = calculateStreak(datesArray);
     }
 
     // Count nutrient goal achievement days (from nutrient_tracking)
@@ -272,7 +320,7 @@ async function calculateUserStats(
       .from("nutrient_tracking")
       .select("date")
       .eq("user_id", authUserId)
-      .gte("date", startOfMonth.toISOString().split("T")[0]);
+      .gte("date", startOfMonthStr);
 
     if (!nutrientError && nutrientData) {
       // Simplified: count days with any nutrient tracking as "goal days"
@@ -305,7 +353,9 @@ function calculateProgress(challenge: Challenge, stats: Record<string, number>):
         current = stats.weekly_green_recipes || 0;
         break;
       case "streak_days":
-        current = stats.streak_days || 0;
+        // For weekly streak challenges, use the number of unique days with meals this week
+        // This makes more sense for a weekly challenge than requiring consecutive days
+        current = stats.weekly_unique_days || 0;
         break;
       default:
         current = 0;
@@ -424,4 +474,43 @@ function getStartOfMonth(date: Date): Date {
 
 function getEndOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+}
+
+/**
+ * Convert Date to YYYY-MM-DD string for database comparison
+ */
+function toDateString(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Sync calculated progress to user_challenges table
+ * This runs asynchronously to avoid blocking the response
+ */
+async function syncProgressToDatabase(
+  supabase: SupabaseClient<Database>,
+  updates: Array<{ id: number; progress: ChallengeProgress; isCompleted: boolean }>
+) {
+  for (const update of updates) {
+    const updateData: {
+      progress: { current: number; target: number };
+      completed_at?: string;
+    } = {
+      progress: { current: update.progress.current, target: update.progress.target },
+    };
+
+    // Mark as completed if target is reached
+    if (update.isCompleted) {
+      updateData.completed_at = new Date().toISOString();
+    }
+
+    const { error } = await supabase.from("user_challenges").update(updateData).eq("id", update.id);
+
+    if (error) {
+      console.error(`Failed to update user_challenge ${update.id}:`, error.message, error.details);
+    }
+  }
 }

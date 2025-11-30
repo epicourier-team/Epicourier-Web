@@ -4,6 +4,7 @@
 
 import { GET, POST } from "@/app/api/shopping-lists/route";
 import { GET as GET_BY_ID, PUT, DELETE } from "@/app/api/shopping-lists/[id]/route";
+import { POST as GENERATE } from "@/app/api/shopping-lists/generate/route";
 import { createClient } from "@/utils/supabase/server";
 import { NextRequest } from "next/server";
 
@@ -63,47 +64,6 @@ const createMockItem = (overrides: Partial<ShoppingListItem> = {}): ShoppingList
   notes: null,
   created_at: "2024-01-01T00:00:00Z",
   ...overrides,
-});
-
-// Chain builder helpers
-const mockSelectChain = (data: unknown, error: Error | null = null) => ({
-  select: jest.fn().mockReturnValue({
-    eq: jest.fn().mockReturnValue({
-      order: jest.fn().mockResolvedValue({ data, error }),
-    }),
-  }),
-});
-
-const mockSelectSingleChain = (data: unknown, error: Error | null = null) => ({
-  select: jest.fn().mockReturnValue({
-    eq: jest.fn().mockReturnValue({
-      single: jest.fn().mockResolvedValue({ data, error }),
-    }),
-  }),
-});
-
-const mockInsertChain = (data: unknown, error: Error | null = null) => ({
-  insert: jest.fn().mockReturnValue({
-    select: jest.fn().mockReturnValue({
-      single: jest.fn().mockResolvedValue({ data, error }),
-    }),
-  }),
-});
-
-const mockUpdateChain = (data: unknown, error: Error | null = null) => ({
-  update: jest.fn().mockReturnValue({
-    eq: jest.fn().mockReturnValue({
-      select: jest.fn().mockReturnValue({
-        single: jest.fn().mockResolvedValue({ data, error }),
-      }),
-    }),
-  }),
-});
-
-const mockDeleteChain = (error: Error | null = null) => ({
-  delete: jest.fn().mockReturnValue({
-    eq: jest.fn().mockResolvedValue({ error }),
-  }),
 });
 
 describe("Shopping Lists API", () => {
@@ -476,6 +436,251 @@ describe("Shopping Lists API", () => {
 
       expect(response.status).toBe(200);
       expect(json.success).toBe(true);
+    });
+  });
+
+  describe("POST /api/shopping-lists/generate", () => {
+    it("should return 401 if user is not authenticated", async () => {
+      const mockSupabase = {
+        auth: {
+          getUser: jest.fn().mockResolvedValue({
+            data: { user: null },
+            error: new Error("Not authenticated"),
+          }),
+        },
+      };
+      (createClient as jest.Mock).mockResolvedValue(mockSupabase);
+
+      const request = new NextRequest("http://localhost/api/shopping-lists/generate", {
+        method: "POST",
+        body: JSON.stringify({
+          startDate: "2024-01-01",
+          endDate: "2024-01-07",
+        }),
+      });
+
+      const response = await GENERATE(request);
+      expect(response.status).toBe(401);
+    });
+
+    it("should return 400 if startDate or endDate is missing", async () => {
+      const mockSupabase = {
+        auth: {
+          getUser: jest.fn().mockResolvedValue({
+            data: { user: mockUser },
+            error: null,
+          }),
+        },
+      };
+      (createClient as jest.Mock).mockResolvedValue(mockSupabase);
+
+      const request = new NextRequest("http://localhost/api/shopping-lists/generate", {
+        method: "POST",
+        body: JSON.stringify({ name: "Test List" }),
+      });
+
+      const response = await GENERATE(request);
+      const json = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(json.error).toBe("startDate and endDate are required");
+    });
+
+    it("should return 404 if user profile not found", async () => {
+      const mockSupabase = {
+        auth: {
+          getUser: jest.fn().mockResolvedValue({
+            data: { user: mockUser },
+            error: null,
+          }),
+        },
+        from: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: null,
+                error: { code: "PGRST116", message: "not found" },
+              }),
+            }),
+          }),
+        }),
+      };
+      (createClient as jest.Mock).mockResolvedValue(mockSupabase);
+
+      const request = new NextRequest("http://localhost/api/shopping-lists/generate", {
+        method: "POST",
+        body: JSON.stringify({
+          startDate: "2024-01-01",
+          endDate: "2024-01-07",
+        }),
+      });
+
+      const response = await GENERATE(request);
+      const json = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(json.error).toBe("User profile not found");
+    });
+
+    it("should return 404 if no meals found in date range", async () => {
+      const fromMock = jest.fn();
+      // First call for User table
+      fromMock.mockReturnValueOnce({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({ data: { id: 1 }, error: null }),
+          }),
+        }),
+      });
+      // Second call for Calendar table
+      fromMock.mockReturnValueOnce({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            gte: jest.fn().mockReturnValue({
+              lte: jest.fn().mockReturnValue({
+                not: jest.fn().mockReturnValue({
+                  in: jest.fn().mockResolvedValue({ data: [], error: null }),
+                }),
+              }),
+            }),
+          }),
+        }),
+      });
+
+      const mockSupabase = {
+        auth: {
+          getUser: jest.fn().mockResolvedValue({
+            data: { user: mockUser },
+            error: null,
+          }),
+        },
+        from: fromMock,
+      };
+      (createClient as jest.Mock).mockResolvedValue(mockSupabase);
+
+      const request = new NextRequest("http://localhost/api/shopping-lists/generate", {
+        method: "POST",
+        body: JSON.stringify({
+          startDate: "2024-01-01",
+          endDate: "2024-01-07",
+          mealTypes: ["breakfast", "dinner"],
+        }),
+      });
+
+      const response = await GENERATE(request);
+      const json = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(json.error).toBe("No meals found in the specified date range");
+    });
+
+    it("should successfully generate shopping list from calendar meals", async () => {
+      const mockCalendarEntries = [
+        {
+          id: 1,
+          date: "2024-01-01",
+          meal_type: "dinner",
+          Recipe: { id: 101, name: "Pasta Primavera" },
+        },
+        {
+          id: 2,
+          date: "2024-01-02",
+          meal_type: "dinner",
+          Recipe: { id: 102, name: "Grilled Chicken" },
+        },
+      ];
+
+      const mockRecipeIngredients = [
+        {
+          recipe_id: 101,
+          relative_unit_100: 200,
+          Ingredient: { id: 1, name: "Tomatoes", unit: "kg" },
+        },
+        {
+          recipe_id: 101,
+          relative_unit_100: 100,
+          Ingredient: { id: 2, name: "Pasta", unit: "g" },
+        },
+        {
+          recipe_id: 102,
+          relative_unit_100: 150,
+          Ingredient: { id: 3, name: "Chicken Breast", unit: "g" },
+        },
+      ];
+
+      const mockNewList = {
+        id: "new-list-id",
+        name: "Shopping List (2024-01-01 to 2024-01-07)",
+        description: "Generated from 2 meals: Pasta Primavera, Grilled Chicken",
+      };
+
+      const fromMock = jest.fn();
+      // 1. User table query
+      fromMock.mockReturnValueOnce({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({ data: { id: 1 }, error: null }),
+          }),
+        }),
+      });
+      // 2. Calendar table query
+      fromMock.mockReturnValueOnce({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            gte: jest.fn().mockReturnValue({
+              lte: jest.fn().mockReturnValue({
+                not: jest.fn().mockResolvedValue({ data: mockCalendarEntries, error: null }),
+              }),
+            }),
+          }),
+        }),
+      });
+      // 3. Recipe-Ingredient_Map query
+      fromMock.mockReturnValueOnce({
+        select: jest.fn().mockReturnValue({
+          in: jest.fn().mockResolvedValue({ data: mockRecipeIngredients, error: null }),
+        }),
+      });
+      // 4. shopping_lists insert
+      fromMock.mockReturnValueOnce({
+        insert: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({ data: mockNewList, error: null }),
+          }),
+        }),
+      });
+      // 5. shopping_list_items insert
+      fromMock.mockReturnValueOnce({
+        insert: jest.fn().mockResolvedValue({ error: null }),
+      });
+
+      const mockSupabase = {
+        auth: {
+          getUser: jest.fn().mockResolvedValue({
+            data: { user: mockUser },
+            error: null,
+          }),
+        },
+        from: fromMock,
+      };
+      (createClient as jest.Mock).mockResolvedValue(mockSupabase);
+
+      const request = new NextRequest("http://localhost/api/shopping-lists/generate", {
+        method: "POST",
+        body: JSON.stringify({
+          startDate: "2024-01-01",
+          endDate: "2024-01-07",
+        }),
+      });
+
+      const response = await GENERATE(request);
+      const json = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(json.id).toBe("new-list-id");
+      expect(json.item_count).toBe(3);
+      expect(json.meals_count).toBe(2);
+      expect(json.recipes_count).toBe(2);
     });
   });
 });

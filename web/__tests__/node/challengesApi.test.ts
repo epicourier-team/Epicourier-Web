@@ -1123,4 +1123,35 @@ describe("Challenges API", () => {
       expect(json.joined[0].progress.current).toBe(0);
     });
   });
+
+  describe("Progress Sync to Database", () => {
+    it("does not sync progress for completed challenges", async () => {
+      const completedUserChallenge = { ...mockUserChallenge, completed_at: "2024-01-10T00:00:00Z" };
+      const supabase = await createClient();
+
+      (supabase.from as jest.Mock)
+        .mockImplementationOnce(() => challengesChain([mockChallenge]))
+        .mockImplementationOnce(() => userChallengesChain([completedUserChallenge]))
+        .mockImplementationOnce(() => achievementDefinitionsChain([]))
+        .mockImplementationOnce(() => ({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({ count: 0, error: null }),
+            }),
+          }),
+        }))
+        .mockImplementationOnce(() => calendarMealsChain([]))
+        .mockImplementationOnce(() => calendarDatesChain([]))
+        .mockImplementationOnce(() => nutrientTrackingChain([]));
+
+      const res = await GET();
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      // Completed challenges should be in completed list
+      expect(json.completed).toHaveLength(1);
+      expect(json.joined).toHaveLength(0);
+      // No update should be triggered for completed challenges
+    });
+  });
 });

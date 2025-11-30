@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ComponentType } from "react";
+import { useEffect, useState, useCallback, type ComponentType } from "react";
 import {
   Activity,
   BarChart3,
@@ -89,6 +89,13 @@ export function AchievementToast({ achievement, onClose, duration = 5000 }: Achi
   const { title, description, icon, tier } = achievement;
   const styles = tierStyles[tier] || tierStyles.bronze;
 
+  const handleClose = useCallback(() => {
+    setIsExiting(true);
+    setTimeout(() => {
+      onClose();
+    }, 300);
+  }, [onClose]);
+
   useEffect(() => {
     // Trigger entrance animation
     const showTimer = setTimeout(() => setIsVisible(true), 50);
@@ -102,14 +109,7 @@ export function AchievementToast({ achievement, onClose, duration = 5000 }: Achi
       clearTimeout(showTimer);
       clearTimeout(dismissTimer);
     };
-  }, [duration]);
-
-  const handleClose = () => {
-    setIsExiting(true);
-    setTimeout(() => {
-      onClose();
-    }, 300);
-  };
+  }, [duration, handleClose]);
 
   const renderIcon = () => {
     // Check if icon is a URL
