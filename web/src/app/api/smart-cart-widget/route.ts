@@ -20,6 +20,15 @@ function getDaysUntil(dateString: string | null): number | null {
 }
 
 /**
+ * Helper function to format "days until" text for display
+ */
+function formatDaysUntil(days: number): string {
+  if (days === 0) return "today";
+  if (days === 1) return "in 1 day";
+  return `in ${days} days`;
+}
+
+/**
  * GET /api/smart-cart-widget
  * Get aggregated data for the dashboard smart cart widget
  */
@@ -142,7 +151,7 @@ export async function GET() {
       // Sort by urgency (soonest first)
       expiringItems.sort((a, b) => a.daysUntil - b.daysUntil);
       const urgentItem = expiringItems[0];
-      const daysText = urgentItem.daysUntil === 0 ? "today" : `in ${urgentItem.daysUntil} day${urgentItem.daysUntil !== 1 ? "s" : ""}`;
+      const daysText = formatDaysUntil(urgentItem.daysUntil);
 
       suggestedAction = {
         type: "use_expiring",

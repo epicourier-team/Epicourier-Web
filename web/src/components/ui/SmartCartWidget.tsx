@@ -135,18 +135,20 @@ function InventoryAlerts({ expiringSoon, expired, lowStock }: InventoryAlertsPro
       <div className="flex flex-wrap gap-2">
         {expired > 0 && (
           <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
-            <AlertTriangle className="h-3 w-3" />
-            {expired} expired
+            <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+            <span>{expired} expired</span>
           </span>
         )}
         {expiringSoon > 0 && (
           <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-            ⚠️ {expiringSoon} expiring
+            <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+            <span>{expiringSoon} expiring</span>
           </span>
         )}
         {lowStock > 0 && (
           <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-            📉 {lowStock} low stock
+            <Package className="h-3 w-3" aria-hidden="true" />
+            <span>{lowStock} low stock</span>
           </span>
         )}
       </div>
@@ -154,7 +156,7 @@ function InventoryAlerts({ expiringSoon, expired, lowStock }: InventoryAlertsPro
         href="/dashboard/inventory"
         className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
       >
-        View Inventory <ArrowRight className="h-3 w-3" />
+        View Inventory <ArrowRight className="h-3 w-3" aria-hidden="true" />
       </Link>
     </div>
   );
@@ -188,20 +190,20 @@ function SuggestedAction({ type, title, description, actionLabel, actionHref }: 
   const getIcon = () => {
     switch (type) {
       case "use_expiring":
-        return "💡";
+        return <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />;
       case "complete_shopping":
-        return "✅";
+        return <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />;
       case "restock":
-        return "🛒";
+        return <ShoppingCart className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />;
       default:
-        return "📋";
+        return <Lightbulb className="h-5 w-5 text-gray-600 dark:text-gray-400" aria-hidden="true" />;
     }
   };
 
   return (
     <div className={cn("rounded-lg border p-3", getTypeStyles())}>
       <div className="flex items-start gap-2">
-        <span className="text-lg">{getIcon()}</span>
+        <span className="flex-shrink-0 mt-0.5">{getIcon()}</span>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate">{title}</p>
           <p className="text-xs text-muted-foreground">{description}</p>
@@ -209,7 +211,7 @@ function SuggestedAction({ type, title, description, actionLabel, actionHref }: 
             href={actionHref}
             className="inline-flex items-center gap-1 mt-1 text-xs text-primary hover:underline"
           >
-            {actionLabel} <ArrowRight className="h-3 w-3" />
+            {actionLabel} <ArrowRight className="h-3 w-3" aria-hidden="true" />
           </Link>
         </div>
       </div>

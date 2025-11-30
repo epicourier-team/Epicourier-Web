@@ -219,7 +219,7 @@ describe("SmartCartWidget", () => {
       render(<SmartCartWidget />);
 
       await waitFor(() => {
-        expect(screen.getByText("⚠️ 3 expiring")).toBeInTheDocument();
+        expect(screen.getByText("3 expiring")).toBeInTheDocument();
       });
     });
 
@@ -265,7 +265,7 @@ describe("SmartCartWidget", () => {
       render(<SmartCartWidget />);
 
       await waitFor(() => {
-        expect(screen.getByText("📉 5 low stock")).toBeInTheDocument();
+        expect(screen.getByText("5 low stock")).toBeInTheDocument();
       });
     });
 
@@ -288,9 +288,9 @@ describe("SmartCartWidget", () => {
       render(<SmartCartWidget />);
 
       await waitFor(() => {
-        expect(screen.getByText("⚠️ 3 expiring")).toBeInTheDocument();
+        expect(screen.getByText("3 expiring")).toBeInTheDocument();
         expect(screen.getByText("1 expired")).toBeInTheDocument();
-        expect(screen.getByText("📉 2 low stock")).toBeInTheDocument();
+        expect(screen.getByText("2 low stock")).toBeInTheDocument();
       });
     });
 
