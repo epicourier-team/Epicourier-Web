@@ -31,6 +31,16 @@ npm test                 # Run all tests
 npm run lint             # Run ESLint
 ```
 
+### Full Stack (Frontend + Backend)
+
+```bash
+cd web
+npm run dev:full         # Start both Next.js and FastAPI together
+# Or start separately:
+npm run dev:frontend     # Start only Next.js (http://localhost:3000)
+npm run dev:backend      # Start only FastAPI (http://localhost:8000)
+```
+
 ### Backend (FastAPI)
 
 ```bash

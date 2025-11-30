@@ -56,8 +56,24 @@ Copy the generated keys to your `.env.local` file.
 
 ## Start Development Server
 
+### Full Stack (Recommended)
+
+Start both Next.js frontend and FastAPI backend together:
+
 ```bash
-npm run dev
+npm run dev:full
+```
+
+### Frontend Only
+
+```bash
+npm run dev          # or npm run dev:frontend
+```
+
+### Backend Only
+
+```bash
+npm run dev:backend  # or: cd ../backend && make dev
 ```
 
 ---
