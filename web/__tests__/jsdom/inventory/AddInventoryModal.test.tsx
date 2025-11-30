@@ -42,6 +42,25 @@ const mockIngredients: Ingredient[] = [
     vit_e_mg: null,
     vit_k_microg: null,
   },
+  {
+    id: 3,
+    name: "Milk Powder",
+    unit: "g",
+    created_at: "2024-01-01",
+    calories_kcal: null,
+    protein_g: null,
+    carbs_g: null,
+    agg_fats_g: null,
+    agg_minerals_mg: null,
+    agg_vit_b_mg: null,
+    cholesterol_mg: null,
+    sugars_g: null,
+    vit_a_microg: null,
+    vit_c_mg: null,
+    vit_d_microg: null,
+    vit_e_mg: null,
+    vit_k_microg: null,
+  },
 ];
 
 describe("AddInventoryModal", () => {
@@ -67,7 +86,7 @@ describe("AddInventoryModal", () => {
     expect(screen.getByText("Add Inventory Item")).toBeInTheDocument();
   });
 
-  it("displays ingredient select with options", () => {
+  it("displays ingredient autocomplete input", () => {
     render(
       <AddInventoryModal
         isOpen={true}
@@ -76,9 +95,76 @@ describe("AddInventoryModal", () => {
         ingredients={mockIngredients}
       />
     );
-    expect(screen.getByTestId("ingredient-select")).toBeInTheDocument();
-    expect(screen.getByText("Rice")).toBeInTheDocument();
-    expect(screen.getByText("Milk")).toBeInTheDocument();
+    expect(screen.getByTestId("ingredient-input")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Search ingredients...")).toBeInTheDocument();
+  });
+
+  it("shows suggestions when typing in ingredient input", async () => {
+    const user = userEvent.setup();
+    render(
+      <AddInventoryModal
+        isOpen={true}
+        onClose={() => {}}
+        onSubmit={async () => true}
+        ingredients={mockIngredients}
+      />
+    );
+
+    const input = screen.getByTestId("ingredient-input");
+    await user.type(input, "Mil");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("ingredient-suggestions")).toBeInTheDocument();
+      expect(screen.getByText("Milk")).toBeInTheDocument();
+      expect(screen.getByText("Milk Powder")).toBeInTheDocument();
+    });
+  });
+
+  it("filters suggestions based on search query", async () => {
+    const user = userEvent.setup();
+    render(
+      <AddInventoryModal
+        isOpen={true}
+        onClose={() => {}}
+        onSubmit={async () => true}
+        ingredients={mockIngredients}
+      />
+    );
+
+    const input = screen.getByTestId("ingredient-input");
+    await user.type(input, "Rice");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("ingredient-suggestions")).toBeInTheDocument();
+      expect(screen.getByText("Rice")).toBeInTheDocument();
+      expect(screen.queryByText("Milk")).not.toBeInTheDocument();
+    });
+  });
+
+  it("selects ingredient when clicking on suggestion", async () => {
+    const user = userEvent.setup();
+    render(
+      <AddInventoryModal
+        isOpen={true}
+        onClose={() => {}}
+        onSubmit={async () => true}
+        ingredients={mockIngredients}
+      />
+    );
+
+    const input = screen.getByTestId("ingredient-input");
+    await user.type(input, "Rice");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("suggestion-1")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByTestId("suggestion-1"));
+
+    // Should show selected ingredient indicator
+    expect(screen.getByText("✓ Rice")).toBeInTheDocument();
+    // Unit should be auto-filled
+    expect(screen.getByTestId("unit-input")).toHaveValue("kg");
   });
 
   it("displays quantity input", () => {
@@ -140,13 +226,11 @@ describe("AddInventoryModal", () => {
       />
     );
 
-    // The HTML5 validation will prevent form submission
-    // We verify the select is required
-    const select = screen.getByTestId("ingredient-select");
-    expect(select).toHaveAttribute("required");
-
-    // Submit should not have been called because of HTML5 validation
     fireEvent.click(screen.getByTestId("submit-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("form-error")).toHaveTextContent("Please select an ingredient");
+    });
     expect(mockOnSubmit).not.toHaveBeenCalled();
   });
 
@@ -180,14 +264,18 @@ describe("AddInventoryModal", () => {
       />
     );
 
-    // Fill form
-    await user.selectOptions(screen.getByTestId("ingredient-select"), "1");
+    // Select ingredient via autocomplete
+    const input = screen.getByTestId("ingredient-input");
+    await user.type(input, "Rice");
+    await waitFor(() => {
+      expect(screen.getByTestId("suggestion-1")).toBeInTheDocument();
+    });
+    await user.click(screen.getByTestId("suggestion-1"));
 
     const quantityInput = screen.getByTestId("quantity-input");
     await user.clear(quantityInput);
     await user.type(quantityInput, "5");
 
-    await user.type(screen.getByTestId("unit-input"), "kg");
     await user.selectOptions(screen.getByTestId("location-select"), "fridge");
 
     fireEvent.click(screen.getByTestId("submit-button"));
@@ -219,8 +307,13 @@ describe("AddInventoryModal", () => {
       />
     );
 
-    // Fill form
-    await user.selectOptions(screen.getByTestId("ingredient-select"), "1");
+    // Select ingredient
+    const input = screen.getByTestId("ingredient-input");
+    await user.type(input, "Rice");
+    await waitFor(() => {
+      expect(screen.getByTestId("suggestion-1")).toBeInTheDocument();
+    });
+    await user.click(screen.getByTestId("suggestion-1"));
 
     fireEvent.click(screen.getByTestId("submit-button"));
 
@@ -242,8 +335,13 @@ describe("AddInventoryModal", () => {
       />
     );
 
-    // Fill form
-    await user.selectOptions(screen.getByTestId("ingredient-select"), "1");
+    // Select ingredient
+    const input = screen.getByTestId("ingredient-input");
+    await user.type(input, "Rice");
+    await waitFor(() => {
+      expect(screen.getByTestId("suggestion-1")).toBeInTheDocument();
+    });
+    await user.click(screen.getByTestId("suggestion-1"));
 
     fireEvent.click(screen.getByTestId("submit-button"));
 
@@ -272,7 +370,14 @@ describe("AddInventoryModal", () => {
       />
     );
 
-    await user.selectOptions(screen.getByTestId("ingredient-select"), "1");
+    // Select ingredient
+    const input = screen.getByTestId("ingredient-input");
+    await user.type(input, "Rice");
+    await waitFor(() => {
+      expect(screen.getByTestId("suggestion-1")).toBeInTheDocument();
+    });
+    await user.click(screen.getByTestId("suggestion-1"));
+
     fireEvent.click(screen.getByTestId("submit-button"));
 
     await waitFor(() => {
@@ -296,7 +401,14 @@ describe("AddInventoryModal", () => {
       />
     );
 
-    await user.selectOptions(screen.getByTestId("ingredient-select"), "1");
+    // Select ingredient
+    const input = screen.getByTestId("ingredient-input");
+    await user.type(input, "Rice");
+    await waitFor(() => {
+      expect(screen.getByTestId("suggestion-1")).toBeInTheDocument();
+    });
+    await user.click(screen.getByTestId("suggestion-1"));
+
     fireEvent.click(screen.getByTestId("submit-button"));
 
     await waitFor(() => {
@@ -317,14 +429,23 @@ describe("AddInventoryModal", () => {
       />
     );
 
-    // Fill all fields
-    await user.selectOptions(screen.getByTestId("ingredient-select"), "1");
+    // Select ingredient
+    const input = screen.getByTestId("ingredient-input");
+    await user.type(input, "Rice");
+    await waitFor(() => {
+      expect(screen.getByTestId("suggestion-1")).toBeInTheDocument();
+    });
+    await user.click(screen.getByTestId("suggestion-1"));
 
     const quantityInput = screen.getByTestId("quantity-input");
     await user.clear(quantityInput);
     await user.type(quantityInput, "10");
 
-    await user.type(screen.getByTestId("unit-input"), "kg");
+    // Unit is auto-filled but we can change it
+    const unitInput = screen.getByTestId("unit-input");
+    await user.clear(unitInput);
+    await user.type(unitInput, "bags");
+
     await user.selectOptions(screen.getByTestId("location-select"), "pantry");
 
     const expirationInput = screen.getByTestId("expiration-input");
@@ -341,7 +462,7 @@ describe("AddInventoryModal", () => {
       expect(mockOnSubmit).toHaveBeenCalledWith({
         ingredient_id: 1,
         quantity: 10,
-        unit: "kg",
+        unit: "bags",
         location: "pantry",
         expiration_date: "2024-12-31",
         min_quantity: 3,
@@ -362,7 +483,8 @@ describe("AddInventoryModal", () => {
     );
 
     // Fill some fields
-    await user.selectOptions(screen.getByTestId("ingredient-select"), "1");
+    const input = screen.getByTestId("ingredient-input");
+    await user.type(input, "Rice");
     await user.type(screen.getByTestId("notes-input"), "Test");
 
     // Close the modal
@@ -379,7 +501,53 @@ describe("AddInventoryModal", () => {
     );
 
     // Form should be reset
-    expect(screen.getByTestId("ingredient-select")).toHaveValue("");
+    expect(screen.getByTestId("ingredient-input")).toHaveValue("");
     expect(screen.getByTestId("notes-input")).toHaveValue("");
+  });
+
+  it("supports keyboard navigation in suggestions", async () => {
+    const user = userEvent.setup();
+    render(
+      <AddInventoryModal
+        isOpen={true}
+        onClose={() => {}}
+        onSubmit={async () => true}
+        ingredients={mockIngredients}
+      />
+    );
+
+    const input = screen.getByTestId("ingredient-input");
+    await user.type(input, "Mil");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("ingredient-suggestions")).toBeInTheDocument();
+    });
+
+    // Press arrow down to highlight first item
+    await user.keyboard("{ArrowDown}");
+    // Press Enter to select
+    await user.keyboard("{Enter}");
+
+    // Should show selected ingredient
+    expect(screen.getByText("✓ Milk")).toBeInTheDocument();
+  });
+
+  it("shows no results message when no ingredients match", async () => {
+    const user = userEvent.setup();
+    render(
+      <AddInventoryModal
+        isOpen={true}
+        onClose={() => {}}
+        onSubmit={async () => true}
+        ingredients={mockIngredients}
+      />
+    );
+
+    const input = screen.getByTestId("ingredient-input");
+    await user.type(input, "xyz123");
+
+    await waitFor(() => {
+      expect(screen.getByText("No ingredients found")).toBeInTheDocument();
+    });
   });
 });

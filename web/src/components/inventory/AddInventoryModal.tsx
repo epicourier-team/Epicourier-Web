@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { X, Plus, Loader2 } from "lucide-react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { X, Plus, Loader2, Search } from "lucide-react";
 import { CreateInventoryItemRequest, InventoryLocation, Ingredient } from "@/types/data";
 
 interface AddInventoryModalProps {
@@ -34,8 +34,15 @@ export function AddInventoryModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Autocomplete state
+  const [ingredientSearch, setIngredientSearch] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   // Form state
-  const [ingredientId, setIngredientId] = useState<number | "">("");
+  const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [unit, setUnit] = useState<string>("");
   const [location, setLocation] = useState<InventoryLocation>("pantry");
@@ -43,8 +50,29 @@ export function AddInventoryModal({
   const [minQuantity, setMinQuantity] = useState<number | "">("");
   const [notes, setNotes] = useState<string>("");
 
+  // Filter ingredients based on search
+  const filteredIngredients = useMemo(() => {
+    if (!ingredientSearch.trim()) return ingredients.slice(0, 10);
+    const query = ingredientSearch.toLowerCase();
+    return ingredients
+      .filter((ing) => ing.name && ing.name.toLowerCase().includes(query))
+      .slice(0, 10);
+  }, [ingredients, ingredientSearch]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const resetForm = () => {
-    setIngredientId("");
+    setSelectedIngredient(null);
+    setIngredientSearch("");
     setQuantity(1);
     setUnit("");
     setLocation("pantry");
@@ -52,6 +80,8 @@ export function AddInventoryModal({
     setMinQuantity("");
     setNotes("");
     setError(null);
+    setShowSuggestions(false);
+    setHighlightedIndex(-1);
   };
 
   const handleClose = () => {
@@ -59,11 +89,43 @@ export function AddInventoryModal({
     onClose();
   };
 
+  const handleSelectIngredient = (ingredient: Ingredient) => {
+    setSelectedIngredient(ingredient);
+    setIngredientSearch(ingredient.name || "");
+    setUnit(ingredient.unit || "");
+    setShowSuggestions(false);
+    setHighlightedIndex(-1);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSuggestions) return;
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev < filteredIngredients.length - 1 ? prev + 1 : prev));
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : -1));
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (highlightedIndex >= 0 && filteredIngredients[highlightedIndex]) {
+          handleSelectIngredient(filteredIngredients[highlightedIndex]);
+        }
+        break;
+      case "Escape":
+        setShowSuggestions(false);
+        break;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (ingredientId === "") {
+    if (!selectedIngredient) {
       setError("Please select an ingredient");
       return;
     }
@@ -77,7 +139,7 @@ export function AddInventoryModal({
 
     try {
       const data: CreateInventoryItemRequest = {
-        ingredient_id: ingredientId as number,
+        ingredient_id: selectedIngredient.id,
         quantity,
         unit: unit || undefined,
         location,
@@ -133,26 +195,68 @@ export function AddInventoryModal({
             </div>
           )}
 
-          {/* Ingredient Select */}
-          <div className="mb-4">
+          {/* Ingredient Autocomplete */}
+          <div className="relative mb-4" ref={suggestionsRef}>
             <label htmlFor="ingredient" className="brutalism-text-bold mb-1 block text-sm">
               Ingredient *
             </label>
-            <select
-              id="ingredient"
-              value={ingredientId}
-              onChange={(e) => setIngredientId(e.target.value ? Number(e.target.value) : "")}
-              className="brutalism-input w-full p-2"
-              data-testid="ingredient-select"
-              required
-            >
-              <option value="">Select an ingredient</option>
-              {ingredients.map((ing) => (
-                <option key={ing.id} value={ing.id}>
-                  {ing.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <Search className="absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-gray-500" />
+              <input
+                ref={inputRef}
+                type="text"
+                id="ingredient"
+                value={ingredientSearch}
+                onChange={(e) => {
+                  setIngredientSearch(e.target.value);
+                  setShowSuggestions(true);
+                  setSelectedIngredient(null);
+                  setHighlightedIndex(-1);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onKeyDown={handleKeyDown}
+                placeholder="Search ingredients..."
+                className="brutalism-input w-full py-2 pr-4 pl-10"
+                data-testid="ingredient-input"
+                autoComplete="off"
+              />
+            </div>
+            {/* Suggestions Dropdown */}
+            {showSuggestions && filteredIngredients.length > 0 && (
+              <div
+                className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                data-testid="ingredient-suggestions"
+              >
+                {filteredIngredients.map((ing, index) => (
+                  <button
+                    key={ing.id}
+                    type="button"
+                    onClick={() => handleSelectIngredient(ing)}
+                    className={`w-full px-3 py-2 text-left text-sm font-medium transition-colors ${
+                      index === highlightedIndex
+                        ? "bg-emerald-100"
+                        : selectedIngredient?.id === ing.id
+                          ? "bg-emerald-50"
+                          : "hover:bg-gray-100"
+                    }`}
+                    data-testid={`suggestion-${ing.id}`}
+                  >
+                    {ing.name}
+                    {ing.unit && <span className="ml-2 text-xs text-gray-500">({ing.unit})</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+            {showSuggestions && ingredientSearch && filteredIngredients.length === 0 && (
+              <div className="absolute z-20 mt-1 w-full border-2 border-black bg-white p-3 text-sm text-gray-500 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                No ingredients found
+              </div>
+            )}
+            {selectedIngredient && (
+              <div className="mt-2 inline-block border-2 border-black bg-emerald-100 px-2 py-1 text-sm font-bold">
+                ✓ {selectedIngredient.name}
+              </div>
+            )}
           </div>
 
           {/* Quantity and Unit */}

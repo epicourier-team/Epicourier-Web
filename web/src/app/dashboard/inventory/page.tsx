@@ -1,7 +1,19 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Package, Lightbulb, Loader2, Plus, Filter, Search, AlertTriangle } from "lucide-react";
+import {
+  Package,
+  Lightbulb,
+  Loader2,
+  Plus,
+  Filter,
+  Search,
+  AlertTriangle,
+  Trash2,
+  CheckSquare,
+  Square,
+  X,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   InventoryCard,
@@ -9,6 +21,16 @@ import {
   EditInventoryModal,
   LowStockBanner,
 } from "@/components/inventory";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type {
   InventoryItemWithDetails,
   InventorySummary,
@@ -29,6 +51,7 @@ type SortOption = "updated" | "expiration" | "name" | "quantity";
  * - View inventory items with filtering and sorting
  * - Add new inventory items
  * - Edit and delete existing items
+ * - Bulk delete operations
  * - Low stock alerts banner
  * - Expiration tracking
  * - "Suggest Recipes" button for AI recommendations
@@ -45,6 +68,16 @@ export default function InventoryPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItemWithDetails | null>(null);
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
+
+  // Bulk selection state
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Delete confirmation state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<InventoryItemWithDetails | null>(null);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
 
   // Filter and sort state
   const [searchQuery, setSearchQuery] = useState("");
@@ -168,14 +201,18 @@ export default function InventoryPage() {
     }
   };
 
-  // Handle deleting item
-  const handleDeleteItem = async (item: InventoryItemWithDetails) => {
-    if (!confirm(`Are you sure you want to delete ${item.ingredient?.name || "this item"}?`)) {
-      return;
-    }
+  // Open delete confirmation dialog
+  const handleDeleteItem = (item: InventoryItemWithDetails) => {
+    setItemToDelete(item);
+    setDeleteDialogOpen(true);
+  };
+
+  // Confirm single item deletion
+  const confirmDeleteItem = async () => {
+    if (!itemToDelete) return;
 
     try {
-      const response = await fetch(`/api/inventory/${item.id}`, {
+      const response = await fetch(`/api/inventory/${itemToDelete.id}`, {
         method: "DELETE",
       });
 
@@ -191,7 +228,7 @@ export default function InventoryPage() {
 
       toast({
         title: "🗑️ Item Deleted",
-        description: `${item.ingredient?.name || "Item"} removed from inventory`,
+        description: `${itemToDelete.ingredient?.name || "Item"} removed from inventory`,
       });
       fetchInventory();
     } catch (error) {
@@ -201,7 +238,85 @@ export default function InventoryPage() {
         description: "Failed to delete item",
         variant: "destructive",
       });
+    } finally {
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
     }
+  };
+
+  // Open bulk delete confirmation dialog
+  const handleBulkDelete = () => {
+    if (selectedItems.size === 0) return;
+    setBulkDeleteDialogOpen(true);
+  };
+
+  // Confirm bulk deletion
+  const confirmBulkDelete = async () => {
+    if (selectedItems.size === 0) return;
+
+    setIsDeleting(true);
+    setBulkDeleteDialogOpen(false);
+
+    try {
+      const deletePromises = Array.from(selectedItems).map((id) =>
+        fetch(`/api/inventory/${id}`, { method: "DELETE" })
+      );
+
+      const results = await Promise.allSettled(deletePromises);
+      const successCount = results.filter((r) => r.status === "fulfilled").length;
+      const failCount = results.filter((r) => r.status === "rejected").length;
+
+      if (failCount > 0) {
+        toast({
+          title: "⚠️ Partial Success",
+          description: `Deleted ${successCount} items, ${failCount} failed`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "🗑️ Items Deleted",
+          description: `${successCount} item${successCount > 1 ? "s" : ""} removed from inventory`,
+        });
+      }
+
+      setSelectedItems(new Set());
+      setSelectionMode(false);
+      fetchInventory();
+    } catch (error) {
+      console.error("Error bulk deleting items:", error);
+      toast({
+        title: "❌ Error",
+        description: "Failed to delete items",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Toggle item selection
+  const toggleItemSelection = (id: string) => {
+    setSelectedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  // Select all filtered items
+  const selectAll = () => {
+    const allIds = filteredItems.map((item) => item.id);
+    setSelectedItems(new Set(allIds));
+  };
+
+  // Clear selection
+  const clearSelection = () => {
+    setSelectedItems(new Set());
+    setSelectionMode(false);
   };
 
   // Handle AI recipe suggestions
@@ -314,7 +429,35 @@ export default function InventoryPage() {
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {/* Selection Mode Toggle */}
+            {items.length > 0 && (
+              <button
+                onClick={() => {
+                  if (selectionMode) {
+                    clearSelection();
+                  } else {
+                    setSelectionMode(true);
+                  }
+                }}
+                className={`flex items-center gap-2 px-4 py-2 ${
+                  selectionMode ? "brutalism-button-inverse" : "brutalism-button-neutral"
+                }`}
+                data-testid="toggle-selection-button"
+              >
+                {selectionMode ? (
+                  <>
+                    <X className="size-4" />
+                    <span>Cancel</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckSquare className="size-4" />
+                    <span>Select</span>
+                  </>
+                )}
+              </button>
+            )}
             <button
               onClick={() => setIsAddModalOpen(true)}
               className="brutalism-button-secondary flex items-center gap-2 px-4 py-2"
@@ -343,6 +486,49 @@ export default function InventoryPage() {
           </div>
         </div>
       </div>
+
+      {/* Selection Bar - shown when in selection mode */}
+      {selectionMode && (
+        <div className="brutalism-panel mb-6 flex items-center justify-between bg-sky-100 p-4">
+          <div className="flex items-center gap-4">
+            <span className="font-bold text-black">
+              {selectedItems.size} of {filteredItems.length} selected
+            </span>
+            <button
+              onClick={selectAll}
+              className="brutalism-tag px-3 py-1 text-sm"
+              disabled={selectedItems.size === filteredItems.length}
+            >
+              Select All
+            </button>
+            <button
+              onClick={() => setSelectedItems(new Set())}
+              className="brutalism-tag px-3 py-1 text-sm"
+              disabled={selectedItems.size === 0}
+            >
+              Clear
+            </button>
+          </div>
+          <button
+            onClick={handleBulkDelete}
+            disabled={selectedItems.size === 0 || isDeleting}
+            className="brutalism-button-primary flex items-center gap-2 bg-red-400 px-4 py-2 hover:bg-red-500 disabled:opacity-50"
+            data-testid="bulk-delete-button"
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                <span>Deleting...</span>
+              </>
+            ) : (
+              <>
+                <Trash2 className="size-4" />
+                <span>Delete ({selectedItems.size})</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Low Stock Banner */}
       {lowStockSummary.totalLow > 0 && (
@@ -456,12 +642,34 @@ export default function InventoryPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredItems.map((item) => (
-            <InventoryCard
-              key={item.id}
-              item={item}
-              onEdit={(item) => setEditingItem(item)}
-              onDelete={handleDeleteItem}
-            />
+            <div key={item.id} className="relative">
+              {/* Selection Checkbox */}
+              {selectionMode && (
+                <button
+                  onClick={() => toggleItemSelection(item.id)}
+                  className={`absolute -top-2 -left-2 z-10 flex size-6 items-center justify-center border-2 border-black bg-white transition-all ${
+                    selectedItems.has(item.id) ? "bg-emerald-400" : "hover:bg-gray-100"
+                  }`}
+                  data-testid={`select-item-${item.id}`}
+                >
+                  {selectedItems.has(item.id) ? (
+                    <CheckSquare className="size-4" />
+                  ) : (
+                    <Square className="size-4" />
+                  )}
+                </button>
+              )}
+              <InventoryCard
+                item={item}
+                onEdit={selectionMode ? undefined : (item) => setEditingItem(item)}
+                onDelete={selectionMode ? undefined : handleDeleteItem}
+                className={
+                  selectionMode && selectedItems.has(item.id)
+                    ? "ring-2 ring-emerald-500 ring-offset-2"
+                    : ""
+                }
+              />
+            </div>
           ))}
         </div>
       )}
@@ -481,6 +689,54 @@ export default function InventoryPage() {
         onClose={() => setEditingItem(null)}
         onSubmit={handleUpdateItem}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="brutalism-panel border-2 border-black">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="brutalism-heading text-lg">Delete Item</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-700">
+              Are you sure you want to delete{" "}
+              <span className="font-bold">{itemToDelete?.ingredient?.name || "this item"}</span>?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="brutalism-button-neutral">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteItem}
+              className="brutalism-button-primary bg-red-400 hover:bg-red-500"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent className="brutalism-panel border-2 border-black">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="brutalism-heading text-lg">
+              Delete {selectedItems.size} Item{selectedItems.size > 1 ? "s" : ""}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-700">
+              Are you sure you want to delete{" "}
+              <span className="font-bold">{selectedItems.size}</span> selected item
+              {selectedItems.size > 1 ? "s" : ""}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="brutalism-button-neutral">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmBulkDelete}
+              className="brutalism-button-primary bg-red-400 hover:bg-red-500"
+            >
+              Delete All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
