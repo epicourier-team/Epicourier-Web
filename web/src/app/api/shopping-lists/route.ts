@@ -18,7 +18,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Fetch shopping lists with item counts
+  // Fetch shopping lists with item counts (exclude archived)
   const { data: lists, error } = await supabase
     .from("shopping_lists")
     .select(
@@ -31,6 +31,7 @@ export async function GET() {
     `
     )
     .eq("user_id", user.id)
+    .eq("is_archived", false)
     .order("updated_at", { ascending: false });
 
   if (error) {

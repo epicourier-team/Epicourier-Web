@@ -12,7 +12,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { createClient } from "@/utils/supabase/client";
 
 import type { ShoppingList } from "@/types/data";
 
@@ -40,29 +39,20 @@ export default function DeleteListDialog({
 }: DeleteListDialogProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const supabase = createClient();
 
   const handleDelete = async () => {
     setLoading(true);
 
     try {
-      // Soft delete by setting is_archived to true
-      const { error } = await supabase
-        .from("shopping_lists")
-        .update({
-          is_archived: true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", list.id);
+      // Soft delete by setting is_archived to true via API
+      const response = await fetch(`/api/shopping-lists/${list.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_archived: true }),
+      });
 
-      if (error) {
-        console.error("Error archiving shopping list:", error);
-        toast({
-          title: "❌ Error",
-          description: "Failed to delete shopping list",
-          variant: "destructive",
-        });
-        return;
+      if (!response.ok) {
+        throw new Error("Failed to delete shopping list");
       }
 
       toast({
@@ -97,22 +87,14 @@ export default function DeleteListDialog({
 
   const handleUndo = async () => {
     try {
-      const { error } = await supabase
-        .from("shopping_lists")
-        .update({
-          is_archived: false,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", list.id);
+      const response = await fetch(`/api/shopping-lists/${list.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_archived: false }),
+      });
 
-      if (error) {
-        console.error("Error restoring shopping list:", error);
-        toast({
-          title: "❌ Error",
-          description: "Failed to restore shopping list",
-          variant: "destructive",
-        });
-        return;
+      if (!response.ok) {
+        throw new Error("Failed to restore shopping list");
       }
 
       toast({
@@ -149,17 +131,20 @@ export default function DeleteListDialog({
           <div className="flex w-full gap-3">
             <AlertDialogCancel
               disabled={loading}
-              className="brutalism-button-neutral flex-1 px-4 py-2 disabled:opacity-50"
+              className="brutalism-button-neutral flex-1 px-4 py-2 text-black disabled:opacity-50"
             >
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
               disabled={loading}
-              className="brutalism-button-inverse flex-1 bg-red-500 px-4 py-2 text-white hover:bg-red-600 disabled:opacity-50"
+              className="brutalism-button-inverse flex-1 bg-red-500 px-4 py-2 text-white hover:bg-white hover:text-black disabled:opacity-50"
             >
               {loading ? "Deleting..." : "Delete List"}
-            </AlertDialogAction>
+            </button>
           </div>
         </AlertDialogFooter>
       </AlertDialogContent>

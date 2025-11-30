@@ -92,18 +92,18 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
               e.stopPropagation();
               setIsEditModalOpen(true);
             }}
-            className="brutalism-button-neutral flex-1 px-3 py-2 text-sm text-black"
+            className="brutalism-button-neutral flex-1 px-3 py-2 text-sm"
           >
-            <Edit2 className="size-4" />
+            <Edit2 className="size-4 text-black" />
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
               setIsDeleteDialogOpen(true);
             }}
-            className="brutalism-button-neutral flex-1 px-3 py-2 text-sm text-black"
+            className="brutalism-button-neutral flex-1 px-3 py-2 text-sm"
           >
-            <Trash2 className="size-4" />
+            <Trash2 className="size-4 text-black" />
           </button>
         </div>
       </div>
@@ -112,20 +112,28 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
       <div className="h-2 bg-emerald-400" />
 
       {/* Edit Modal */}
-      <EditListModal
-        list={list}
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onSuccess={handleEditSuccess}
-      />
+      {isEditModalOpen && (
+        <div onClick={(e) => e.stopPropagation()}>
+          <EditListModal
+            list={list}
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            onSuccess={handleEditSuccess}
+          />
+        </div>
+      )}
 
       {/* Delete Dialog */}
-      <DeleteListDialog
-        list={list}
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onSuccess={handleDeleteSuccess}
-      />
+      {isDeleteDialogOpen && (
+        <div onClick={(e) => e.stopPropagation()}>
+          <DeleteListDialog
+            list={list}
+            isOpen={isDeleteDialogOpen}
+            onClose={() => setIsDeleteDialogOpen(false)}
+            onSuccess={handleDeleteSuccess}
+          />
+        </div>
+      )}
     </div>
   );
 }
