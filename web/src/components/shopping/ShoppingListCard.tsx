@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Trash2, Edit2, ShoppingBag, Calendar } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import EditListModal from "./EditListModal";
 import DeleteListDialog from "./DeleteListDialog";
 
@@ -23,7 +23,7 @@ interface ShoppingListCardProps {
  * - Hover effects with brutalism styling
  */
 export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardProps) {
-  const { toast } = useToast();
+  const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -35,11 +35,7 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
   });
 
   const handleClick = () => {
-    // TODO: Navigate to list detail page (Issue #83)
-    toast({
-      title: "📝 List Details",
-      description: `Opening "${list.name}"... (Coming in Issue #83)`,
-    });
+    router.push(`/dashboard/shopping/${list.id}`);
   };
 
   const handleEditSuccess = () => {
@@ -58,7 +54,7 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
       className={`brutalism-card group cursor-pointer overflow-hidden transition-all ${
-        isHovered ? "translate-x-[-2px] translate-y-[-2px]" : ""
+        isHovered ? "-translate-x-0.5 -translate-y-0.5" : ""
       }`}
     >
       <div className="p-5">
