@@ -1,38 +1,134 @@
 /* ------------------------------------------------------
    Global Reset (Eric Meyer Reset + basic button reset)
 ---------------------------------------------------------*/
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed, 
-figure, figcaption, footer, header, hgroup, 
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	font-size: 100%;
-	font: inherit;
-	vertical-align: baseline;
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
 }
 
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
-	display: block;
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+  display: block;
 }
 
-body { line-height: 1; }
-ol, ul { list-style: none; }
-blockquote, q { quotes: none; }
-blockquote::before, blockquote::after,
-q::before, q::after { content: ''; }
-table { border-collapse: collapse; border-spacing: 0; }
+body {
+  line-height: 1;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+blockquote,
+q {
+  quotes: none;
+}
+
+blockquote::before,
+blockquote::after,
+q::before,
+q::after {
+  content: '';
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
 
 button,
 input[type="button"],
@@ -49,6 +145,7 @@ input[type="reset"] {
   -webkit-appearance: none;
   -moz-appearance: none;
 }
+
 a {
   text-decoration: none;
   color: inherit;
@@ -57,22 +154,28 @@ a {
 :root {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
+
 /* ------------------------------------------------------
    Tailwind Setup
 ---------------------------------------------------------*/
 @reference "tailwindcss";
-@tailwind base; 
-@tailwind components; 
+@tailwind base;
+@tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
     font-family: inherit;
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: #0a0a0a;
+    color: #e5e5e5;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-bold;
   }
 }
@@ -87,31 +190,70 @@ a {
    Custom Utilities
 ---------------------------------------------------------*/
 @layer utilities {
-  .gradient-hero { background: var(--gradient-hero); }
-  .gradient-accent { background: var(--gradient-accent); }
-  .gradient-subtle { background: var(--gradient-subtle); }
-  .shadow-glow { box-shadow: var(--shadow-glow); }
-  .transition-smooth { transition: var(--transition-smooth); }
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+
+  .gradient-subtle {
+    background: var(--gradient-subtle);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
 }
 
 /* ------------------------------------------------------
    Animations
 ---------------------------------------------------------*/
 @keyframes accordion-down {
-  from { height: 0; }
-  to { height: var(--radix-accordion-content-height); }
+  from {
+    height: 0;
+  }
+
+  to {
+    height: var(--radix-accordion-content-height);
+  }
 }
 
 @keyframes accordion-up {
-  from { height: var(--radix-accordion-content-height); }
-  to { height: 0; }
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+
+  to {
+    height: 0;
+  }
 }
 
 @keyframes fade-in {
-  0% { opacity: 0; transform: translateY(10px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.accordion-down { animation: accordion-down 0.2s ease-out; }
-.accordion-up { animation: accordion-up 0.2s ease-out; }
-.fade-in { animation: fade-in 0.6s ease-out; }
+.accordion-down {
+  animation: accordion-down 0.2s ease-out;
+}
+
+.accordion-up {
+  animation: accordion-up 0.2s ease-out;
+}
+
+.fade-in {
+  animation: fade-in 0.6s ease-out;
+}
