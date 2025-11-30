@@ -1,59 +1,53 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import type {
+  CreateInventoryItemRequest,
+  InventoryLocation,
+  ExpirationStatus,
   InventoryItemWithDetails,
   InventorySummary,
-  CreateInventoryItemRequest,
-  ExpirationStatus,
-  InventoryLocation,
 } from "@/types/data";
 
 /**
- * Calculate expiration status based on days until expiration
+ * Calculate expiration status based on expiration date
  */
-function getExpirationStatus(expirationDate: string | null): ExpirationStatus {
-  if (!expirationDate) return "unknown";
+function calculateExpirationStatus(expirationDate: string | null): {
+  status: ExpirationStatus;
+  daysUntil: number | null;
+} {
+  if (!expirationDate) {
+    return { status: "unknown", daysUntil: null };
+  }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const expDate = new Date(expirationDate);
   expDate.setHours(0, 0, 0, 0);
 
-  const diffDays = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const diffTime = expDate.getTime() - today.getTime();
+  const daysUntil = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffDays < 0) return "expired";
-  if (diffDays <= 2) return "critical";
-  if (diffDays <= 7) return "warning";
-  return "good";
-}
-
-/**
- * Calculate days until expiration
- */
-function getDaysUntilExpiration(expirationDate: string | null): number | null {
-  if (!expirationDate) return null;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const expDate = new Date(expirationDate);
-  expDate.setHours(0, 0, 0, 0);
-
-  return Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-}
-
-/**
- * Check if item is low stock
- */
-function isLowStock(quantity: number, minQuantity: number | null): boolean {
-  if (minQuantity === null) return false;
-  return quantity <= minQuantity;
+  if (daysUntil < 0) {
+    return { status: "expired", daysUntil };
+  } else if (daysUntil <= 2) {
+    return { status: "critical", daysUntil };
+  } else if (daysUntil <= 7) {
+    return { status: "warning", daysUntil };
+  } else {
+    return { status: "good", daysUntil };
+  }
 }
 
 /**
  * GET /api/inventory
  * Get all inventory items for the authenticated user
+ *
+ * Query params:
+ * - location: filter by location (pantry, fridge, freezer, other)
+ * - expiring_within: filter items expiring within N days
+ * - search: search by ingredient name
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   const supabase = await createClient();
 
   // Check authentication
@@ -66,61 +60,79 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Fetch inventory items with ingredient details
-  const { data: items, error } = await supabase
+  // Parse query parameters
+  const { searchParams } = new URL(request.url);
+  const location = searchParams.get("location") as InventoryLocation | null;
+  const expiringWithin = searchParams.get("expiring_within");
+  const search = searchParams.get("search");
+
+  // Build query
+  let query = supabase
     .from("user_inventory")
     .select(
       `
       *,
-      Ingredient (
+      ingredient:Ingredient (
         id,
-        name,
-        unit,
-        calories_kcal,
-        protein_g,
-        carbs_g,
-        sugars_g,
-        agg_fats_g,
-        cholesterol_mg,
-        agg_minerals_mg,
-        vit_a_microg,
-        agg_vit_b_mg,
-        vit_c_mg,
-        vit_d_microg,
-        vit_e_mg,
-        vit_k_microg
+        name
       )
     `
     )
     .eq("user_id", user.id)
-    .order("updated_at", { ascending: false });
+    .order("expiration_date", { ascending: true, nullsFirst: false });
+
+  // Apply filters
+  if (location) {
+    query = query.eq("location", location);
+  }
+
+  if (expiringWithin) {
+    const days = parseInt(expiringWithin, 10);
+    if (!isNaN(days)) {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + days);
+      query = query.lte("expiration_date", futureDate.toISOString().split("T")[0]);
+      query = query.gte("expiration_date", new Date().toISOString().split("T")[0]);
+    }
+  }
+
+  const { data: items, error } = await query;
 
   if (error) {
     console.error("Error fetching inventory:", error);
     return NextResponse.json({ error: "Failed to fetch inventory" }, { status: 500 });
   }
 
+  // Filter by search term (ingredient name)
+  let filteredItems = items || [];
+  if (search && search.trim()) {
+    const searchLower = search.toLowerCase().trim();
+    filteredItems = filteredItems.filter((item) =>
+      item.ingredient?.name?.toLowerCase().includes(searchLower)
+    );
+  }
+
   // Transform items with computed properties
-  const itemsWithDetails: InventoryItemWithDetails[] = (items || []).map((item) => ({
-    id: item.id,
-    user_id: item.user_id,
-    ingredient_id: item.ingredient_id,
-    quantity: Number(item.quantity),
-    unit: item.unit,
-    location: item.location as InventoryLocation,
-    expiration_date: item.expiration_date,
-    min_quantity: item.min_quantity ? Number(item.min_quantity) : null,
-    notes: item.notes,
-    created_at: item.created_at,
-    updated_at: item.updated_at,
-    ingredient: item.Ingredient,
-    expiration_status: getExpirationStatus(item.expiration_date),
-    days_until_expiration: getDaysUntilExpiration(item.expiration_date),
-    is_low_stock: isLowStock(
-      Number(item.quantity),
-      item.min_quantity ? Number(item.min_quantity) : null
-    ),
-  }));
+  const itemsWithDetails: InventoryItemWithDetails[] = filteredItems.map((item) => {
+    const { status, daysUntil } = calculateExpirationStatus(item.expiration_date);
+    return {
+      id: item.id,
+      user_id: item.user_id,
+      ingredient_id: item.ingredient_id,
+      quantity: item.quantity,
+      unit: item.unit,
+      location: item.location,
+      expiration_date: item.expiration_date,
+      min_quantity: item.min_quantity,
+      notes: item.notes,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+      ingredient: item.ingredient,
+      expiration_status: status,
+      days_until_expiration: daysUntil,
+      is_low_stock: item.min_quantity !== null && item.quantity <= item.min_quantity,
+    };
+  });
 
   // Calculate summary
   const summary: InventorySummary = {
@@ -143,7 +155,7 @@ export async function GET() {
 
 /**
  * POST /api/inventory
- * Create a new inventory item
+ * Add a new item to inventory
  */
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -164,11 +176,11 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!ingredient_id || typeof ingredient_id !== "number") {
-      return NextResponse.json({ error: "Valid ingredient_id is required" }, { status: 400 });
+      return NextResponse.json({ error: "ingredient_id is required" }, { status: 400 });
     }
 
-    if (!quantity || quantity <= 0) {
-      return NextResponse.json({ error: "Quantity must be greater than 0" }, { status: 400 });
+    if (quantity === undefined || typeof quantity !== "number" || quantity < 0) {
+      return NextResponse.json({ error: "Valid quantity is required" }, { status: 400 });
     }
 
     // Check if ingredient exists
@@ -182,66 +194,72 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Ingredient not found" }, { status: 404 });
     }
 
-    // Create the inventory item (uses UPSERT via unique constraint)
-    const { data: newItem, error } = await supabase
+    // Check for existing entry with same ingredient and location
+    const itemLocation = location || "pantry";
+    const { data: existing } = await supabase
+      .from("user_inventory")
+      .select("id, quantity")
+      .eq("user_id", user.id)
+      .eq("ingredient_id", ingredient_id)
+      .eq("location", itemLocation)
+      .single();
+
+    if (existing) {
+      // Update existing item quantity
+      const { data: updated, error: updateError } = await supabase
+        .from("user_inventory")
+        .update({
+          quantity: existing.quantity + quantity,
+          unit: unit || null,
+          expiration_date: expiration_date || null,
+          min_quantity: min_quantity ?? null,
+          notes: notes || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id)
+        .select(
+          `
+          *,
+          ingredient:Ingredient (id, name)
+        `
+        )
+        .single();
+
+      if (updateError) {
+        console.error("Error updating inventory item:", updateError);
+        return NextResponse.json({ error: "Failed to update inventory item" }, { status: 500 });
+      }
+
+      return NextResponse.json(updated, { status: 200 });
+    }
+
+    // Create new inventory item
+    const { data: newItem, error: createError } = await supabase
       .from("user_inventory")
       .insert({
         user_id: user.id,
         ingredient_id,
         quantity,
         unit: unit || null,
-        location: location || "pantry",
+        location: itemLocation,
         expiration_date: expiration_date || null,
-        min_quantity: min_quantity || null,
+        min_quantity: min_quantity ?? null,
         notes: notes || null,
       })
       .select(
         `
         *,
-        Ingredient (
-          id,
-          name,
-          unit
-        )
+        ingredient:Ingredient (id, name)
       `
       )
       .single();
 
-    if (error) {
-      // Handle duplicate constraint error
-      if (error.code === "23505") {
-        return NextResponse.json(
-          { error: "This ingredient already exists in this location. Use update instead." },
-          { status: 409 }
-        );
-      }
-      console.error("Error creating inventory item:", error);
+    if (createError) {
+      console.error("Error creating inventory item:", createError);
       return NextResponse.json({ error: "Failed to create inventory item" }, { status: 500 });
     }
 
-    // Transform with computed properties
-    const itemWithDetails: InventoryItemWithDetails = {
-      id: newItem.id,
-      user_id: newItem.user_id,
-      ingredient_id: newItem.ingredient_id,
-      quantity: Number(newItem.quantity),
-      unit: newItem.unit,
-      location: newItem.location as InventoryLocation,
-      expiration_date: newItem.expiration_date,
-      min_quantity: newItem.min_quantity ? Number(newItem.min_quantity) : null,
-      notes: newItem.notes,
-      created_at: newItem.created_at,
-      updated_at: newItem.updated_at,
-      ingredient: newItem.Ingredient,
-      expiration_status: getExpirationStatus(newItem.expiration_date),
-      days_until_expiration: getDaysUntilExpiration(newItem.expiration_date),
-      is_low_stock: isLowStock(
-        Number(newItem.quantity),
-        newItem.min_quantity ? Number(newItem.min_quantity) : null
-      ),
-    };
-
-    return NextResponse.json(itemWithDetails, { status: 201 });
+    return NextResponse.json(newItem, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }

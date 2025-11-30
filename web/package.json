@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:frontend": "next dev --turbopack",
+    "dev:backend": "cd ../backend && make dev",
+    "dev:full": "concurrently -n \"frontend,backend\" -c \"cyan,magenta\" \"npm run dev:frontend\" \"npm run dev:backend\"",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
@@ -64,6 +67,8 @@
     "@types/supertest": "^6.0.3",
     "@types/web-push": "^3.6.4",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.1",
+    "dotenv": "^17.2.3",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "identity-obj-proxy": "^3.0.0",

@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { ExpirationBadge } from "@/components/inventory/ExpirationBadge";
+import ExpirationBadge from "@/components/inventory/ExpirationBadge";
 
 // Helper to create dates relative to today using local timezone
 const addDays = (days: number): string => {

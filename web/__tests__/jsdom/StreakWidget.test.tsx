@@ -12,16 +12,24 @@ import type { StreaksResponse } from "@/types/data";
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
-// Helper to get yesterday's date in YYYY-MM-DD format
+// Helper to get yesterday's date in YYYY-MM-DD format (local timezone)
 const getYesterday = () => {
   const date = new Date();
   date.setDate(date.getDate() - 1);
-  return date.toISOString().split("T")[0];
+  // Use local date formatting to avoid timezone issues
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
-// Helper to get today's date in YYYY-MM-DD format
+// Helper to get today's date in YYYY-MM-DD format (local timezone)
 const getToday = () => {
-  return new Date().toISOString().split("T")[0];
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
 describe("StreakWidget", () => {

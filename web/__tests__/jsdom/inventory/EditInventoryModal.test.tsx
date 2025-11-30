@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { EditInventoryModal } from "@/components/inventory/EditInventoryModal";
+import EditInventoryModal from "@/components/inventory/EditInventoryModal";
 import type { InventoryItemWithDetails, Ingredient } from "@/types/data";
 
 describe("EditInventoryModal", () => {

@@ -13,7 +13,7 @@ dependencies = [
     "scikit-learn>=1.6.1",
     "sentence-transformers>=5.1.2",
     "supabase>=2.24.0",
-    "torch>=2.8.0",
+    "torch>=2.5.0",
     "transformers>=4.57.1",
     "uvicorn>=0.38.0",
 ]

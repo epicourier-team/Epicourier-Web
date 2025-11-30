@@ -52,8 +52,10 @@ const menuItems = [
 export function AppSidebar({ onLogout }: { onLogout: () => void }) {
   const supabase = createClient();
   const [userEmail, setUserEmail] = useState<string>("");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const fetchUserName = async () => {
       const {
         data: { user },
@@ -104,30 +106,14 @@ export function AppSidebar({ onLogout }: { onLogout: () => void }) {
       <SidebarFooter className="border-t-2 border-black bg-amber-100 py-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size="lg"
-                  className="brutalism-border brutalism-shadow brutalism-hover brutalism-active rounded-none bg-white font-semibold data-[state=open]:bg-emerald-400"
-                >
-                  <div className="brutalism-border flex aspect-square size-8 items-center justify-center rounded-none bg-yellow-300">
-                    <User className="size-4" />
-                  </div>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-bold">User</span>
-                    <span className="truncate text-xs font-medium">{userEmail || "Guest"}</span>
-                  </div>
-                  <ChevronUp className="ml-auto size-4" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="brutalism-border brutalism-shadow-md w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-none bg-white"
-                side="top"
-                align="end"
-                sideOffset={8}
-              >
-                <DropdownMenuLabel className="border-b-2 border-black p-0 font-normal">
-                  <div className="flex items-center gap-2 bg-amber-100 px-2 py-2 text-left text-sm">
+            {/* Only render DropdownMenu on client to avoid hydration mismatch with Radix IDs */}
+            {mounted ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton
+                    size="lg"
+                    className="brutalism-border brutalism-shadow brutalism-hover brutalism-active rounded-none bg-white font-semibold data-[state=open]:bg-emerald-400"
+                  >
                     <div className="brutalism-border flex aspect-square size-8 items-center justify-center rounded-none bg-yellow-300">
                       <User className="size-4" />
                     </div>
@@ -135,31 +121,65 @@ export function AppSidebar({ onLogout }: { onLogout: () => void }) {
                       <span className="truncate font-bold">User</span>
                       <span className="truncate text-xs font-medium">{userEmail || "Guest"}</span>
                     </div>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuItem
-                  asChild
-                  className="font-semibold hover:bg-sky-200 focus:bg-sky-200"
+                    <ChevronUp className="ml-auto size-4" />
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="brutalism-border brutalism-shadow-md w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-none bg-white"
+                  side="top"
+                  align="end"
+                  sideOffset={8}
                 >
-                  <Link
-                    href="https://slashpage.com/site-fn8swy4xu372s9jrqr2qdgr6l/dwy5rvmjgexyg2p46zn9"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2"
+                  <DropdownMenuLabel className="border-b-2 border-black p-0 font-normal">
+                    <div className="flex items-center gap-2 bg-amber-100 px-2 py-2 text-left text-sm">
+                      <div className="brutalism-border flex aspect-square size-8 items-center justify-center rounded-none bg-yellow-300">
+                        <User className="size-4" />
+                      </div>
+                      <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-bold">User</span>
+                        <span className="truncate text-xs font-medium">{userEmail || "Guest"}</span>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem
+                    asChild
+                    className="font-semibold hover:bg-sky-200 focus:bg-sky-200"
                   >
-                    <HelpCircle className="size-4" />
-                    <span>Help Center</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={onLogout}
-                  className="font-semibold hover:bg-red-200 focus:bg-red-200"
-                >
-                  <LogOut className="size-4" />
-                  <span>Log Out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    <Link
+                      href="https://slashpage.com/site-fn8swy4xu372s9jrqr2qdgr6l/dwy5rvmjgexyg2p46zn9"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2"
+                    >
+                      <HelpCircle className="size-4" />
+                      <span>Help Center</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={onLogout}
+                    className="font-semibold hover:bg-red-200 focus:bg-red-200"
+                  >
+                    <LogOut className="size-4" />
+                    <span>Log Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              /* Server-side placeholder to avoid layout shift */
+              <SidebarMenuButton
+                size="lg"
+                className="brutalism-border brutalism-shadow brutalism-hover brutalism-active rounded-none bg-white font-semibold"
+              >
+                <div className="brutalism-border flex aspect-square size-8 items-center justify-center rounded-none bg-yellow-300">
+                  <User className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-bold">User</span>
+                  <span className="truncate text-xs font-medium">Guest</span>
+                </div>
+                <ChevronUp className="ml-auto size-4" />
+              </SidebarMenuButton>
+            )}
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

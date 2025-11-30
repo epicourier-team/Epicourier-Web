@@ -1,5 +1,5 @@
 import { InventoryItemWithDetails, InventoryLocation } from "@/types/data";
-import { ExpirationBadge } from "./ExpirationBadge";
+import ExpirationBadge from "./ExpirationBadge";
 import {
   getStockStatus,
   getStockStatusLabel,
@@ -139,7 +139,11 @@ export function InventoryCard({ item, onEdit, onDelete, className = "" }: Invent
 
       {/* Footer with Expiration Badge */}
       <div className="flex items-center justify-between border-t-2 border-black px-4 pt-3">
-        <ExpirationBadge expirationDate={item.expiration_date} showDetails />
+        <ExpirationBadge
+          status={item.expiration_status}
+          daysUntil={item.days_until_expiration}
+          showText
+        />
 
         {item.notes && (
           <span className="truncate text-xs font-medium text-gray-600" title={item.notes}>

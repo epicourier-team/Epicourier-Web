@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import type { TransferToInventoryRequest } from "@/types/data";
@@ -21,7 +20,6 @@ interface UseTransferToInventoryResult {
  * Includes undo functionality with 10-second window
  */
 export function useTransferToInventory(): UseTransferToInventoryResult {
-  const router = useRouter();
   const { toast, dismiss } = useToast();
   const [isTransferring, setIsTransferring] = useState(false);
   const [lastTransferredItems, setLastTransferredItems] = useState<TransferToInventoryRequest[]>(
@@ -76,7 +74,7 @@ export function useTransferToInventory(): UseTransferToInventoryResult {
 
       clearUndoState();
       return true;
-    } catch (error) {
+    } catch {
       toast({
         title: "❌ Undo Failed",
         description: "Could not undo the transfer. Please try manually.",

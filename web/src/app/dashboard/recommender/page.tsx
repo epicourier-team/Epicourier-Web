@@ -102,8 +102,8 @@ export default function RecommendPage() {
   };
 
   return (
-    <section className="min-h-screen py-24">
-      <div className="container mx-auto max-w-3xl px-4">
+    <section className="py-6">
+      <div className="container mx-auto max-w-4xl px-4">
         <div className="brutalism-banner mb-6 bg-red-300! p-5">
           <h1 className="text-3xl font-bold tracking-tight">Personalized Meal Recommendations</h1>
           <p className="mt-1 text-sm font-medium text-gray-900">
@@ -162,50 +162,102 @@ export default function RecommendPage() {
 
         {/* Expanded Goal */}
         {expandedGoal && (
-          <div className="brutalism-banner mt-12 rounded-none p-6 text-center">
-            <h2 className="brutalism-heading mb-4">Expanded Goal</h2>
-            <div className="prose prose-emerald mx-auto max-w-none text-left">
-              <ReactMarkdown>{expandedGoal}</ReactMarkdown>
+          <div className="mt-6 overflow-hidden rounded-none border-2 border-black bg-gradient-to-br from-emerald-50 to-teal-50 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+            <div className="border-b-2 border-black bg-emerald-400 px-4 py-2">
+              <h2 className="flex items-center gap-2 text-lg font-bold">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-black bg-white text-sm">
+                  📋
+                </span>
+                Your Personalized Nutrition Plan
+              </h2>
+            </div>
+            <div className="p-5">
+              <ReactMarkdown
+                components={{
+                  p: ({ children }) => (
+                    <p className="mb-3 text-sm leading-relaxed text-gray-700 last:mb-0">
+                      {children}
+                    </p>
+                  ),
+                  ul: ({ children }) => <ul className="mb-3 ml-1 space-y-2 text-sm">{children}</ul>,
+                  ol: ({ children }) => (
+                    <ol className="mb-3 ml-1 list-inside list-decimal space-y-2 text-sm">
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="flex items-start gap-2 text-gray-700">
+                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500" />
+                      <span>{children}</span>
+                    </li>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold text-emerald-700">{children}</strong>
+                  ),
+                  h1: ({ children }) => (
+                    <h3 className="mb-2 text-base font-bold text-gray-900">{children}</h3>
+                  ),
+                  h2: ({ children }) => (
+                    <h4 className="mb-2 text-sm font-bold text-gray-800">{children}</h4>
+                  ),
+                  h3: ({ children }) => (
+                    <h5 className="mb-1 text-sm font-semibold text-gray-700">{children}</h5>
+                  ),
+                }}
+              >
+                {expandedGoal}
+              </ReactMarkdown>
             </div>
           </div>
         )}
 
         {/* Recipes */}
         {recipes.length > 0 && (
-          <div className="mt-16 space-y-8">
-            <h2 className="brutalism-title text-center text-3xl">Your Recommended Meals</h2>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-6 space-y-4">
+            <h2 className="brutalism-title text-center text-2xl">Your Recommended Meals</h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {recipes.map((r, i) => {
                 const RecipeCard: React.FC<{ recipe: Recipe }> = ({ recipe }) => {
                   const [isModalOpen, setIsModalOpen] = useState(false);
 
                   return (
-                    <div className="brutalism-card rounded-none p-6">
-                      <h3 className="brutalism-heading mb-3 text-emerald-700">{recipe.name}</h3>
+                    <div className="brutalism-card flex h-full flex-col rounded-none p-4">
+                      <h3 className="brutalism-heading mb-2 line-clamp-2 text-base text-emerald-700">
+                        {recipe.name}
+                      </h3>
 
-                      <p className="mb-2">
-                        <span className="brutalism-text-bold">Key Ingredients:</span>{" "}
-                        {recipe.key_ingredients.join(", ")}
-                      </p>
+                      <div className="mb-2 text-sm">
+                        <span className="brutalism-text-bold">Ingredients:</span>
+                        <p className="mt-1 line-clamp-2 text-gray-700">
+                          {recipe.key_ingredients.join(", ")}
+                        </p>
+                      </div>
 
-                      <p className="mb-2 whitespace-pre-line">
-                        <span className="brutalism-text-bold">Recipe:</span> {recipe.recipe}
-                      </p>
+                      <div className="mb-2 text-sm">
+                        <span className="brutalism-text-bold">Recipe:</span>
+                        <p className="mt-1 line-clamp-3 text-gray-700">{recipe.recipe}</p>
+                      </div>
 
-                      <p className="mb-2">
-                        <span className="brutalism-text-bold">Tags:</span> {recipe.tags.join(", ")}
-                      </p>
-
-                      <p className="mb-2">
-                        <span className="brutalism-text-bold">Reason:</span> {recipe.reason}
-                      </p>
+                      <div className="mb-3 flex-1 text-sm">
+                        <span className="brutalism-text-bold">Tags:</span>
+                        <p className="mt-1">
+                          {recipe.tags.map((tag, idx) => (
+                            <span
+                              key={idx}
+                              className="mr-1 inline-block rounded bg-emerald-100 px-1.5 py-0.5 text-xs text-emerald-700"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </p>
+                      </div>
 
                       <button
                         onClick={(e) => {
                           e.preventDefault();
                           setIsModalOpen(true);
                         }}
-                        className="brutalism-button-secondary mt-3 w-full rounded-none py-2"
+                        className="brutalism-button-secondary mt-auto w-full rounded-none py-2 text-sm"
                       >
                         + Add to Calendar
                       </button>

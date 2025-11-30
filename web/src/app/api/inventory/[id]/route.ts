@@ -1,51 +1,35 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
-import type {
-  InventoryItemWithDetails,
-  UpdateInventoryItemRequest,
-  ExpirationStatus,
-  InventoryLocation,
-} from "@/types/data";
+import type { UpdateInventoryItemRequest, ExpirationStatus } from "@/types/data";
 
 /**
- * Calculate expiration status based on days until expiration
+ * Calculate expiration status based on expiration date
  */
-function getExpirationStatus(expirationDate: string | null): ExpirationStatus {
-  if (!expirationDate) return "unknown";
+function calculateExpirationStatus(expirationDate: string | null): {
+  status: ExpirationStatus;
+  daysUntil: number | null;
+} {
+  if (!expirationDate) {
+    return { status: "unknown", daysUntil: null };
+  }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const expDate = new Date(expirationDate);
   expDate.setHours(0, 0, 0, 0);
 
-  const diffDays = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const diffTime = expDate.getTime() - today.getTime();
+  const daysUntil = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffDays < 0) return "expired";
-  if (diffDays <= 2) return "critical";
-  if (diffDays <= 7) return "warning";
-  return "good";
-}
-
-/**
- * Calculate days until expiration
- */
-function getDaysUntilExpiration(expirationDate: string | null): number | null {
-  if (!expirationDate) return null;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const expDate = new Date(expirationDate);
-  expDate.setHours(0, 0, 0, 0);
-
-  return Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-}
-
-/**
- * Check if item is low stock
- */
-function isLowStock(quantity: number, minQuantity: number | null): boolean {
-  if (minQuantity === null) return false;
-  return quantity <= minQuantity;
+  if (daysUntil < 0) {
+    return { status: "expired", daysUntil };
+  } else if (daysUntil <= 2) {
+    return { status: "critical", daysUntil };
+  } else if (daysUntil <= 7) {
+    return { status: "warning", daysUntil };
+  } else {
+    return { status: "good", daysUntil };
+  }
 }
 
 interface RouteParams {
@@ -54,9 +38,9 @@ interface RouteParams {
 
 /**
  * GET /api/inventory/[id]
- * Get a specific inventory item
+ * Get a single inventory item by ID
  */
-export async function GET(_request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest, { params }: RouteParams) {
   const supabase = await createClient();
   const { id } = await params;
 
@@ -70,17 +54,12 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Fetch the item
   const { data: item, error } = await supabase
     .from("user_inventory")
     .select(
       `
       *,
-      Ingredient (
-        id,
-        name,
-        unit
-      )
+      ingredient:Ingredient (id, name)
     `
     )
     .eq("id", id)
@@ -91,36 +70,23 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Inventory item not found" }, { status: 404 });
   }
 
-  // Transform with computed properties
-  const itemWithDetails: InventoryItemWithDetails = {
-    id: item.id,
-    user_id: item.user_id,
-    ingredient_id: item.ingredient_id,
-    quantity: Number(item.quantity),
-    unit: item.unit,
-    location: item.location as InventoryLocation,
-    expiration_date: item.expiration_date,
-    min_quantity: item.min_quantity ? Number(item.min_quantity) : null,
-    notes: item.notes,
-    created_at: item.created_at,
-    updated_at: item.updated_at,
-    ingredient: item.Ingredient,
-    expiration_status: getExpirationStatus(item.expiration_date),
-    days_until_expiration: getDaysUntilExpiration(item.expiration_date),
-    is_low_stock: isLowStock(
-      Number(item.quantity),
-      item.min_quantity ? Number(item.min_quantity) : null
-    ),
+  // Add computed properties
+  const { status, daysUntil } = calculateExpirationStatus(item.expiration_date);
+  const itemWithDetails = {
+    ...item,
+    expiration_status: status,
+    days_until_expiration: daysUntil,
+    is_low_stock: item.min_quantity !== null && item.quantity <= item.min_quantity,
   };
 
   return NextResponse.json(itemWithDetails);
 }
 
 /**
- * PATCH /api/inventory/[id]
+ * PUT /api/inventory/[id]
  * Update an inventory item
  */
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
+export async function PUT(request: NextRequest, { params }: RouteParams) {
   const supabase = await createClient();
   const { id } = await params;
 
@@ -138,74 +104,78 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const body: UpdateInventoryItemRequest = await request.json();
     const { quantity, unit, location, expiration_date, min_quantity, notes } = body;
 
-    // Build update object
-    const updates: Record<string, unknown> = {};
-
-    if (quantity !== undefined) {
-      if (quantity <= 0) {
-        return NextResponse.json({ error: "Quantity must be greater than 0" }, { status: 400 });
-      }
-      updates.quantity = quantity;
-    }
-
-    if (unit !== undefined) updates.unit = unit;
-    if (location !== undefined) updates.location = location;
-    if (expiration_date !== undefined) updates.expiration_date = expiration_date;
-    if (min_quantity !== undefined) updates.min_quantity = min_quantity;
-    if (notes !== undefined) updates.notes = notes;
-
-    // Check if there's anything to update
-    if (Object.keys(updates).length === 0) {
-      return NextResponse.json({ error: "No fields to update" }, { status: 400 });
-    }
-
-    // Update the item
-    const { data: updatedItem, error } = await supabase
+    // Verify ownership
+    const { data: existing, error: existingError } = await supabase
       .from("user_inventory")
-      .update(updates)
+      .select("id")
       .eq("id", id)
       .eq("user_id", user.id)
+      .single();
+
+    if (existingError || !existing) {
+      return NextResponse.json({ error: "Inventory item not found" }, { status: 404 });
+    }
+
+    // Build update object (only include provided fields)
+    const updateData: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (quantity !== undefined) {
+      if (typeof quantity !== "number" || quantity < 0) {
+        return NextResponse.json({ error: "Invalid quantity" }, { status: 400 });
+      }
+      updateData.quantity = quantity;
+    }
+
+    if (unit !== undefined) {
+      updateData.unit = unit || null;
+    }
+
+    if (location !== undefined) {
+      const validLocations = ["pantry", "fridge", "freezer", "other"];
+      if (!validLocations.includes(location)) {
+        return NextResponse.json({ error: "Invalid location" }, { status: 400 });
+      }
+      updateData.location = location;
+    }
+
+    if (expiration_date !== undefined) {
+      updateData.expiration_date = expiration_date;
+    }
+
+    if (min_quantity !== undefined) {
+      updateData.min_quantity = min_quantity;
+    }
+
+    if (notes !== undefined) {
+      updateData.notes = notes || null;
+    }
+
+    const { data: updated, error: updateError } = await supabase
+      .from("user_inventory")
+      .update(updateData)
+      .eq("id", id)
       .select(
         `
         *,
-        Ingredient (
-          id,
-          name,
-          unit
-        )
+        ingredient:Ingredient (id, name)
       `
       )
       .single();
 
-    if (error) {
-      console.error("Error updating inventory item:", error);
+    if (updateError) {
+      console.error("Error updating inventory item:", updateError);
       return NextResponse.json({ error: "Failed to update inventory item" }, { status: 500 });
     }
 
-    if (!updatedItem) {
-      return NextResponse.json({ error: "Inventory item not found" }, { status: 404 });
-    }
-
-    // Transform with computed properties
-    const itemWithDetails: InventoryItemWithDetails = {
-      id: updatedItem.id,
-      user_id: updatedItem.user_id,
-      ingredient_id: updatedItem.ingredient_id,
-      quantity: Number(updatedItem.quantity),
-      unit: updatedItem.unit,
-      location: updatedItem.location as InventoryLocation,
-      expiration_date: updatedItem.expiration_date,
-      min_quantity: updatedItem.min_quantity ? Number(updatedItem.min_quantity) : null,
-      notes: updatedItem.notes,
-      created_at: updatedItem.created_at,
-      updated_at: updatedItem.updated_at,
-      ingredient: updatedItem.Ingredient,
-      expiration_status: getExpirationStatus(updatedItem.expiration_date),
-      days_until_expiration: getDaysUntilExpiration(updatedItem.expiration_date),
-      is_low_stock: isLowStock(
-        Number(updatedItem.quantity),
-        updatedItem.min_quantity ? Number(updatedItem.min_quantity) : null
-      ),
+    // Add computed properties
+    const { status, daysUntil } = calculateExpirationStatus(updated.expiration_date);
+    const itemWithDetails = {
+      ...updated,
+      expiration_status: status,
+      days_until_expiration: daysUntil,
+      is_low_stock: updated.min_quantity !== null && updated.quantity <= updated.min_quantity,
     };
 
     return NextResponse.json(itemWithDetails);
@@ -218,7 +188,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
  * DELETE /api/inventory/[id]
  * Delete an inventory item
  */
-export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const supabase = await createClient();
   const { id } = await params;
 
@@ -232,17 +202,17 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Delete the item
-  const { error } = await supabase
+  // Verify ownership and delete
+  const { error: deleteError } = await supabase
     .from("user_inventory")
     .delete()
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) {
-    console.error("Error deleting inventory item:", error);
+  if (deleteError) {
+    console.error("Error deleting inventory item:", deleteError);
     return NextResponse.json({ error: "Failed to delete inventory item" }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true }, { status: 200 });
 }

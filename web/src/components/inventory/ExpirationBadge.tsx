@@ -1,71 +1,84 @@
-import { ExpirationStatus } from "@/types/data";
-import {
-  getExpirationStatus,
-  getExpirationStatusLabel,
-  formatExpirationDate,
-} from "@/utils/inventory/expiration";
-import { Clock, AlertTriangle, AlertCircle, CheckCircle, HelpCircle } from "lucide-react";
+"use client";
+
+import { cn } from "@/lib/utils";
+import type { ExpirationStatus } from "@/types/data";
 
 interface ExpirationBadgeProps {
-  /** Expiration date string (YYYY-MM-DD format) or null */
-  expirationDate: string | null;
-  /** Show icon */
-  showIcon?: boolean;
-  /** Show detailed text (e.g., "Expires in 3 days") */
-  showDetails?: boolean;
-  /** Additional CSS classes */
+  status: ExpirationStatus;
+  daysUntil: number | null;
   className?: string;
+  showText?: boolean;
 }
 
-const statusStyles: Record<ExpirationStatus, string> = {
-  expired: "bg-red-200 text-black border-2 border-black",
-  critical: "bg-orange-200 text-black border-2 border-black",
-  warning: "bg-yellow-200 text-black border-2 border-black",
-  good: "bg-emerald-200 text-black border-2 border-black",
-  unknown: "bg-gray-200 text-black border-2 border-black",
-};
-
-const StatusIcon = ({ status }: { status: ExpirationStatus }) => {
-  const iconClass = "size-3.5";
-  switch (status) {
-    case "expired":
-      return <AlertCircle className={iconClass} />;
-    case "critical":
-      return <AlertTriangle className={iconClass} />;
-    case "warning":
-      return <Clock className={iconClass} />;
-    case "good":
-      return <CheckCircle className={iconClass} />;
-    case "unknown":
-    default:
-      return <HelpCircle className={iconClass} />;
-  }
-};
-
 /**
- * Badge component to display expiration status of inventory items
+ * Color-coded expiration badge for inventory items
+ *
+ * Colors:
+ * - Expired: Red (bg-red-100, text-red-700)
+ * - Critical (0-2 days): Orange (bg-orange-100, text-orange-700)
+ * - Warning (3-7 days): Yellow (bg-yellow-100, text-yellow-700)
+ * - Good (>7 days): Green (bg-green-100, text-green-700)
+ * - Unknown: Gray (bg-gray-100, text-gray-600)
  */
-export function ExpirationBadge({
-  expirationDate,
-  showIcon = true,
-  showDetails = false,
-  className = "",
+export default function ExpirationBadge({
+  status,
+  daysUntil,
+  className,
+  showText = true,
 }: ExpirationBadgeProps) {
-  const status = getExpirationStatus(expirationDate);
-  const label = getExpirationStatusLabel(status);
-  const details = formatExpirationDate(expirationDate);
+  const getStatusConfig = () => {
+    switch (status) {
+      case "expired":
+        return {
+          bg: "bg-red-100 border-red-300",
+          text: "text-red-700",
+          label: "Expired",
+          emoji: "🚨",
+        };
+      case "critical":
+        return {
+          bg: "bg-orange-100 border-orange-300",
+          text: "text-orange-700",
+          label: daysUntil === 0 ? "Today" : daysUntil === 1 ? "Tomorrow" : `${daysUntil} days`,
+          emoji: "⚠️",
+        };
+      case "warning":
+        return {
+          bg: "bg-yellow-100 border-yellow-300",
+          text: "text-yellow-700",
+          label: `${daysUntil} days`,
+          emoji: "⏰",
+        };
+      case "good":
+        return {
+          bg: "bg-green-100 border-green-300",
+          text: "text-green-700",
+          label: daysUntil !== null ? `${daysUntil} days` : "Good",
+          emoji: "✓",
+        };
+      default:
+        return {
+          bg: "bg-gray-100 border-gray-300",
+          text: "text-gray-600",
+          label: "No date",
+          emoji: "–",
+        };
+    }
+  };
+
+  const config = getStatusConfig();
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${statusStyles[status]} ${className}`}
-      title={details}
-      data-testid="expiration-badge"
-      data-status={status}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold",
+        config.bg,
+        config.text,
+        className
+      )}
     >
-      {showIcon && <StatusIcon status={status} />}
-      <span>{showDetails ? details : label}</span>
+      <span>{config.emoji}</span>
+      {showText && <span>{config.label}</span>}
     </span>
   );
 }
-
-export default ExpirationBadge;

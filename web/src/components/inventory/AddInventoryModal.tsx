@@ -1,390 +1,377 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
-import { X, Plus, Loader2, Search } from "lucide-react";
-import { CreateInventoryItemRequest, InventoryLocation, Ingredient } from "@/types/data";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Search, X } from "lucide-react";
+import type { InventoryLocation, Ingredient } from "@/types/data";
 
 interface AddInventoryModalProps {
-  /** Whether the modal is open */
   isOpen: boolean;
-  /** Callback to close the modal */
   onClose: () => void;
-  /** Callback when item is submitted */
-  onSubmit: (data: CreateInventoryItemRequest) => Promise<boolean>;
-  /** Available ingredients to select from */
-  ingredients?: Ingredient[];
+  onSuccess: () => void;
 }
 
-const locations: { value: InventoryLocation; label: string }[] = [
-  { value: "pantry", label: "Pantry" },
-  { value: "fridge", label: "Fridge" },
-  { value: "freezer", label: "Freezer" },
-  { value: "other", label: "Other" },
+const LOCATIONS: { value: InventoryLocation; label: string; emoji: string }[] = [
+  { value: "pantry", label: "Pantry", emoji: "🥫" },
+  { value: "fridge", label: "Fridge", emoji: "❄️" },
+  { value: "freezer", label: "Freezer", emoji: "🧊" },
+  { value: "other", label: "Other", emoji: "📍" },
 ];
 
 /**
- * Modal component for adding new inventory items
+ * Modal for adding a new item to inventory
+ *
+ * Features:
+ * - Ingredient search with autocomplete
+ * - Quantity and unit input
+ * - Location selection (pantry/fridge/freezer)
+ * - Expiration date picker
+ * - Min quantity threshold
+ * - Notes field
  */
-export function AddInventoryModal({
-  isOpen,
-  onClose,
-  onSubmit,
-  ingredients = [],
-}: AddInventoryModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Autocomplete state
-  const [ingredientSearch, setIngredientSearch] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+export default function AddInventoryModal({ isOpen, onClose, onSuccess }: AddInventoryModalProps) {
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Ingredient[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
 
   // Form state
-  const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
-  const [quantity, setQuantity] = useState<number>(1);
-  const [unit, setUnit] = useState<string>("");
-  const [location, setLocation] = useState<InventoryLocation>("pantry");
-  const [expirationDate, setExpirationDate] = useState<string>("");
-  const [minQuantity, setMinQuantity] = useState<number | "">("");
-  const [notes, setNotes] = useState<string>("");
+  const [quantity, setQuantity] = useState("1");
+  const [unit, setUnit] = useState("");
+  const [location, setLocation] = useState<InventoryLocation>("fridge");
+  const [expirationDate, setExpirationDate] = useState("");
+  const [minQuantity, setMinQuantity] = useState("");
+  const [notes, setNotes] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Filter ingredients based on search
-  const filteredIngredients = useMemo(() => {
-    if (!ingredientSearch.trim()) return ingredients.slice(0, 10);
-    const query = ingredientSearch.toLowerCase();
-    return ingredients
-      .filter((ing) => ing.name && ing.name.toLowerCase().includes(query))
-      .slice(0, 10);
-  }, [ingredients, ingredientSearch]);
+  const { toast } = useToast();
 
-  // Close suggestions when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
+  // Debounced search for ingredients
+  const searchIngredients = useCallback(async (query: string) => {
+    if (query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const response = await fetch(`/api/ingredients?search=${encodeURIComponent(query)}&limit=10`);
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data.ingredients || data || []);
       }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    } catch (error) {
+      console.error("Error searching ingredients:", error);
+    } finally {
+      setSearching(false);
+    }
   }, []);
 
-  const resetForm = () => {
-    setSelectedIngredient(null);
-    setIngredientSearch("");
-    setQuantity(1);
-    setUnit("");
-    setLocation("pantry");
-    setExpirationDate("");
-    setMinQuantity("");
-    setNotes("");
-    setError(null);
-    setShowSuggestions(false);
-    setHighlightedIndex(-1);
-  };
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery && !selectedIngredient) {
+        searchIngredients(searchQuery);
+      }
+    }, 300);
 
-  const handleClose = () => {
-    resetForm();
-    onClose();
-  };
+    return () => clearTimeout(timer);
+  }, [searchQuery, selectedIngredient, searchIngredients]);
 
   const handleSelectIngredient = (ingredient: Ingredient) => {
     setSelectedIngredient(ingredient);
-    setIngredientSearch(ingredient.name || "");
-    setUnit(ingredient.unit || "");
-    setShowSuggestions(false);
-    setHighlightedIndex(-1);
+    setSearchQuery(ingredient.name || "");
+    setSearchResults([]);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showSuggestions) return;
-
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setHighlightedIndex((prev) => (prev < filteredIngredients.length - 1 ? prev + 1 : prev));
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : -1));
-        break;
-      case "Enter":
-        e.preventDefault();
-        if (highlightedIndex >= 0 && filteredIngredients[highlightedIndex]) {
-          handleSelectIngredient(filteredIngredients[highlightedIndex]);
-        }
-        break;
-      case "Escape":
-        setShowSuggestions(false);
-        break;
-    }
+  const handleClearIngredient = () => {
+    setSelectedIngredient(null);
+    setSearchQuery("");
+    setSearchResults([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     if (!selectedIngredient) {
-      setError("Please select an ingredient");
+      toast({
+        title: "⚠️ Ingredient Required",
+        description: "Please select an ingredient",
+        variant: "destructive",
+      });
       return;
     }
 
-    if (quantity <= 0) {
-      setError("Quantity must be greater than 0");
+    const qty = parseFloat(quantity);
+    if (isNaN(qty) || qty <= 0) {
+      toast({
+        title: "⚠️ Invalid Quantity",
+        description: "Please enter a valid quantity",
+        variant: "destructive",
+      });
       return;
     }
 
-    setIsSubmitting(true);
+    setLoading(true);
 
     try {
-      const data: CreateInventoryItemRequest = {
-        ingredient_id: selectedIngredient.id,
-        quantity,
-        unit: unit || undefined,
-        location,
-        expiration_date: expirationDate || undefined,
-        min_quantity: minQuantity !== "" ? (minQuantity as number) : undefined,
-        notes: notes || undefined,
-      };
+      const response = await fetch("/api/inventory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ingredient_id: selectedIngredient.id,
+          quantity: qty,
+          unit: unit.trim() || null,
+          location,
+          expiration_date: expirationDate || null,
+          min_quantity: minQuantity ? parseFloat(minQuantity) : null,
+          notes: notes.trim() || null,
+        }),
+      });
 
-      const success = await onSubmit(data);
-
-      if (success) {
-        handleClose();
-      } else {
-        setError("Failed to add item. Please try again.");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to add item");
       }
-    } catch {
-      setError("An error occurred. Please try again.");
+
+      toast({
+        title: "✅ Added to Inventory",
+        description: `${selectedIngredient.name} has been added`,
+      });
+
+      // Reset form
+      resetForm();
+      onSuccess();
+    } catch (error) {
+      console.error("Error adding inventory item:", error);
+      toast({
+        title: "❌ Error",
+        description: error instanceof Error ? error.message : "Failed to add item",
+        variant: "destructive",
+      });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  if (!isOpen) {
-    return null;
-  }
+  const resetForm = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setSelectedIngredient(null);
+    setQuantity("1");
+    setUnit("");
+    setLocation("fridge");
+    setExpirationDate("");
+    setMinQuantity("");
+    setNotes("");
+  };
+
+  const handleClose = () => {
+    if (!loading) {
+      resetForm();
+      onClose();
+    }
+  };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-      data-testid="add-inventory-modal"
-    >
-      <div className="brutalism-panel mx-4 w-full max-w-md shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b-2 border-black bg-emerald-200 p-4">
-          <h2 className="brutalism-heading">Add Inventory Item</h2>
-          <button
-            onClick={handleClose}
-            className="brutalism-border bg-white p-1 transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-            data-testid="close-modal-button"
-          >
-            <X className="size-5" />
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-4 border-black bg-amber-50 p-0 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] sm:max-w-lg">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader className="border-b-4 border-black bg-green-300 p-6">
+            <DialogTitle className="text-xl font-black uppercase">Add to Inventory</DialogTitle>
+            <DialogDescription className="text-sm font-bold text-gray-800">
+              Track ingredients you have at home
+            </DialogDescription>
+          </DialogHeader>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4">
-          {error && (
-            <div
-              className="mb-4 border-2 border-black bg-red-200 p-3 text-sm font-bold text-black"
-              data-testid="form-error"
-            >
-              {error}
-            </div>
-          )}
-
-          {/* Ingredient Autocomplete */}
-          <div className="relative mb-4" ref={suggestionsRef}>
-            <label htmlFor="ingredient" className="brutalism-text-bold mb-1 block text-sm">
-              Ingredient *
-            </label>
-            <div className="relative">
-              <Search className="absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-gray-500" />
-              <input
-                ref={inputRef}
-                type="text"
-                id="ingredient"
-                value={ingredientSearch}
-                onChange={(e) => {
-                  setIngredientSearch(e.target.value);
-                  setShowSuggestions(true);
-                  setSelectedIngredient(null);
-                  setHighlightedIndex(-1);
-                }}
-                onFocus={() => setShowSuggestions(true)}
-                onKeyDown={handleKeyDown}
-                placeholder="Search ingredients..."
-                className="brutalism-input w-full py-2 pr-4 pl-10"
-                data-testid="ingredient-input"
-                autoComplete="off"
-              />
-            </div>
-            {/* Suggestions Dropdown */}
-            {showSuggestions && filteredIngredients.length > 0 && (
-              <div
-                className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                data-testid="ingredient-suggestions"
-              >
-                {filteredIngredients.map((ing, index) => (
+          <div className="space-y-4 p-6">
+            {/* Ingredient Search */}
+            <div>
+              <label className="mb-2 block text-sm font-bold">
+                Ingredient <span className="text-red-600">*</span>
+              </label>
+              <div className="relative">
+                <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    if (selectedIngredient) {
+                      setSelectedIngredient(null);
+                    }
+                  }}
+                  placeholder="Search for an ingredient..."
+                  className="brutalism-input w-full py-2 pr-10 pl-10"
+                  disabled={loading}
+                />
+                {selectedIngredient && (
                   <button
-                    key={ing.id}
                     type="button"
-                    onClick={() => handleSelectIngredient(ing)}
-                    className={`w-full px-3 py-2 text-left text-sm font-medium transition-colors ${
-                      index === highlightedIndex
-                        ? "bg-emerald-100"
-                        : selectedIngredient?.id === ing.id
-                          ? "bg-emerald-50"
-                          : "hover:bg-gray-100"
-                    }`}
-                    data-testid={`suggestion-${ing.id}`}
+                    onClick={handleClearIngredient}
+                    className="absolute top-1/2 right-3 -translate-y-1/2"
                   >
-                    {ing.name}
-                    {ing.unit && <span className="ml-2 text-xs text-gray-500">({ing.unit})</span>}
+                    <X className="size-4 text-gray-500 hover:text-gray-700" />
+                  </button>
+                )}
+                {searching && (
+                  <Loader2 className="absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin text-gray-400" />
+                )}
+              </div>
+
+              {/* Search Results Dropdown */}
+              {searchResults.length > 0 && !selectedIngredient && (
+                <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border-2 border-black bg-white shadow-lg">
+                  {searchResults.map((ingredient) => (
+                    <button
+                      key={ingredient.id}
+                      type="button"
+                      onClick={() => handleSelectIngredient(ingredient)}
+                      className="w-full px-4 py-2 text-left font-semibold hover:bg-gray-100"
+                    >
+                      {ingredient.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {selectedIngredient && (
+                <p className="mt-1 text-sm font-semibold text-green-600">
+                  ✓ Selected: {selectedIngredient.name}
+                </p>
+              )}
+            </div>
+
+            {/* Quantity and Unit */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-2 block text-sm font-bold">
+                  Quantity <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  min="0.01"
+                  step="0.01"
+                  className="brutalism-input w-full px-3 py-2"
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-bold">Unit</label>
+                <input
+                  type="text"
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  placeholder="g, ml, pcs..."
+                  className="brutalism-input w-full px-3 py-2"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            {/* Location */}
+            <div>
+              <label className="mb-2 block text-sm font-bold">Storage Location</label>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {LOCATIONS.map(({ value, label, emoji }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setLocation(value)}
+                    className={`flex items-center justify-center gap-1 rounded-lg border-2 border-black px-3 py-2 text-sm font-semibold transition-all ${
+                      location === value ? "bg-black text-white" : "bg-white hover:bg-gray-100"
+                    }`}
+                    disabled={loading}
+                  >
+                    <span>{emoji}</span>
+                    <span>{label}</span>
                   </button>
                 ))}
               </div>
-            )}
-            {showSuggestions && ingredientSearch && filteredIngredients.length === 0 && (
-              <div className="absolute z-20 mt-1 w-full border-2 border-black bg-white p-3 text-sm text-gray-500 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                No ingredients found
-              </div>
-            )}
-            {selectedIngredient && (
-              <div className="mt-2 inline-block border-2 border-black bg-emerald-100 px-2 py-1 text-sm font-bold">
-                ✓ {selectedIngredient.name}
-              </div>
-            )}
-          </div>
+            </div>
 
-          {/* Quantity and Unit */}
-          <div className="mb-4 grid grid-cols-2 gap-3">
+            {/* Expiration Date */}
             <div>
-              <label htmlFor="quantity" className="brutalism-text-bold mb-1 block text-sm">
-                Quantity *
-              </label>
+              <label className="mb-2 block text-sm font-bold">Expiration Date</label>
+              <input
+                type="date"
+                value={expirationDate}
+                onChange={(e) => setExpirationDate(e.target.value)}
+                className="brutalism-input w-full px-3 py-2"
+                disabled={loading}
+              />
+            </div>
+
+            {/* Min Quantity (for low stock alerts) */}
+            <div>
+              <label className="mb-2 block text-sm font-bold">Min Quantity (Low Stock Alert)</label>
               <input
                 type="number"
-                id="quantity"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                min="0.01"
+                value={minQuantity}
+                onChange={(e) => setMinQuantity(e.target.value)}
+                min="0"
                 step="0.01"
-                className="brutalism-input w-full p-2"
-                data-testid="quantity-input"
-                required
+                placeholder="Alert when below this amount"
+                className="brutalism-input w-full px-3 py-2"
+                disabled={loading}
               />
+              <p className="mt-1 text-xs text-gray-500">
+                You&apos;ll get a low stock alert when quantity drops below this
+              </p>
             </div>
+
+            {/* Notes */}
             <div>
-              <label htmlFor="unit" className="brutalism-text-bold mb-1 block text-sm">
-                Unit
-              </label>
-              <input
-                type="text"
-                id="unit"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                placeholder="kg, L, pcs"
-                className="brutalism-input w-full p-2"
-                data-testid="unit-input"
+              <label className="mb-2 block text-sm font-bold">Notes</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Optional notes..."
+                className="brutalism-input w-full px-3 py-2"
+                rows={2}
+                disabled={loading}
+                maxLength={500}
               />
             </div>
           </div>
 
-          {/* Location */}
-          <div className="mb-4">
-            <label htmlFor="location" className="brutalism-text-bold mb-1 block text-sm">
-              Location
-            </label>
-            <select
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value as InventoryLocation)}
-              className="brutalism-input w-full p-2"
-              data-testid="location-select"
+          <DialogFooter className="border-t-4 border-black bg-gray-100 p-4">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="brutalism-button-neutral px-4 py-2"
+              disabled={loading}
             >
-              {locations.map((loc) => (
-                <option key={loc.value} value={loc.value}>
-                  {loc.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Expiration Date */}
-          <div className="mb-4">
-            <label htmlFor="expiration" className="brutalism-text-bold mb-1 block text-sm">
-              Expiration Date
-            </label>
-            <input
-              type="date"
-              id="expiration"
-              value={expirationDate}
-              onChange={(e) => setExpirationDate(e.target.value)}
-              className="brutalism-input w-full p-2"
-              data-testid="expiration-input"
-            />
-          </div>
-
-          {/* Min Quantity */}
-          <div className="mb-4">
-            <label htmlFor="minQuantity" className="brutalism-text-bold mb-1 block text-sm">
-              Minimum Quantity (for low stock alerts)
-            </label>
-            <input
-              type="number"
-              id="minQuantity"
-              value={minQuantity}
-              onChange={(e) => setMinQuantity(e.target.value ? Number(e.target.value) : "")}
-              min="0"
-              step="0.01"
-              placeholder="Optional"
-              className="brutalism-input w-full p-2"
-              data-testid="min-quantity-input"
-            />
-          </div>
-
-          {/* Notes */}
-          <div className="mb-4">
-            <label htmlFor="notes" className="brutalism-text-bold mb-1 block text-sm">
-              Notes
-            </label>
-            <textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Optional notes"
-              rows={2}
-              className="brutalism-input w-full p-2"
-              data-testid="notes-input"
-            />
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="brutalism-button-primary flex w-full items-center justify-center gap-2 px-4 py-2 disabled:opacity-40"
-            data-testid="submit-button"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                Adding...
-              </>
-            ) : (
-              <>
-                <Plus className="size-4" />
-                Add Item
-              </>
-            )}
-          </button>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="brutalism-button-primary flex items-center gap-2 px-4 py-2"
+              disabled={loading || !selectedIngredient}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  <span>Adding...</span>
+                </>
+              ) : (
+                <span>Add to Inventory</span>
+              )}
+            </button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
-
-export default AddInventoryModal;

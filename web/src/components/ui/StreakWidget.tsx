@@ -81,7 +81,9 @@ function isStreakAtRisk(streak: StreakData): boolean {
   // If last activity was yesterday or earlier, streak is at risk
   if (!streak.lastActivity) return false;
 
-  const lastDate = new Date(streak.lastActivity);
+  // Parse date string as local time by appending time component
+  // This avoids timezone issues with YYYY-MM-DD format being parsed as UTC
+  const lastDate = new Date(streak.lastActivity + "T00:00:00");
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   lastDate.setHours(0, 0, 0, 0);

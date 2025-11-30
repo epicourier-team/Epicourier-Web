@@ -1,268 +1,255 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Save, Loader2 } from "lucide-react";
 import {
-  InventoryItemWithDetails,
-  UpdateInventoryItemRequest,
-  InventoryLocation,
-} from "@/types/data";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
+import type { InventoryLocation, InventoryItemWithDetails } from "@/types/data";
 
 interface EditInventoryModalProps {
-  /** The item being edited */
-  item: InventoryItemWithDetails | null;
-  /** Whether the modal is open */
   isOpen: boolean;
-  /** Callback to close the modal */
+  item: InventoryItemWithDetails | null;
   onClose: () => void;
-  /** Callback when item is successfully updated */
-  onSubmit: (id: string, data: UpdateInventoryItemRequest) => Promise<boolean>;
+  onSuccess: () => void;
 }
 
-const locations: { value: InventoryLocation; label: string }[] = [
-  { value: "pantry", label: "Pantry" },
-  { value: "fridge", label: "Fridge" },
-  { value: "freezer", label: "Freezer" },
-  { value: "other", label: "Other" },
+const LOCATIONS: { value: InventoryLocation; label: string; emoji: string }[] = [
+  { value: "pantry", label: "Pantry", emoji: "🥫" },
+  { value: "fridge", label: "Fridge", emoji: "❄️" },
+  { value: "freezer", label: "Freezer", emoji: "🧊" },
+  { value: "other", label: "Other", emoji: "📍" },
 ];
 
 /**
- * Modal component for editing existing inventory items
+ * Modal for editing an existing inventory item
  */
-export function EditInventoryModal({ item, isOpen, onClose, onSubmit }: EditInventoryModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export default function EditInventoryModal({
+  isOpen,
+  item,
+  onClose,
+  onSuccess,
+}: EditInventoryModalProps) {
+  const [quantity, setQuantity] = useState("");
+  const [unit, setUnit] = useState("");
+  const [location, setLocation] = useState<InventoryLocation>("fridge");
+  const [expirationDate, setExpirationDate] = useState("");
+  const [minQuantity, setMinQuantity] = useState("");
+  const [notes, setNotes] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Form state
-  const [quantity, setQuantity] = useState<number>(1);
-  const [unit, setUnit] = useState<string>("");
-  const [location, setLocation] = useState<InventoryLocation>("pantry");
-  const [expirationDate, setExpirationDate] = useState<string>("");
-  const [minQuantity, setMinQuantity] = useState<number | "">("");
-  const [notes, setNotes] = useState<string>("");
+  const { toast } = useToast();
 
   // Populate form when item changes
   useEffect(() => {
     if (item) {
-      setQuantity(item.quantity);
+      setQuantity(String(item.quantity));
       setUnit(item.unit || "");
       setLocation(item.location);
       setExpirationDate(item.expiration_date || "");
-      setMinQuantity(item.min_quantity ?? "");
+      setMinQuantity(item.min_quantity !== null ? String(item.min_quantity) : "");
       setNotes(item.notes || "");
-      setError(null);
     }
   }, [item]);
 
-  const handleClose = () => {
-    setError(null);
-    onClose();
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     if (!item) return;
 
-    if (quantity <= 0) {
-      setError("Quantity must be greater than 0");
+    const qty = parseFloat(quantity);
+    if (isNaN(qty) || qty <= 0) {
+      toast({
+        title: "⚠️ Invalid Quantity",
+        description: "Please enter a valid quantity",
+        variant: "destructive",
+      });
       return;
     }
 
-    setIsSubmitting(true);
+    setLoading(true);
 
     try {
-      const data: UpdateInventoryItemRequest = {
-        quantity,
-        unit: unit || undefined,
-        location,
-        expiration_date: expirationDate || null,
-        min_quantity: minQuantity !== "" ? (minQuantity as number) : null,
-        notes: notes || undefined,
-      };
+      const response = await fetch(`/api/inventory/${item.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quantity: qty,
+          unit: unit.trim() || null,
+          location,
+          expiration_date: expirationDate || null,
+          min_quantity: minQuantity ? parseFloat(minQuantity) : null,
+          notes: notes.trim() || null,
+        }),
+      });
 
-      const success = await onSubmit(item.id, data);
-
-      if (success) {
-        handleClose();
-      } else {
-        setError("Failed to update item. Please try again.");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update item");
       }
-    } catch {
-      setError("An error occurred. Please try again.");
+
+      toast({
+        title: "✅ Updated",
+        description: `${item.ingredient?.name || "Item"} has been updated`,
+      });
+
+      onSuccess();
+    } catch (error) {
+      console.error("Error updating inventory item:", error);
+      toast({
+        title: "❌ Error",
+        description: error instanceof Error ? error.message : "Failed to update item",
+        variant: "destructive",
+      });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  if (!isOpen || !item) {
-    return null;
-  }
+  const handleClose = () => {
+    if (!loading) {
+      onClose();
+    }
+  };
+
+  if (!item) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-      data-testid="edit-inventory-modal"
-    >
-      <div className="brutalism-panel mx-4 w-full max-w-md shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b-2 border-black bg-sky-200 p-4">
-          <h2 className="brutalism-heading">Edit Inventory Item</h2>
-          <button
-            onClick={handleClose}
-            className="brutalism-border bg-white p-1 transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-            data-testid="close-modal-button"
-          >
-            <X className="size-5" />
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-4 border-black bg-amber-50 p-0 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] sm:max-w-lg">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader className="border-b-4 border-black bg-blue-300 p-6">
+            <DialogTitle className="text-xl font-black uppercase">Edit Item</DialogTitle>
+            <DialogDescription className="text-sm font-bold text-gray-800">
+              {item.ingredient?.name || `Ingredient #${item.ingredient_id}`}
+            </DialogDescription>
+          </DialogHeader>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4">
-          {error && (
-            <div
-              className="mb-4 border-2 border-black bg-red-200 p-3 text-sm font-bold text-black"
-              data-testid="form-error"
-            >
-              {error}
+          <div className="space-y-4 p-6">
+            {/* Quantity and Unit */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-2 block text-sm font-bold">
+                  Quantity <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  min="0.01"
+                  step="0.01"
+                  className="brutalism-input w-full px-3 py-2"
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-bold">Unit</label>
+                <input
+                  type="text"
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  placeholder="g, ml, pcs..."
+                  className="brutalism-input w-full px-3 py-2"
+                  disabled={loading}
+                />
+              </div>
             </div>
-          )}
 
-          {/* Ingredient Name (read-only) */}
-          <div className="mb-4">
-            <label className="brutalism-text-bold mb-1 block text-sm">Ingredient</label>
-            <div className="brutalism-border bg-gray-100 p-2 font-medium text-black">
-              {item.ingredient?.name || `Item #${item.ingredient_id}`}
-            </div>
-          </div>
-
-          {/* Quantity and Unit */}
-          <div className="mb-4 grid grid-cols-2 gap-3">
+            {/* Location */}
             <div>
-              <label htmlFor="edit-quantity" className="brutalism-text-bold mb-1 block text-sm">
-                Quantity *
-              </label>
+              <label className="mb-2 block text-sm font-bold">Storage Location</label>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {LOCATIONS.map(({ value, label, emoji }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setLocation(value)}
+                    className={`flex items-center justify-center gap-1 rounded-lg border-2 border-black px-3 py-2 text-sm font-semibold transition-all ${
+                      location === value ? "bg-black text-white" : "bg-white hover:bg-gray-100"
+                    }`}
+                    disabled={loading}
+                  >
+                    <span>{emoji}</span>
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Expiration Date */}
+            <div>
+              <label className="mb-2 block text-sm font-bold">Expiration Date</label>
+              <input
+                type="date"
+                value={expirationDate}
+                onChange={(e) => setExpirationDate(e.target.value)}
+                className="brutalism-input w-full px-3 py-2"
+                disabled={loading}
+              />
+            </div>
+
+            {/* Min Quantity (for low stock alerts) */}
+            <div>
+              <label className="mb-2 block text-sm font-bold">Min Quantity (Low Stock Alert)</label>
               <input
                 type="number"
-                id="edit-quantity"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                min="0.01"
+                value={minQuantity}
+                onChange={(e) => setMinQuantity(e.target.value)}
+                min="0"
                 step="0.01"
-                className="brutalism-input w-full p-2"
-                data-testid="quantity-input"
-                required
+                placeholder="Alert when below this amount"
+                className="brutalism-input w-full px-3 py-2"
+                disabled={loading}
               />
             </div>
+
+            {/* Notes */}
             <div>
-              <label htmlFor="edit-unit" className="brutalism-text-bold mb-1 block text-sm">
-                Unit
-              </label>
-              <input
-                type="text"
-                id="edit-unit"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                placeholder="kg, L, pcs"
-                className="brutalism-input w-full p-2"
-                data-testid="unit-input"
+              <label className="mb-2 block text-sm font-bold">Notes</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Optional notes..."
+                className="brutalism-input w-full px-3 py-2"
+                rows={2}
+                disabled={loading}
+                maxLength={500}
               />
             </div>
           </div>
 
-          {/* Location */}
-          <div className="mb-4">
-            <label htmlFor="edit-location" className="brutalism-text-bold mb-1 block text-sm">
-              Location
-            </label>
-            <select
-              id="edit-location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value as InventoryLocation)}
-              className="brutalism-input w-full p-2"
-              data-testid="location-select"
+          <DialogFooter className="border-t-4 border-black bg-gray-100 p-4">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="brutalism-button-neutral px-4 py-2"
+              disabled={loading}
             >
-              {locations.map((loc) => (
-                <option key={loc.value} value={loc.value}>
-                  {loc.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Expiration Date */}
-          <div className="mb-4">
-            <label htmlFor="edit-expiration" className="brutalism-text-bold mb-1 block text-sm">
-              Expiration Date
-            </label>
-            <input
-              type="date"
-              id="edit-expiration"
-              value={expirationDate}
-              onChange={(e) => setExpirationDate(e.target.value)}
-              className="brutalism-input w-full p-2"
-              data-testid="expiration-input"
-            />
-          </div>
-
-          {/* Min Quantity */}
-          <div className="mb-4">
-            <label htmlFor="edit-minQuantity" className="brutalism-text-bold mb-1 block text-sm">
-              Minimum Quantity (for low stock alerts)
-            </label>
-            <input
-              type="number"
-              id="edit-minQuantity"
-              value={minQuantity}
-              onChange={(e) => setMinQuantity(e.target.value ? Number(e.target.value) : "")}
-              min="0"
-              step="0.01"
-              placeholder="Optional"
-              className="brutalism-input w-full p-2"
-              data-testid="min-quantity-input"
-            />
-          </div>
-
-          {/* Notes */}
-          <div className="mb-4">
-            <label htmlFor="edit-notes" className="brutalism-text-bold mb-1 block text-sm">
-              Notes
-            </label>
-            <textarea
-              id="edit-notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Optional notes"
-              rows={2}
-              className="brutalism-input w-full p-2"
-              data-testid="notes-input"
-            />
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="brutalism-button-secondary flex w-full items-center justify-center gap-2 px-4 py-2 disabled:opacity-40"
-            data-testid="submit-button"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="size-4" />
-                Save Changes
-              </>
-            )}
-          </button>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="brutalism-button-primary flex items-center gap-2 px-4 py-2"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <span>Save Changes</span>
+              )}
+            </button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
-
-export default EditInventoryModal;

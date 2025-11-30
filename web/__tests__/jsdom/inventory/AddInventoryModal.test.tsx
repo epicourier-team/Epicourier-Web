@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { AddInventoryModal } from "@/components/inventory/AddInventoryModal";
+import AddInventoryModal from "@/components/inventory/AddInventoryModal";
 import { Ingredient } from "@/types/data";
 
 const mockIngredients: Ingredient[] = [
