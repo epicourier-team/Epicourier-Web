@@ -80,30 +80,33 @@ export function useInventory(options: UseInventoryOptions = {}): UseInventoryRet
     }
   }, [locationFilter]);
 
-  const addItem = useCallback(async (data: CreateInventoryItemRequest): Promise<boolean> => {
-    setError(null);
+  const addItem = useCallback(
+    async (data: CreateInventoryItemRequest): Promise<boolean> => {
+      setError(null);
 
-    try {
-      const response = await fetch("/api/inventory", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      try {
+        const response = await fetch("/api/inventory", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || "Failed to add item");
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || "Failed to add item");
+        }
+
+        await fetchInventory();
+        return true;
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
+        return false;
       }
-
-      await fetchInventory();
-      return true;
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      }
-      return false;
-    }
-  }, [fetchInventory]);
+    },
+    [fetchInventory]
+  );
 
   const updateItem = useCallback(
     async (id: string, data: UpdateInventoryItemRequest): Promise<boolean> => {
@@ -133,28 +136,31 @@ export function useInventory(options: UseInventoryOptions = {}): UseInventoryRet
     [fetchInventory]
   );
 
-  const deleteItem = useCallback(async (id: string): Promise<boolean> => {
-    setError(null);
+  const deleteItem = useCallback(
+    async (id: string): Promise<boolean> => {
+      setError(null);
 
-    try {
-      const response = await fetch(`/api/inventory/${id}`, {
-        method: "DELETE",
-      });
+      try {
+        const response = await fetch(`/api/inventory/${id}`, {
+          method: "DELETE",
+        });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || "Failed to delete item");
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || "Failed to delete item");
+        }
+
+        await fetchInventory();
+        return true;
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
+        return false;
       }
-
-      await fetchInventory();
-      return true;
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      }
-      return false;
-    }
-  }, [fetchInventory]);
+    },
+    [fetchInventory]
+  );
 
   useEffect(() => {
     if (autoFetch) {

@@ -153,9 +153,7 @@ describe("calculateRecipeMatch", () => {
   });
 
   it("handles empty inventory", () => {
-    const recipeIngredients = [
-      { ingredient_id: 1, ingredient: createMockIngredient(1, "Salt") },
-    ];
+    const recipeIngredients = [{ ingredient_id: 1, ingredient: createMockIngredient(1, "Salt") }];
 
     const result = calculateRecipeMatch(recipeIngredients, []);
 

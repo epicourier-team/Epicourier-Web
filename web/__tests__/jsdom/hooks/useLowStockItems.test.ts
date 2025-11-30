@@ -33,10 +33,7 @@ describe("useLowStockItems", () => {
   });
 
   it("fetches inventory on mount when autoFetch is true", async () => {
-    const mockItems = [
-      createMockItem("1", "Rice", 10, 5),
-      createMockItem("2", "Milk", 1, 5),
-    ];
+    const mockItems = [createMockItem("1", "Rice", 10, 5), createMockItem("2", "Milk", 1, 5)];
 
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
@@ -193,10 +190,7 @@ describe("useLowStockItems", () => {
   });
 
   it("handles items without min_quantity threshold", async () => {
-    const mockItems = [
-      createMockItem("1", "Rice", 5, null),
-      createMockItem("2", "Milk", 10, null),
-    ];
+    const mockItems = [createMockItem("1", "Rice", 5, null), createMockItem("2", "Milk", 10, null)];
 
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
@@ -214,10 +208,7 @@ describe("useLowStockItems", () => {
   });
 
   it("correctly identifies out of stock (quantity 0) items", async () => {
-    const mockItems = [
-      createMockItem("1", "Rice", 0, 5),
-      createMockItem("2", "Milk", 0, 10),
-    ];
+    const mockItems = [createMockItem("1", "Rice", 0, 5), createMockItem("2", "Milk", 0, 10)];
 
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,

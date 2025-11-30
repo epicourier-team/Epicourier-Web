@@ -1,33 +1,212 @@
 "use client";
 
-import { useState } from "react";
-import { Package, Lightbulb, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Package, Lightbulb, Loader2, Plus, Filter, Search, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  InventoryCard,
+  AddInventoryModal,
+  EditInventoryModal,
+  LowStockBanner,
+} from "@/components/inventory";
+import type {
+  InventoryItemWithDetails,
+  InventorySummary,
+  InventoryLocation,
+  Ingredient,
+  CreateInventoryItemRequest,
+  UpdateInventoryItemRequest,
+} from "@/types/data";
+import { getLowStockSummary } from "@/utils/inventory/lowStock";
+
+type LocationFilter = InventoryLocation | "all";
+type SortOption = "updated" | "expiration" | "name" | "quantity";
 
 /**
  * Inventory page - manage user's ingredient inventory
  *
  * Features:
- * - "Suggest Recipes" button (Issue #96)
- * - Inventory list view (coming in Issue #88)
- * - Expiration tracking (coming in Issue #89)
- * - Low stock alerts (coming in Issue #90)
+ * - View inventory items with filtering and sorting
+ * - Add new inventory items
+ * - Edit and delete existing items
+ * - Low stock alerts banner
+ * - Expiration tracking
+ * - "Suggest Recipes" button for AI recommendations
  */
-interface InventoryItem {
-  id: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  expiry_date?: string;
-}
-
 export default function InventoryPage() {
+  // Data state
+  const [items, setItems] = useState<InventoryItemWithDetails[]>([]);
+  const [summary, setSummary] = useState<InventorySummary | null>(null);
+  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // UI state
   const [suggesting, setSuggesting] = useState(false);
-  const [inventoryItems] = useState<InventoryItem[]>([]);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItemWithDetails | null>(null);
+  const [showLowStockOnly, setShowLowStockOnly] = useState(false);
+
+  // Filter and sort state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [locationFilter, setLocationFilter] = useState<LocationFilter>("all");
+  const [sortBy, setSortBy] = useState<SortOption>("updated");
+
   const { toast } = useToast();
 
+  // Fetch inventory data
+  const fetchInventory = useCallback(async () => {
+    try {
+      const response = await fetch("/api/inventory");
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast({
+            title: "⚠️ Authentication Required",
+            description: "Please sign in to view your inventory",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw new Error("Failed to fetch inventory");
+      }
+
+      const data = await response.json();
+      setItems(data.items || []);
+      setSummary(data.summary || null);
+    } catch (error) {
+      console.error("Error fetching inventory:", error);
+      toast({
+        title: "❌ Error",
+        description: "Failed to load inventory",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  // Fetch ingredients for the add modal
+  const fetchIngredients = useCallback(async () => {
+    try {
+      const response = await fetch("/api/ingredients?limit=500");
+      if (response.ok) {
+        const data = await response.json();
+        setIngredients(data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching ingredients:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchInventory();
+    fetchIngredients();
+  }, [fetchInventory, fetchIngredients]);
+
+  // Handle adding new item
+  const handleAddItem = async (data: CreateInventoryItemRequest): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/inventory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        toast({
+          title: "❌ Error",
+          description: error.error || "Failed to add item",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      toast({
+        title: "✅ Item Added",
+        description: "Inventory item added successfully",
+      });
+      fetchInventory();
+      return true;
+    } catch (error) {
+      console.error("Error adding item:", error);
+      return false;
+    }
+  };
+
+  // Handle updating item
+  const handleUpdateItem = async (
+    id: string,
+    data: UpdateInventoryItemRequest
+  ): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/inventory/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        toast({
+          title: "❌ Error",
+          description: error.error || "Failed to update item",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      toast({
+        title: "✅ Item Updated",
+        description: "Inventory item updated successfully",
+      });
+      fetchInventory();
+      return true;
+    } catch (error) {
+      console.error("Error updating item:", error);
+      return false;
+    }
+  };
+
+  // Handle deleting item
+  const handleDeleteItem = async (item: InventoryItemWithDetails) => {
+    if (!confirm(`Are you sure you want to delete ${item.ingredient?.name || "this item"}?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/inventory/${item.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        toast({
+          title: "❌ Error",
+          description: error.error || "Failed to delete item",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "🗑️ Item Deleted",
+        description: `${item.ingredient?.name || "Item"} removed from inventory`,
+      });
+      fetchInventory();
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      toast({
+        title: "❌ Error",
+        description: "Failed to delete item",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle AI recipe suggestions
   const handleSuggestRecipes = async () => {
-    if (inventoryItems.length === 0) {
+    if (items.length === 0) {
       toast({
         title: "⚠️ Empty Inventory",
         description: "Add some ingredients to your inventory first",
@@ -58,52 +237,254 @@ export default function InventoryPage() {
     }
   };
 
+  // Filter and sort items
+  const filteredItems = items
+    .filter((item) => {
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const name = item.ingredient?.name?.toLowerCase() || "";
+        if (!name.includes(query)) return false;
+      }
+
+      // Location filter
+      if (locationFilter !== "all" && item.location !== locationFilter) {
+        return false;
+      }
+
+      // Low stock filter
+      if (showLowStockOnly && !item.is_low_stock) {
+        return false;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "expiration":
+          // Use sortByExpiration logic inline
+          const daysA = a.days_until_expiration;
+          const daysB = b.days_until_expiration;
+          if (daysA === null && daysB === null) return 0;
+          if (daysA === null) return 1;
+          if (daysB === null) return -1;
+          return daysA - daysB;
+        case "name":
+          const nameA = a.ingredient?.name || "";
+          const nameB = b.ingredient?.name || "";
+          return nameA.localeCompare(nameB);
+        case "quantity":
+          return a.quantity - b.quantity;
+        case "updated":
+        default:
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      }
+    });
+
+  // Calculate low stock summary
+  const lowStockSummary = getLowStockSummary(items);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex items-center gap-2 text-gray-600">
+          <Loader2 className="size-5 animate-spin" />
+          <span className="font-semibold">Loading inventory...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       {/* Header */}
       <div className="brutalism-banner mb-6 p-5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <Package className="size-8" />
             <div>
               <h1 className="brutalism-title text-2xl">Inventory</h1>
               <p className="text-sm font-semibold text-gray-700">
-                {inventoryItems.length} {inventoryItems.length === 1 ? "item" : "items"}
+                {items.length} {items.length === 1 ? "item" : "items"}
+                {summary && summary.expiring_soon > 0 && (
+                  <span className="ml-2 text-orange-600">
+                    • {summary.expiring_soon} expiring soon
+                  </span>
+                )}
               </p>
             </div>
           </div>
-          <button
-            onClick={handleSuggestRecipes}
-            disabled={suggesting || inventoryItems.length === 0}
-            className="brutalism-button-primary flex items-center gap-2 px-4 py-2 disabled:opacity-50"
-            title="Suggest recipes based on inventory (Cmd/Ctrl + R)"
-          >
-            {suggesting ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                <span>Suggesting...</span>
-              </>
-            ) : (
-              <>
-                <Lightbulb className="size-4" />
-                <span>Suggest Recipes</span>
-              </>
-            )}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="brutalism-button-secondary flex items-center gap-2 px-4 py-2"
+            >
+              <Plus className="size-4" />
+              <span>Add Item</span>
+            </button>
+            <button
+              onClick={handleSuggestRecipes}
+              disabled={suggesting || items.length === 0}
+              className="brutalism-button-primary flex items-center gap-2 px-4 py-2 disabled:opacity-50"
+              title="Suggest recipes based on inventory"
+            >
+              {suggesting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  <span>Suggesting...</span>
+                </>
+              ) : (
+                <>
+                  <Lightbulb className="size-4" />
+                  <span>Suggest Recipes</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Empty State */}
-      <div className="brutalism-panel flex flex-col items-center justify-center p-12 text-center">
-        <Package className="mb-4 size-16 text-gray-400" />
-        <h2 className="brutalism-heading mb-2 text-xl">No Inventory Items Yet</h2>
-        <p className="mb-6 text-gray-600">
-          Add ingredients to your inventory to track what you have at home
-        </p>
-        <p className="text-sm font-semibold text-gray-500">
-          Inventory management coming in Issue #88
-        </p>
+      {/* Low Stock Banner */}
+      {lowStockSummary.totalLow > 0 && (
+        <LowStockBanner
+          lowStockCount={lowStockSummary.lowCount}
+          criticalCount={lowStockSummary.criticalCount}
+          onViewItems={() => setShowLowStockOnly(!showLowStockOnly)}
+          className="mb-6"
+        />
+      )}
+
+      {/* Filters and Search */}
+      <div className="brutalism-panel mb-6 p-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          {/* Search */}
+          <div className="relative flex-1 md:max-w-xs">
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search ingredients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-md border border-gray-300 py-2 pr-4 pl-10 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+
+          {/* Filter Controls */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Location Filter */}
+            <div className="flex items-center gap-2">
+              <Filter className="size-4 text-gray-500" />
+              <select
+                value={locationFilter}
+                onChange={(e) => setLocationFilter(e.target.value as LocationFilter)}
+                className="rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              >
+                <option value="all">All Locations</option>
+                <option value="pantry">Pantry</option>
+                <option value="fridge">Fridge</option>
+                <option value="freezer">Freezer</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            {/* Sort By */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="updated">Recently Updated</option>
+              <option value="expiration">Expiring Soon</option>
+              <option value="name">Name (A-Z)</option>
+              <option value="quantity">Quantity (Low First)</option>
+            </select>
+
+            {/* Low Stock Toggle */}
+            <button
+              onClick={() => setShowLowStockOnly(!showLowStockOnly)}
+              className={`flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                showLowStockOnly
+                  ? "bg-orange-100 text-orange-700"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              <AlertTriangle className="size-4" />
+              Low Stock
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Location Summary (optional) */}
+      {summary && items.length > 0 && (
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {(["pantry", "fridge", "freezer", "other"] as const).map((loc) => (
+            <button
+              key={loc}
+              onClick={() => setLocationFilter(locationFilter === loc ? "all" : loc)}
+              className={`rounded-lg border-2 p-3 text-center transition-colors ${
+                locationFilter === loc
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200 bg-white hover:border-gray-300"
+              }`}
+            >
+              <div className="text-2xl font-bold text-gray-800">{summary.by_location[loc]}</div>
+              <div className="text-sm text-gray-600 capitalize">{loc}</div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Inventory Grid or Empty State */}
+      {items.length === 0 ? (
+        <div className="brutalism-panel flex flex-col items-center justify-center p-12 text-center">
+          <Package className="mb-4 size-16 text-gray-400" />
+          <h2 className="brutalism-heading mb-2 text-xl">No Inventory Items Yet</h2>
+          <p className="mb-6 text-gray-600">
+            Add ingredients to your inventory to track what you have at home
+          </p>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="brutalism-button-primary flex items-center gap-2 px-6 py-3"
+          >
+            <Plus className="size-5" />
+            <span>Add First Item</span>
+          </button>
+        </div>
+      ) : filteredItems.length === 0 ? (
+        <div className="brutalism-panel flex flex-col items-center justify-center p-12 text-center">
+          <Search className="mb-4 size-12 text-gray-400" />
+          <h2 className="brutalism-heading mb-2 text-lg">No Items Found</h2>
+          <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredItems.map((item) => (
+            <InventoryCard
+              key={item.id}
+              item={item}
+              onEdit={(item) => setEditingItem(item)}
+              onDelete={handleDeleteItem}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Add Inventory Modal */}
+      <AddInventoryModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSubmit={handleAddItem}
+        ingredients={ingredients}
+      />
+
+      {/* Edit Inventory Modal */}
+      <EditInventoryModal
+        item={editingItem}
+        isOpen={editingItem !== null}
+        onClose={() => setEditingItem(null)}
+        onSubmit={handleUpdateItem}
+      />
     </div>
   );
 }

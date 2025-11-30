@@ -55,7 +55,7 @@ describe("LowStockBanner", () => {
   it("calls onViewItems when button is clicked", () => {
     const mockOnViewItems = jest.fn();
     render(<LowStockBanner lowStockCount={3} onViewItems={mockOnViewItems} />);
-    
+
     fireEvent.click(screen.getByTestId("view-low-stock-button"));
     expect(mockOnViewItems).toHaveBeenCalledTimes(1);
   });

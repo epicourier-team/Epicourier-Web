@@ -1,18 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { X, Plus, Loader2 } from "lucide-react";
-import { CreateInventoryItemRequest, InventoryLocation, Ingredient } from "@/types/data";
+import { useState, useEffect } from "react";
+import { X, Save, Loader2 } from "lucide-react";
+import {
+  InventoryItemWithDetails,
+  UpdateInventoryItemRequest,
+  InventoryLocation,
+} from "@/types/data";
 
-interface AddInventoryModalProps {
+interface EditInventoryModalProps {
+  /** The item being edited */
+  item: InventoryItemWithDetails | null;
   /** Whether the modal is open */
   isOpen: boolean;
   /** Callback to close the modal */
   onClose: () => void;
-  /** Callback when item is submitted */
-  onSubmit: (data: CreateInventoryItemRequest) => Promise<boolean>;
-  /** Available ingredients to select from */
-  ingredients?: Ingredient[];
+  /** Callback when item is successfully updated */
+  onSubmit: (id: string, data: UpdateInventoryItemRequest) => Promise<boolean>;
 }
 
 const locations: { value: InventoryLocation; label: string }[] = [
@@ -23,19 +27,13 @@ const locations: { value: InventoryLocation; label: string }[] = [
 ];
 
 /**
- * Modal component for adding new inventory items
+ * Modal component for editing existing inventory items
  */
-export function AddInventoryModal({
-  isOpen,
-  onClose,
-  onSubmit,
-  ingredients = [],
-}: AddInventoryModalProps) {
+export function EditInventoryModal({ item, isOpen, onClose, onSubmit }: EditInventoryModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Form state
-  const [ingredientId, setIngredientId] = useState<number | "">("");
   const [quantity, setQuantity] = useState<number>(1);
   const [unit, setUnit] = useState<string>("");
   const [location, setLocation] = useState<InventoryLocation>("pantry");
@@ -43,19 +41,21 @@ export function AddInventoryModal({
   const [minQuantity, setMinQuantity] = useState<number | "">("");
   const [notes, setNotes] = useState<string>("");
 
-  const resetForm = () => {
-    setIngredientId("");
-    setQuantity(1);
-    setUnit("");
-    setLocation("pantry");
-    setExpirationDate("");
-    setMinQuantity("");
-    setNotes("");
-    setError(null);
-  };
+  // Populate form when item changes
+  useEffect(() => {
+    if (item) {
+      setQuantity(item.quantity);
+      setUnit(item.unit || "");
+      setLocation(item.location);
+      setExpirationDate(item.expiration_date || "");
+      setMinQuantity(item.min_quantity ?? "");
+      setNotes(item.notes || "");
+      setError(null);
+    }
+  }, [item]);
 
   const handleClose = () => {
-    resetForm();
+    setError(null);
     onClose();
   };
 
@@ -63,10 +63,7 @@ export function AddInventoryModal({
     e.preventDefault();
     setError(null);
 
-    if (ingredientId === "") {
-      setError("Please select an ingredient");
-      return;
-    }
+    if (!item) return;
 
     if (quantity <= 0) {
       setError("Quantity must be greater than 0");
@@ -76,22 +73,21 @@ export function AddInventoryModal({
     setIsSubmitting(true);
 
     try {
-      const data: CreateInventoryItemRequest = {
-        ingredient_id: ingredientId as number,
+      const data: UpdateInventoryItemRequest = {
         quantity,
         unit: unit || undefined,
         location,
-        expiration_date: expirationDate || undefined,
-        min_quantity: minQuantity !== "" ? (minQuantity as number) : undefined,
+        expiration_date: expirationDate || null,
+        min_quantity: minQuantity !== "" ? (minQuantity as number) : null,
         notes: notes || undefined,
       };
 
-      const success = await onSubmit(data);
+      const success = await onSubmit(item.id, data);
 
       if (success) {
         handleClose();
       } else {
-        setError("Failed to add item. Please try again.");
+        setError("Failed to update item. Please try again.");
       }
     } catch {
       setError("An error occurred. Please try again.");
@@ -100,19 +96,19 @@ export function AddInventoryModal({
     }
   };
 
-  if (!isOpen) {
+  if (!isOpen || !item) {
     return null;
   }
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      data-testid="add-inventory-modal"
+      data-testid="edit-inventory-modal"
     >
       <div className="mx-4 w-full max-w-md rounded-lg bg-white shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b p-4">
-          <h2 className="text-lg font-semibold">Add Inventory Item</h2>
+          <h2 className="text-lg font-semibold">Edit Inventory Item</h2>
           <button
             onClick={handleClose}
             className="rounded p-1 hover:bg-gray-100"
@@ -133,37 +129,26 @@ export function AddInventoryModal({
             </div>
           )}
 
-          {/* Ingredient Select */}
+          {/* Ingredient Name (read-only) */}
           <div className="mb-4">
-            <label htmlFor="ingredient" className="mb-1 block text-sm font-medium text-gray-700">
-              Ingredient *
-            </label>
-            <select
-              id="ingredient"
-              value={ingredientId}
-              onChange={(e) => setIngredientId(e.target.value ? Number(e.target.value) : "")}
-              className="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-              data-testid="ingredient-select"
-              required
-            >
-              <option value="">Select an ingredient</option>
-              {ingredients.map((ing) => (
-                <option key={ing.id} value={ing.id}>
-                  {ing.name}
-                </option>
-              ))}
-            </select>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Ingredient</label>
+            <div className="rounded-md border border-gray-200 bg-gray-50 p-2 text-gray-700">
+              {item.ingredient?.name || `Item #${item.ingredient_id}`}
+            </div>
           </div>
 
           {/* Quantity and Unit */}
           <div className="mb-4 grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="quantity" className="mb-1 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="edit-quantity"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
                 Quantity *
               </label>
               <input
                 type="number"
-                id="quantity"
+                id="edit-quantity"
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
                 min="0.01"
@@ -174,12 +159,12 @@ export function AddInventoryModal({
               />
             </div>
             <div>
-              <label htmlFor="unit" className="mb-1 block text-sm font-medium text-gray-700">
+              <label htmlFor="edit-unit" className="mb-1 block text-sm font-medium text-gray-700">
                 Unit
               </label>
               <input
                 type="text"
-                id="unit"
+                id="edit-unit"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 placeholder="kg, L, pcs"
@@ -191,11 +176,11 @@ export function AddInventoryModal({
 
           {/* Location */}
           <div className="mb-4">
-            <label htmlFor="location" className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="edit-location" className="mb-1 block text-sm font-medium text-gray-700">
               Location
             </label>
             <select
-              id="location"
+              id="edit-location"
               value={location}
               onChange={(e) => setLocation(e.target.value as InventoryLocation)}
               className="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
@@ -211,12 +196,15 @@ export function AddInventoryModal({
 
           {/* Expiration Date */}
           <div className="mb-4">
-            <label htmlFor="expiration" className="mb-1 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="edit-expiration"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
               Expiration Date
             </label>
             <input
               type="date"
-              id="expiration"
+              id="edit-expiration"
               value={expirationDate}
               onChange={(e) => setExpirationDate(e.target.value)}
               className="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
@@ -226,12 +214,15 @@ export function AddInventoryModal({
 
           {/* Min Quantity */}
           <div className="mb-4">
-            <label htmlFor="minQuantity" className="mb-1 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="edit-minQuantity"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
               Minimum Quantity (for low stock alerts)
             </label>
             <input
               type="number"
-              id="minQuantity"
+              id="edit-minQuantity"
               value={minQuantity}
               onChange={(e) => setMinQuantity(e.target.value ? Number(e.target.value) : "")}
               min="0"
@@ -244,11 +235,11 @@ export function AddInventoryModal({
 
           {/* Notes */}
           <div className="mb-4">
-            <label htmlFor="notes" className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="edit-notes" className="mb-1 block text-sm font-medium text-gray-700">
               Notes
             </label>
             <textarea
-              id="notes"
+              id="edit-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Optional notes"
@@ -268,12 +259,12 @@ export function AddInventoryModal({
             {isSubmitting ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
-                Adding...
+                Saving...
               </>
             ) : (
               <>
-                <Plus className="size-4" />
-                Add Item
+                <Save className="size-4" />
+                Save Changes
               </>
             )}
           </button>
@@ -283,4 +274,4 @@ export function AddInventoryModal({
   );
 }
 
-export default AddInventoryModal;
+export default EditInventoryModal;

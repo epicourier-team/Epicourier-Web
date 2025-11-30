@@ -9,7 +9,9 @@ const addDays = (days: number): string => {
   return date.toISOString().split("T")[0];
 };
 
-const createMockItem = (overrides: Partial<InventoryItemWithDetails> = {}): InventoryItemWithDetails => ({
+const createMockItem = (
+  overrides: Partial<InventoryItemWithDetails> = {}
+): InventoryItemWithDetails => ({
   id: "1",
   user_id: "user-1",
   ingredient_id: 1,
@@ -151,7 +153,7 @@ describe("InventoryCard", () => {
     const mockOnEdit = jest.fn();
     const item = createMockItem();
     render(<InventoryCard item={item} onEdit={mockOnEdit} />);
-    
+
     fireEvent.click(screen.getByTestId("edit-button"));
     expect(mockOnEdit).toHaveBeenCalledWith(item);
   });
@@ -170,7 +172,7 @@ describe("InventoryCard", () => {
     const mockOnDelete = jest.fn();
     const item = createMockItem();
     render(<InventoryCard item={item} onDelete={mockOnDelete} />);
-    
+
     fireEvent.click(screen.getByTestId("delete-button"));
     expect(mockOnDelete).toHaveBeenCalledWith(item);
   });

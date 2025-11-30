@@ -35,9 +35,7 @@ interface UseLowStockItemsOptions {
 /**
  * Hook for fetching and managing low stock inventory items
  */
-export function useLowStockItems(
-  options: UseLowStockItemsOptions = {}
-): UseLowStockItemsReturn {
+export function useLowStockItems(options: UseLowStockItemsOptions = {}): UseLowStockItemsReturn {
   const { autoFetch = true } = options;
 
   const [allItems, setAllItems] = useState<InventoryItemWithDetails[]>([]);

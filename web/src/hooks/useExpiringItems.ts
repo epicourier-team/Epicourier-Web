@@ -2,11 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { InventoryItemWithDetails } from "@/types/data";
-import {
-  getExpiringItems,
-  getExpiredItems,
-  sortByExpiration,
-} from "@/utils/inventory/expiration";
+import { getExpiringItems, getExpiredItems, sortByExpiration } from "@/utils/inventory/expiration";
 
 interface UseExpiringItemsOptions {
   /** Number of days to look ahead for expiring items (default: 7) */
@@ -35,9 +31,7 @@ interface UseExpiringItemsReturn {
 /**
  * Hook for fetching and managing expiring inventory items
  */
-export function useExpiringItems(
-  options: UseExpiringItemsOptions = {}
-): UseExpiringItemsReturn {
+export function useExpiringItems(options: UseExpiringItemsOptions = {}): UseExpiringItemsReturn {
   const { days = 7, includeExpired = true, autoFetch = true } = options;
 
   const [allItems, setAllItems] = useState<InventoryItemWithDetails[]>([]);

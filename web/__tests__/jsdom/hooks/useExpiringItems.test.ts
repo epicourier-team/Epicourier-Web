@@ -13,11 +13,7 @@ const addDays = (days: number): string => {
 
 const subDays = (days: number): string => addDays(-days);
 
-const createMockItem = (
-  id: string,
-  name: string,
-  expirationDate: string | null
-) => ({
+const createMockItem = (id: string, name: string, expirationDate: string | null) => ({
   id,
   user_id: "user-1",
   ingredient_id: parseInt(id),

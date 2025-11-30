@@ -16,9 +16,9 @@ export function isLowStock(quantity: number, minQuantity: number | null): boolea
  * @param items - Array of inventory items
  * @returns Filtered array of low stock items
  */
-export function getLowStockItems<
-  T extends { quantity: number; min_quantity: number | null },
->(items: T[]): T[] {
+export function getLowStockItems<T extends { quantity: number; min_quantity: number | null }>(
+  items: T[]
+): T[] {
   return items.filter((item) => isLowStock(item.quantity, item.min_quantity));
 }
 
@@ -113,9 +113,9 @@ export function getStockStatusColor(
  * @param items - Array of items with quantity and min_quantity
  * @returns New sorted array
  */
-export function sortByStockStatus<
-  T extends { quantity: number; min_quantity: number | null },
->(items: T[]): T[] {
+export function sortByStockStatus<T extends { quantity: number; min_quantity: number | null }>(
+  items: T[]
+): T[] {
   const statusOrder = { critical: 0, low: 1, adequate: 2, unknown: 3 };
 
   return [...items].sort((a, b) => {
@@ -130,9 +130,7 @@ export function sortByStockStatus<
  * @param items - Array of inventory items
  * @returns Summary object with counts
  */
-export function getLowStockSummary<
-  T extends { quantity: number; min_quantity: number | null },
->(
+export function getLowStockSummary<T extends { quantity: number; min_quantity: number | null }>(
   items: T[]
 ): {
   criticalCount: number;

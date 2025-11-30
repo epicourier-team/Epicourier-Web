@@ -60,9 +60,7 @@ export function LowStockBanner({
         <button
           onClick={onViewItems}
           className={`flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-            hasCritical
-              ? "bg-red-100 hover:bg-red-200"
-              : "bg-yellow-100 hover:bg-yellow-200"
+            hasCritical ? "bg-red-100 hover:bg-red-200" : "bg-yellow-100 hover:bg-yellow-200"
           }`}
           data-testid="view-low-stock-button"
         >

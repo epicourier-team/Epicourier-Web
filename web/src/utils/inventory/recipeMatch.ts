@@ -48,7 +48,8 @@ export function calculateRecipeMatch(
   const missingIngredients: string[] = [];
 
   for (const recipeIngredient of recipeIngredients) {
-    const ingredientName = recipeIngredient.ingredient?.name || `Ingredient #${recipeIngredient.ingredient_id}`;
+    const ingredientName =
+      recipeIngredient.ingredient?.name || `Ingredient #${recipeIngredient.ingredient_id}`;
 
     if (inventoryIngredientIds.has(recipeIngredient.ingredient_id)) {
       availableIngredients.push(ingredientName);

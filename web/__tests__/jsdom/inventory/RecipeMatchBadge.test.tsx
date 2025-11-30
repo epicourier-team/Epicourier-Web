@@ -56,12 +56,7 @@ describe("RecipeMatchBadge", () => {
 
   it("shows fraction when showFraction is true and counts are provided", () => {
     render(
-      <RecipeMatchBadge
-        matchPercentage={60}
-        availableCount={3}
-        totalCount={5}
-        showFraction
-      />
+      <RecipeMatchBadge matchPercentage={60} availableCount={3} totalCount={5} showFraction />
     );
     expect(screen.getByText("(3/5)")).toBeInTheDocument();
   });

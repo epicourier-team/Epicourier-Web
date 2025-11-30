@@ -46,13 +46,7 @@ const mockIngredients: Ingredient[] = [
 
 describe("AddInventoryModal", () => {
   it("renders nothing when isOpen is false", () => {
-    render(
-      <AddInventoryModal
-        isOpen={false}
-        onClose={() => {}}
-        onSubmit={async () => true}
-      />
-    );
+    render(<AddInventoryModal isOpen={false} onClose={() => {}} onSubmit={async () => true} />);
     expect(screen.queryByTestId("add-inventory-modal")).not.toBeInTheDocument();
   });
 
@@ -69,13 +63,7 @@ describe("AddInventoryModal", () => {
   });
 
   it("displays Add Inventory Item title", () => {
-    render(
-      <AddInventoryModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => true}
-      />
-    );
+    render(<AddInventoryModal isOpen={true} onClose={() => {}} onSubmit={async () => true} />);
     expect(screen.getByText("Add Inventory Item")).toBeInTheDocument();
   });
 
@@ -94,35 +82,17 @@ describe("AddInventoryModal", () => {
   });
 
   it("displays quantity input", () => {
-    render(
-      <AddInventoryModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => true}
-      />
-    );
+    render(<AddInventoryModal isOpen={true} onClose={() => {}} onSubmit={async () => true} />);
     expect(screen.getByTestId("quantity-input")).toBeInTheDocument();
   });
 
   it("displays unit input", () => {
-    render(
-      <AddInventoryModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => true}
-      />
-    );
+    render(<AddInventoryModal isOpen={true} onClose={() => {}} onSubmit={async () => true} />);
     expect(screen.getByTestId("unit-input")).toBeInTheDocument();
   });
 
   it("displays location select with options", () => {
-    render(
-      <AddInventoryModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => true}
-      />
-    );
+    render(<AddInventoryModal isOpen={true} onClose={() => {}} onSubmit={async () => true} />);
     const locationSelect = screen.getByTestId("location-select");
     expect(locationSelect).toBeInTheDocument();
     expect(screen.getByText("Pantry")).toBeInTheDocument();
@@ -131,60 +101,30 @@ describe("AddInventoryModal", () => {
   });
 
   it("displays expiration date input", () => {
-    render(
-      <AddInventoryModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => true}
-      />
-    );
+    render(<AddInventoryModal isOpen={true} onClose={() => {}} onSubmit={async () => true} />);
     expect(screen.getByTestId("expiration-input")).toBeInTheDocument();
   });
 
   it("displays min quantity input", () => {
-    render(
-      <AddInventoryModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => true}
-      />
-    );
+    render(<AddInventoryModal isOpen={true} onClose={() => {}} onSubmit={async () => true} />);
     expect(screen.getByTestId("min-quantity-input")).toBeInTheDocument();
   });
 
   it("displays notes textarea", () => {
-    render(
-      <AddInventoryModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => true}
-      />
-    );
+    render(<AddInventoryModal isOpen={true} onClose={() => {}} onSubmit={async () => true} />);
     expect(screen.getByTestId("notes-input")).toBeInTheDocument();
   });
 
   it("displays submit button", () => {
-    render(
-      <AddInventoryModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => true}
-      />
-    );
+    render(<AddInventoryModal isOpen={true} onClose={() => {}} onSubmit={async () => true} />);
     expect(screen.getByTestId("submit-button")).toBeInTheDocument();
     expect(screen.getByText("Add Item")).toBeInTheDocument();
   });
 
   it("calls onClose when close button is clicked", () => {
     const mockOnClose = jest.fn();
-    render(
-      <AddInventoryModal
-        isOpen={true}
-        onClose={mockOnClose}
-        onSubmit={async () => true}
-      />
-    );
-    
+    render(<AddInventoryModal isOpen={true} onClose={mockOnClose} onSubmit={async () => true} />);
+
     fireEvent.click(screen.getByTestId("close-modal-button"));
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
@@ -204,7 +144,7 @@ describe("AddInventoryModal", () => {
     // We verify the select is required
     const select = screen.getByTestId("ingredient-select");
     expect(select).toHaveAttribute("required");
-    
+
     // Submit should not have been called because of HTML5 validation
     fireEvent.click(screen.getByTestId("submit-button"));
     expect(mockOnSubmit).not.toHaveBeenCalled();
@@ -242,11 +182,11 @@ describe("AddInventoryModal", () => {
 
     // Fill form
     await user.selectOptions(screen.getByTestId("ingredient-select"), "1");
-    
+
     const quantityInput = screen.getByTestId("quantity-input");
     await user.clear(quantityInput);
     await user.type(quantityInput, "5");
-    
+
     await user.type(screen.getByTestId("unit-input"), "kg");
     await user.selectOptions(screen.getByTestId("location-select"), "fridge");
 
@@ -317,7 +257,10 @@ describe("AddInventoryModal", () => {
     // Create a promise that we control
     let resolveSubmit: (value: boolean) => void;
     const mockOnSubmit = jest.fn().mockImplementation(
-      () => new Promise<boolean>((resolve) => { resolveSubmit = resolve; })
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveSubmit = resolve;
+        })
     );
 
     render(
@@ -376,20 +319,20 @@ describe("AddInventoryModal", () => {
 
     // Fill all fields
     await user.selectOptions(screen.getByTestId("ingredient-select"), "1");
-    
+
     const quantityInput = screen.getByTestId("quantity-input");
     await user.clear(quantityInput);
     await user.type(quantityInput, "10");
-    
+
     await user.type(screen.getByTestId("unit-input"), "kg");
     await user.selectOptions(screen.getByTestId("location-select"), "pantry");
-    
+
     const expirationInput = screen.getByTestId("expiration-input");
     await user.type(expirationInput, "2024-12-31");
-    
+
     const minQuantityInput = screen.getByTestId("min-quantity-input");
     await user.type(minQuantityInput, "3");
-    
+
     await user.type(screen.getByTestId("notes-input"), "Test notes");
 
     fireEvent.click(screen.getByTestId("submit-button"));

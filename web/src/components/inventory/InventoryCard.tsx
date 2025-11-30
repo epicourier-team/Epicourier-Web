@@ -35,12 +35,7 @@ const locationColors: Record<InventoryLocation, string> = {
 /**
  * Card component for displaying an inventory item
  */
-export function InventoryCard({
-  item,
-  onEdit,
-  onDelete,
-  className = "",
-}: InventoryCardProps) {
+export function InventoryCard({ item, onEdit, onDelete, className = "" }: InventoryCardProps) {
   const stockStatus = getStockStatus(item.quantity, item.min_quantity);
   const stockLabel = getStockStatusLabel(stockStatus);
   const stockColor = getStockStatusColor(stockStatus);
