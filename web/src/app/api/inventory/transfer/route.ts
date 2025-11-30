@@ -101,8 +101,9 @@ export async function POST(request: NextRequest) {
         }
 
         transferredItems.push(item);
-      } catch {
-        errors.push(`Error processing item ${item.shopping_item_id}`);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        errors.push(`Error processing item ${item.shopping_item_id}: ${errorMessage}`);
       }
     }
 
@@ -112,8 +113,12 @@ export async function POST(request: NextRequest) {
       transferred_items: transferredItems,
       errors: errors.length > 0 ? errors : undefined,
     });
-  } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  } catch (err) {
+    const isJsonError = err instanceof SyntaxError;
+    return NextResponse.json(
+      { error: isJsonError ? "Invalid JSON in request body" : "Invalid request body" },
+      { status: 400 }
+    );
   }
 }
 
@@ -177,7 +182,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  } catch (err) {
+    const isJsonError = err instanceof SyntaxError;
+    return NextResponse.json(
+      { error: isJsonError ? "Invalid JSON in request body" : "Invalid request body" },
+      { status: 400 }
+    );
   }
 }

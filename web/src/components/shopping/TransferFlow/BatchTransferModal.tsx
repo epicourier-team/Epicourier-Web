@@ -88,7 +88,10 @@ export default function BatchTransferModal({
   };
 
   const handleTransfer = async () => {
-    const selectedItems = transferItems.filter((item) => item.selected && item.ingredient_id);
+    const selectedItems = transferItems.filter(
+      (item): item is BatchTransferItem & { ingredient_id: number } =>
+        item.selected && item.ingredient_id !== null
+    );
 
     if (selectedItems.length === 0) {
       return;
@@ -99,7 +102,7 @@ export default function BatchTransferModal({
       await onTransfer(
         selectedItems.map((item) => ({
           shopping_item_id: item.id,
-          ingredient_id: item.ingredient_id!,
+          ingredient_id: item.ingredient_id,
           quantity: item.quantity,
           unit: item.unit || undefined,
           location: item.location,

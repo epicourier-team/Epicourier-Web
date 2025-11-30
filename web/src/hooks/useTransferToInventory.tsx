@@ -126,9 +126,7 @@ export function useTransferToInventory(): UseTransferToInventoryResult {
 
         // Set timeout to clear undo ability
         undoTimeoutRef.current = setTimeout(() => {
-          setCanUndo(false);
-          setLastTransferredItems([]);
-          toastIdRef.current = null;
+          clearUndoState();
         }, UNDO_TIMEOUT_MS);
 
         return true;
