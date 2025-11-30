@@ -61,7 +61,7 @@ export function AppSidebar() {
         </div>
 
         {/* Footer with User Info */}
-        <div className="border-t border-neutral-700 pt-4 space-y-3">
+        <div className="border-t border-neutral-700 pt-4 space-y-3 mb-6">
           {/* User Info */}
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-900">
