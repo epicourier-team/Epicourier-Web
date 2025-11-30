@@ -247,7 +247,10 @@ async function seedInventory() {
       .single();
 
     if (error) {
-      console.error(`❌ Error inserting item (ingredient_id: ${item.ingredient_id}):`, error.message);
+      console.error(
+        `❌ Error inserting item (ingredient_id: ${item.ingredient_id}):`,
+        error.message
+      );
     } else {
       console.log(`✅ ${item.notes || `Item ${item.ingredient_id}`} - ${item.location}`);
     }
@@ -296,8 +299,7 @@ async function seedInventory() {
     for (const item of items || []) {
       const name = (item.ingredient as { name: string })?.name || `ID: ${item.ingredient_id}`;
       const status = getStatus(item.expiration_date);
-      const lowStock =
-        item.min_quantity && item.quantity <= item.min_quantity ? " ⚠️ LOW" : "";
+      const lowStock = item.min_quantity && item.quantity <= item.min_quantity ? " ⚠️ LOW" : "";
       console.log(`   - ${name}: ${item.quantity}${item.unit} ${status}${lowStock}`);
     }
   }

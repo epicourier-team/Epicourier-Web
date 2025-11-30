@@ -171,9 +171,7 @@ export default function EditInventoryModal({
                     type="button"
                     onClick={() => setLocation(value)}
                     className={`flex items-center justify-center gap-1 rounded-lg border-2 border-black px-3 py-2 text-sm font-semibold transition-all ${
-                      location === value
-                        ? "bg-black text-white"
-                        : "bg-white hover:bg-gray-100"
+                      location === value ? "bg-black text-white" : "bg-white hover:bg-gray-100"
                     }`}
                     disabled={loading}
                   >
@@ -198,9 +196,7 @@ export default function EditInventoryModal({
 
             {/* Min Quantity (for low stock alerts) */}
             <div>
-              <label className="mb-2 block text-sm font-bold">
-                Min Quantity (Low Stock Alert)
-              </label>
+              <label className="mb-2 block text-sm font-bold">Min Quantity (Low Stock Alert)</label>
               <input
                 type="number"
                 value={minQuantity}

@@ -179,9 +179,7 @@ export default function RecommendPage() {
                       {children}
                     </p>
                   ),
-                  ul: ({ children }) => (
-                    <ul className="mb-3 ml-1 space-y-2 text-sm">{children}</ul>
-                  ),
+                  ul: ({ children }) => <ul className="mb-3 ml-1 space-y-2 text-sm">{children}</ul>,
                   ol: ({ children }) => (
                     <ol className="mb-3 ml-1 list-inside list-decimal space-y-2 text-sm">
                       {children}

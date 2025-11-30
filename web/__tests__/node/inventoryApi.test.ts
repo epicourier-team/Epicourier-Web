@@ -5,11 +5,7 @@
  */
 
 import { GET, POST } from "@/app/api/inventory/route";
-import {
-  GET as GET_BY_ID,
-  PUT,
-  DELETE,
-} from "@/app/api/inventory/[id]/route";
+import { GET as GET_BY_ID, PUT, DELETE } from "@/app/api/inventory/[id]/route";
 import { GET as GET_EXPIRING } from "@/app/api/inventory/expiring/route";
 import { createClient } from "@/utils/supabase/server";
 import { NextRequest } from "next/server";
@@ -158,9 +154,7 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory?location=fridge"
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory?location=fridge");
       const response = await GET(request);
       const json = await response.json();
 
@@ -201,9 +195,7 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory?search=flour"
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory?search=flour");
       const response = await GET(request);
       const json = await response.json();
 
@@ -340,9 +332,7 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory?expiring_within=7"
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory?expiring_within=7");
       const response = await GET(request);
       const json = await response.json();
 
@@ -788,9 +778,7 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/inv-1"
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/inv-1");
       const response = await GET_BY_ID(request, { params: mockParams });
       const json = await response.json();
 
@@ -821,9 +809,7 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/non-existent"
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/non-existent");
       const response = await GET_BY_ID(request, {
         params: Promise.resolve({ id: "non-existent" }),
       });
@@ -858,9 +844,7 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/inv-1"
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/inv-1");
       const response = await GET_BY_ID(request, { params: mockParams });
       const json = await response.json();
 
@@ -888,13 +872,10 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/inv-1",
-        {
-          method: "PUT",
-          body: { quantity: 300 },
-        }
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/inv-1", {
+        method: "PUT",
+        body: { quantity: 300 },
+      });
       const response = await PUT(request, { params: mockParams });
       const json = await response.json();
 
@@ -925,13 +906,10 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/non-existent",
-        {
-          method: "PUT",
-          body: { quantity: 300 },
-        }
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/non-existent", {
+        method: "PUT",
+        body: { quantity: 300 },
+      });
       const response = await PUT(request, {
         params: Promise.resolve({ id: "non-existent" }),
       });
@@ -976,13 +954,10 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/inv-1",
-        {
-          method: "PUT",
-          body: { quantity: 300 },
-        }
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/inv-1", {
+        method: "PUT",
+        body: { quantity: 300 },
+      });
       const response = await PUT(request, { params: mockParams });
       const json = await response.json();
 
@@ -1014,13 +989,10 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/inv-1",
-        {
-          method: "PUT",
-          body: { quantity: -50 },
-        }
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/inv-1", {
+        method: "PUT",
+        body: { quantity: -50 },
+      });
       const response = await PUT(request, { params: mockParams });
       const json = await response.json();
 
@@ -1051,13 +1023,10 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/inv-1",
-        {
-          method: "PUT",
-          body: { location: "invalid_location" },
-        }
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/inv-1", {
+        method: "PUT",
+        body: { location: "invalid_location" },
+      });
       const response = await PUT(request, { params: mockParams });
       const json = await response.json();
 
@@ -1108,20 +1077,17 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/inv-1",
-        {
-          method: "PUT",
-          body: {
-            quantity: 300,
-            unit: "kg",
-            location: "freezer",
-            notes: "Updated notes",
-            min_quantity: 50,
-            expiration_date: getDateString(30),
-          },
-        }
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/inv-1", {
+        method: "PUT",
+        body: {
+          quantity: 300,
+          unit: "kg",
+          location: "freezer",
+          notes: "Updated notes",
+          min_quantity: 50,
+          expiration_date: getDateString(30),
+        },
+      });
       const response = await PUT(request, { params: mockParams });
       const json = await response.json();
 
@@ -1164,13 +1130,10 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/inv-1",
-        {
-          method: "PUT",
-          body: { quantity: 300 },
-        }
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/inv-1", {
+        method: "PUT",
+        body: { quantity: 300 },
+      });
       const response = await PUT(request, { params: mockParams });
       const json = await response.json();
 
@@ -1196,10 +1159,9 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/inv-1",
-        { method: "DELETE" }
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/inv-1", {
+        method: "DELETE",
+      });
       const response = await DELETE(request, { params: mockParams });
       const json = await response.json();
 
@@ -1227,10 +1189,9 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/inv-1",
-        { method: "DELETE" }
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/inv-1", {
+        method: "DELETE",
+      });
       const response = await DELETE(request, { params: mockParams });
       const json = await response.json();
 
@@ -1259,10 +1220,9 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/inv-1",
-        { method: "DELETE" }
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/inv-1", {
+        method: "DELETE",
+      });
       const response = await DELETE(request, { params: mockParams });
       const json = await response.json();
 
@@ -1286,9 +1246,7 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/expiring"
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/expiring");
       const response = await GET_EXPIRING(request);
       const json = await response.json();
 
@@ -1336,9 +1294,7 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/expiring"
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/expiring");
       const response = await GET_EXPIRING(request);
       const json = await response.json();
 
@@ -1383,9 +1339,7 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/expiring?days=3"
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/expiring?days=3");
       const response = await GET_EXPIRING(request);
 
       expect(response.status).toBe(200);
@@ -1402,9 +1356,7 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/expiring?days=-5"
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/expiring?days=-5");
       const response = await GET_EXPIRING(request);
       const json = await response.json();
 
@@ -1437,9 +1389,7 @@ describe("Inventory API", () => {
       };
       (createClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-      const request = createMockRequest(
-        "http://localhost:3000/api/inventory/expiring"
-      );
+      const request = createMockRequest("http://localhost:3000/api/inventory/expiring");
       const response = await GET_EXPIRING(request);
       const json = await response.json();
 

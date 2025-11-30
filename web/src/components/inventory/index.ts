@@ -7,3 +7,4 @@ export { default as ExpiringSoonBanner } from "./ExpiringSoonBanner";
 export { default as AddInventoryModal } from "./AddInventoryModal";
 export { default as EditInventoryModal } from "./EditInventoryModal";
 export { default as DeleteInventoryDialog } from "./DeleteInventoryDialog";
+export { default as BatchDeleteDialog } from "./BatchDeleteDialog";

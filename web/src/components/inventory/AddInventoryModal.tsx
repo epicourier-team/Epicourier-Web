@@ -64,10 +64,10 @@ export default function AddInventoryModal({ isOpen, onClose, onSuccess }: AddInv
 
     setSearching(true);
     try {
-      const response = await fetch(`/api/ingredients?search=${encodeURIComponent(query)}&limit=10`);
+      const response = await fetch(`/api/ingredients?query=${encodeURIComponent(query)}&limit=10`);
       if (response.ok) {
         const data = await response.json();
-        setSearchResults(data.ingredients || data || []);
+        setSearchResults(data.data || []);
       }
     } catch (error) {
       console.error("Error searching ingredients:", error);
@@ -195,12 +195,12 @@ export default function AddInventoryModal({ isOpen, onClose, onSuccess }: AddInv
 
           <div className="space-y-4 p-6">
             {/* Ingredient Search */}
-            <div>
+            <div className="relative">
               <label className="mb-2 block text-sm font-bold">
                 Ingredient <span className="text-red-600">*</span>
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+                <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -211,26 +211,26 @@ export default function AddInventoryModal({ isOpen, onClose, onSuccess }: AddInv
                     }
                   }}
                   placeholder="Search for an ingredient..."
-                  className="brutalism-input w-full py-2 pl-10 pr-10"
+                  className="brutalism-input w-full py-2 pr-10 pl-10"
                   disabled={loading}
                 />
                 {selectedIngredient && (
                   <button
                     type="button"
                     onClick={handleClearIngredient}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                    className="absolute top-1/2 right-3 -translate-y-1/2"
                   >
                     <X className="size-4 text-gray-500 hover:text-gray-700" />
                   </button>
                 )}
                 {searching && (
-                  <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-gray-400" />
+                  <Loader2 className="absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin text-gray-400" />
                 )}
               </div>
 
               {/* Search Results Dropdown */}
               {searchResults.length > 0 && !selectedIngredient && (
-                <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border-2 border-black bg-white shadow-lg">
+                <div className="absolute right-0 left-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-lg border-2 border-black bg-white shadow-lg">
                   {searchResults.map((ingredient) => (
                     <button
                       key={ingredient.id}
@@ -245,7 +245,7 @@ export default function AddInventoryModal({ isOpen, onClose, onSuccess }: AddInv
               )}
 
               {selectedIngredient && (
-                <p className="mt-1 text-sm text-green-600 font-semibold">
+                <p className="mt-1 text-sm font-semibold text-green-600">
                   ✓ Selected: {selectedIngredient.name}
                 </p>
               )}
@@ -290,9 +290,7 @@ export default function AddInventoryModal({ isOpen, onClose, onSuccess }: AddInv
                     type="button"
                     onClick={() => setLocation(value)}
                     className={`flex items-center justify-center gap-1 rounded-lg border-2 border-black px-3 py-2 text-sm font-semibold transition-all ${
-                      location === value
-                        ? "bg-black text-white"
-                        : "bg-white hover:bg-gray-100"
+                      location === value ? "bg-black text-white" : "bg-white hover:bg-gray-100"
                     }`}
                     disabled={loading}
                   >
@@ -317,9 +315,7 @@ export default function AddInventoryModal({ isOpen, onClose, onSuccess }: AddInv
 
             {/* Min Quantity (for low stock alerts) */}
             <div>
-              <label className="mb-2 block text-sm font-bold">
-                Min Quantity (Low Stock Alert)
-              </label>
+              <label className="mb-2 block text-sm font-bold">Min Quantity (Low Stock Alert)</label>
               <input
                 type="number"
                 value={minQuantity}

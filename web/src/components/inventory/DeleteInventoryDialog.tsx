@@ -83,10 +83,7 @@ export default function DeleteInventoryDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel
-            className="brutalism-button-neutral"
-            disabled={loading}
-          >
+          <AlertDialogCancel className="brutalism-button-neutral" disabled={loading}>
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction

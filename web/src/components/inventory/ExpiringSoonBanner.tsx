@@ -76,9 +76,7 @@ export default function ExpiringSoonBanner({
         onClick={onViewAll}
         className={cn(
           "flex items-center gap-1 rounded-lg border-2 border-black px-4 py-2 font-semibold transition-colors",
-          hasExpired
-            ? "bg-red-200 hover:bg-red-300"
-            : "bg-yellow-200 hover:bg-yellow-300"
+          hasExpired ? "bg-red-200 hover:bg-red-300" : "bg-yellow-200 hover:bg-yellow-300"
         )}
       >
         <span>View All</span>

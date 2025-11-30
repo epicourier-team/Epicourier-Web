@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Package, Lightbulb, Loader2, Plus, X } from "lucide-react";
+import { Package, Lightbulb, Loader2, Plus, X, CheckSquare, Square, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   LocationTabs,
@@ -11,12 +11,9 @@ import {
   AddInventoryModal,
   EditInventoryModal,
   DeleteInventoryDialog,
+  BatchDeleteDialog,
 } from "@/components/inventory";
-import type {
-  InventoryLocation,
-  InventoryItemWithDetails,
-  InventorySummary,
-} from "@/types/data";
+import type { InventoryLocation, InventoryItemWithDetails, InventorySummary } from "@/types/data";
 
 // View mode type for clear state management
 type ViewMode = "all" | "expiring";
@@ -33,6 +30,11 @@ export default function InventoryPage() {
   const [editingItem, setEditingItem] = useState<InventoryItemWithDetails | null>(null);
   const [deletingItem, setDeletingItem] = useState<InventoryItemWithDetails | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+
+  // Batch selection state
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [isBatchDeleteOpen, setIsBatchDeleteOpen] = useState(false);
 
   const { toast } = useToast();
 
@@ -145,7 +147,62 @@ export default function InventoryPage() {
     if (viewMode === "expiring") {
       setViewMode("all");
     }
+    // Exit select mode when changing location
+    if (isSelectMode) {
+      setIsSelectMode(false);
+      setSelectedItems(new Set());
+    }
     setActiveLocation(location);
+  };
+
+  // Toggle select mode
+  const toggleSelectMode = () => {
+    if (isSelectMode) {
+      // Exit select mode
+      setIsSelectMode(false);
+      setSelectedItems(new Set());
+    } else {
+      // Enter select mode
+      setIsSelectMode(true);
+    }
+  };
+
+  // Toggle item selection
+  const handleToggleSelect = (item: InventoryItemWithDetails) => {
+    setSelectedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(item.id)) {
+        next.delete(item.id);
+      } else {
+        next.add(item.id);
+      }
+      return next;
+    });
+  };
+
+  // Select all displayed items
+  const handleSelectAll = () => {
+    if (selectedItems.size === displayItems.length) {
+      // Deselect all
+      setSelectedItems(new Set());
+    } else {
+      // Select all displayed items
+      setSelectedItems(new Set(displayItems.map((item) => item.id)));
+    }
+  };
+
+  // Get selected items for batch delete
+  const getSelectedItemsForDelete = (): InventoryItemWithDetails[] => {
+    return displayItems.filter((item) => selectedItems.has(item.id));
+  };
+
+  // Handle successful batch delete
+  const handleBatchDeleteSuccess = () => {
+    setIsBatchDeleteOpen(false);
+    setIsSelectMode(false);
+    setSelectedItems(new Set());
+    fetchInventory();
+    fetchGlobalSummary();
   };
 
   // Filter items based on view mode
@@ -203,16 +260,27 @@ export default function InventoryPage() {
             </div>
           </div>
           <div className="flex gap-2">
+            {/* Select Mode Toggle */}
+            {items.length > 0 && (
+              <button
+                onClick={toggleSelectMode}
+                className={`brutalism-button-neutral flex items-center gap-2 px-4 py-2 ${isSelectMode ? "bg-blue-100" : ""}`}
+              >
+                {isSelectMode ? <X className="size-4" /> : <CheckSquare className="size-4" />}
+                <span className="hidden sm:inline">{isSelectMode ? "Cancel" : "Select"}</span>
+              </button>
+            )}
             <button
               onClick={() => setIsAddModalOpen(true)}
               className="brutalism-button-primary flex items-center gap-2 px-4 py-2"
+              disabled={isSelectMode}
             >
               <Plus className="size-4" />
               <span>Add Item</span>
             </button>
             <button
               onClick={handleSuggestRecipes}
-              disabled={suggesting || items.length === 0}
+              disabled={suggesting || items.length === 0 || isSelectMode}
               className="brutalism-button-secondary flex items-center gap-2 px-4 py-2 disabled:opacity-50"
             >
               {suggesting ? (
@@ -244,7 +312,8 @@ export default function InventoryPage() {
       {isExpiringView && (
         <div className="mb-4 flex items-center justify-between rounded-lg border-2 border-orange-400 bg-orange-50 px-4 py-3">
           <span className="font-semibold text-orange-800">
-            🔍 Viewing {displayItems.length} expiring/expired item{displayItems.length !== 1 ? "s" : ""}
+            🔍 Viewing {displayItems.length} expiring/expired item
+            {displayItems.length !== 1 ? "s" : ""}
             {activeLocation !== "all" && ` in ${activeLocation}`}
           </span>
           <button
@@ -268,11 +337,42 @@ export default function InventoryPage() {
 
       {/* Search bar - disabled when in expiring view */}
       {!isExpiringView && (
-        <InventorySearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          className="mb-6"
-        />
+        <InventorySearchBar value={searchQuery} onChange={setSearchQuery} className="mb-6" />
+      )}
+
+      {/* Selection mode action bar */}
+      {isSelectMode && (
+        <div className="mb-4 flex items-center justify-between rounded-lg border-2 border-blue-400 bg-blue-50 px-4 py-3">
+          <div className="flex items-center gap-4">
+            <span className="font-semibold text-blue-800">
+              {selectedItems.size} item{selectedItems.size !== 1 ? "s" : ""} selected
+            </span>
+            <button
+              onClick={handleSelectAll}
+              className="flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-800"
+            >
+              {selectedItems.size === displayItems.length ? (
+                <>
+                  <Square className="size-4" />
+                  Deselect All
+                </>
+              ) : (
+                <>
+                  <CheckSquare className="size-4" />
+                  Select All ({displayItems.length})
+                </>
+              )}
+            </button>
+          </div>
+          <button
+            onClick={() => setIsBatchDeleteOpen(true)}
+            disabled={selectedItems.size === 0}
+            className="brutalism-button shadow-brutal-sm flex items-center gap-2 border-2 border-black bg-red-500 px-4 py-2 text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Trash2 className="size-4" />
+            Delete Selected
+          </button>
+        </div>
       )}
 
       {displayItems.length === 0 ? (
@@ -302,10 +402,7 @@ export default function InventoryPage() {
             </button>
           )}
           {isExpiringView && (
-            <button
-              onClick={handleShowAll}
-              className="brutalism-button-secondary px-6 py-3"
-            >
+            <button onClick={handleShowAll} className="brutalism-button-secondary px-6 py-3">
               Show All Items
             </button>
           )}
@@ -318,6 +415,9 @@ export default function InventoryPage() {
               item={item}
               onEdit={setEditingItem}
               onDelete={setDeletingItem}
+              isSelectMode={isSelectMode}
+              isSelected={selectedItems.has(item.id)}
+              onToggleSelect={handleToggleSelect}
             />
           ))}
         </div>
@@ -353,6 +453,13 @@ export default function InventoryPage() {
           fetchInventory();
           fetchGlobalSummary(); // Refresh global counts
         }}
+      />
+
+      <BatchDeleteDialog
+        isOpen={isBatchDeleteOpen}
+        items={getSelectedItemsForDelete()}
+        onClose={() => setIsBatchDeleteOpen(false)}
+        onSuccess={handleBatchDeleteSuccess}
       />
     </div>
   );
