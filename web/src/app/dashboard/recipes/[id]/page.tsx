@@ -39,7 +39,8 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
         <AddToCartButton
           recipeName={recipe.name ?? "Recipe"}
           ingredients={ingredients.map((i) => ({
-            id: i.ingredient.id,
+            id: i.id,
+            ingredientId: i.ingredient.id,
             name: i.ingredient.name ?? "Unknown",
             quantity: i.relative_unit_100 ?? 100,
             unit: i.ingredient.unit ?? "unit",
@@ -69,10 +70,7 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
         <h2 className="mb-3 text-xl font-semibold">Ingredients</h2>
         <ul className="space-y-2">
           {ingredients.map((i) => (
-            <li
-              key={i.ingredient.id}
-              className="grid grid-cols-[180px_180px_auto] border-b pt-2 pb-2"
-            >
+            <li key={i.id} className="grid grid-cols-[180px_180px_auto] border-b pt-2 pb-2">
               <span className="font-bold">{i.ingredient.name}</span>
               <span className="test-gray-600">
                 {i.ingredient.unit} {i.relative_unit_100 === 100 ? "" : `X ${i.relative_unit_100}%`}

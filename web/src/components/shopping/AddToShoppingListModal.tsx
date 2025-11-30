@@ -26,6 +26,7 @@ import { Plus, ShoppingCart, Loader2, Check } from "lucide-react";
 
 interface Ingredient {
   id: number;
+  ingredientId: number;
   name: string;
   unit?: string;
   quantity?: number;
@@ -145,7 +146,7 @@ export default function AddToShoppingListModal({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             item_name: ingredient.name,
-            ingredient_id: ingredient.id,
+            ingredient_id: ingredient.ingredientId,
             quantity: ingredient.quantity || 1,
             unit: ingredient.unit || null,
             category: "Other",
