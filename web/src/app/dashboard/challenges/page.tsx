@@ -165,7 +165,6 @@ export default function ChallengesPage() {
       color: "blue",
       bgColor: "bg-blue-50",
       textColor: "text-blue-700",
-      borderColor: "border-blue-200",
     },
     monthly: {
       title: "Monthly Challenges",
@@ -173,7 +172,6 @@ export default function ChallengesPage() {
       color: "purple",
       bgColor: "bg-purple-50",
       textColor: "text-purple-700",
-      borderColor: "border-purple-200",
     },
     special: {
       title: "Special Challenges",
@@ -181,48 +179,42 @@ export default function ChallengesPage() {
       color: "amber",
       bgColor: "bg-amber-50",
       textColor: "text-amber-700",
-      borderColor: "border-amber-200",
     },
   };
 
   const categoryConfig: Record<
     ChallengeCategory,
-    { title: string; icon: typeof Salad; bgColor: string; textColor: string; borderColor: string }
+    { title: string; icon: typeof Salad; bgColor: string; textColor: string }
   > = {
     nutrition: {
       title: "Nutrition Goals",
       icon: Salad,
       bgColor: "bg-green-50",
       textColor: "text-green-700",
-      borderColor: "border-green-200",
     },
     sustainability: {
       title: "Sustainability",
       icon: Leaf,
       bgColor: "bg-emerald-50",
       textColor: "text-emerald-700",
-      borderColor: "border-emerald-200",
     },
     habits: {
       title: "Healthy Habits",
       icon: CheckSquare,
       bgColor: "bg-blue-50",
       textColor: "text-blue-700",
-      borderColor: "border-blue-200",
     },
     recipes: {
       title: "Recipe Exploration",
       icon: ChefHat,
       bgColor: "bg-orange-50",
       textColor: "text-orange-700",
-      borderColor: "border-orange-200",
     },
     milestones: {
       title: "Milestones",
       icon: Trophy,
       bgColor: "bg-yellow-50",
       textColor: "text-yellow-700",
-      borderColor: "border-yellow-200",
     },
   };
 
@@ -275,10 +267,10 @@ export default function ChallengesPage() {
         {/* View mode toggle */}
         <div className="mb-6 flex items-center gap-2">
           <span className="text-sm font-medium text-gray-600">Group by:</span>
-          <div className="flex rounded-lg border-2 border-black bg-white">
+          <div className="brutalism-border brutalism-shadow-sm flex bg-white">
             <button
               onClick={() => setViewMode("time")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold transition-all ${
+              className={`flex items-center gap-1.5 border-r-2 border-black px-3 py-1.5 text-sm font-bold transition-all ${
                 viewMode === "time" ? "bg-black text-white" : "text-gray-700 hover:bg-gray-100"
               }`}
             >
@@ -328,8 +320,10 @@ export default function ChallengesPage() {
               return (
                 <section key={type}>
                   {/* Section Header */}
-                  <div className={`mb-4 flex items-center gap-3 rounded-lg ${config.bgColor} p-3`}>
-                    <div className={`rounded-lg bg-white p-2 ${config.borderColor} border-2`}>
+                  <div
+                    className={`brutalism-border brutalism-shadow-sm mb-4 flex items-center gap-3 ${config.bgColor} p-3`}
+                  >
+                    <div className="brutalism-border bg-white p-2">
                       <IconComponent className={`size-5 ${config.textColor}`} />
                     </div>
                     <div>
@@ -370,9 +364,9 @@ export default function ChallengesPage() {
                   <section key={category}>
                     {/* Section Header */}
                     <div
-                      className={`mb-4 flex items-center gap-3 rounded-lg ${config.bgColor} p-3`}
+                      className={`brutalism-border brutalism-shadow-sm mb-4 flex items-center gap-3 ${config.bgColor} p-3`}
                     >
-                      <div className={`rounded-lg bg-white p-2 ${config.borderColor} border-2`}>
+                      <div className="brutalism-border bg-white p-2">
                         <IconComponent className={`size-5 ${config.textColor}`} />
                       </div>
                       <div>
