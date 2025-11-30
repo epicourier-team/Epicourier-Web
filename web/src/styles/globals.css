@@ -437,7 +437,8 @@ button {
 
 /* Flame animation - Low intensity (7-13 days) */
 @keyframes flame-low {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1) rotate(0deg);
     filter: brightness(1);
   }
@@ -461,7 +462,8 @@ button {
 
 /* Flame animation - Medium intensity (14-29 days) */
 @keyframes flame-medium {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1) rotate(0deg);
     filter: brightness(1) drop-shadow(0 0 2px rgba(251, 146, 60, 0.5));
   }
@@ -489,7 +491,8 @@ button {
 
 /* Flame animation - Intense (30+ days) */
 @keyframes flame-intense {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1) rotate(0deg);
     filter: brightness(1) drop-shadow(0 0 4px rgba(249, 115, 22, 0.6));
   }
@@ -574,7 +577,8 @@ button {
 
 /* Celebration shake animation */
 @keyframes celebrate-shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0) rotate(0deg);
   }
   10% {

@@ -182,7 +182,7 @@ describe("Gamification Integration Tests", () => {
       it("calculates days remaining for weekly challenge", () => {
         // Test date is 2024-01-15 (Monday)
         const daysRemaining = calculateDaysRemaining("weekly", null);
-        
+
         // Should be 6 days (until Sunday)
         expect(daysRemaining).toBeGreaterThanOrEqual(0);
         expect(daysRemaining).toBeLessThanOrEqual(7);
@@ -244,9 +244,18 @@ describe("Gamification Integration Tests", () => {
     describe("Multiple Achievement Processing", () => {
       it("identifies all earned achievements from definitions", () => {
         const definitions = [
-          createAchievement({ id: 1, criteria: { type: "count", metric: "meals_logged", target: 1 } }),
-          createAchievement({ id: 2, criteria: { type: "count", metric: "meals_logged", target: 5 } }),
-          createAchievement({ id: 3, criteria: { type: "count", metric: "meals_logged", target: 10 } }),
+          createAchievement({
+            id: 1,
+            criteria: { type: "count", metric: "meals_logged", target: 1 },
+          }),
+          createAchievement({
+            id: 2,
+            criteria: { type: "count", metric: "meals_logged", target: 5 },
+          }),
+          createAchievement({
+            id: 3,
+            criteria: { type: "count", metric: "meals_logged", target: 10 },
+          }),
         ];
 
         const userMetrics = { meals_logged: 7 };
@@ -266,10 +275,22 @@ describe("Gamification Integration Tests", () => {
       it("identifies tier progression path", () => {
         const tiers = ["bronze", "silver", "gold", "platinum"];
         const achievementsByTier = {
-          bronze: createAchievement({ tier: "bronze", criteria: { type: "count", metric: "meals_logged", target: 1 } }),
-          silver: createAchievement({ tier: "silver", criteria: { type: "count", metric: "meals_logged", target: 10 } }),
-          gold: createAchievement({ tier: "gold", criteria: { type: "count", metric: "meals_logged", target: 50 } }),
-          platinum: createAchievement({ tier: "platinum", criteria: { type: "count", metric: "meals_logged", target: 100 } }),
+          bronze: createAchievement({
+            tier: "bronze",
+            criteria: { type: "count", metric: "meals_logged", target: 1 },
+          }),
+          silver: createAchievement({
+            tier: "silver",
+            criteria: { type: "count", metric: "meals_logged", target: 10 },
+          }),
+          gold: createAchievement({
+            tier: "gold",
+            criteria: { type: "count", metric: "meals_logged", target: 50 },
+          }),
+          platinum: createAchievement({
+            tier: "platinum",
+            criteria: { type: "count", metric: "meals_logged", target: 100 },
+          }),
         };
 
         const userMetrics = { meals_logged: 25 };
@@ -287,13 +308,7 @@ describe("Gamification Integration Tests", () => {
   describe("Streak System Logic", () => {
     describe("Streak Calculation", () => {
       it("calculates streak from consecutive dates", () => {
-        const dates = [
-          "2024-01-15",
-          "2024-01-14",
-          "2024-01-13",
-          "2024-01-12",
-          "2024-01-11",
-        ];
+        const dates = ["2024-01-15", "2024-01-14", "2024-01-13", "2024-01-12", "2024-01-11"];
 
         const streak = calculateStreakFromDates(dates, "2024-01-15");
         expect(streak).toBe(5);
@@ -301,7 +316,7 @@ describe("Gamification Integration Tests", () => {
 
       it("returns 0 when no recent activity", () => {
         const dates = ["2024-01-10", "2024-01-09"];
-        
+
         // Last activity was 5 days ago
         const streak = calculateStreakFromDates(dates, "2024-01-15");
         expect(streak).toBe(0);
@@ -395,10 +410,7 @@ describe("Gamification Integration Tests", () => {
         });
 
         const userMetrics = { current_streak: streak.current_streak };
-        const isEarned = evaluateAchievementCriteria(
-          weekStreakAchievement.criteria,
-          userMetrics
-        );
+        const isEarned = evaluateAchievementCriteria(weekStreakAchievement.criteria, userMetrics);
 
         expect(isEarned).toBe(true);
       });
@@ -502,10 +514,7 @@ function calculateProgress(
   };
 }
 
-function calculateDaysRemaining(
-  type: string,
-  endDate: string | null
-): number {
+function calculateDaysRemaining(type: string, endDate: string | null): number {
   const now = new Date("2024-01-15T12:00:00Z");
 
   if (endDate) {
@@ -554,9 +563,7 @@ function calculateStreakFromDates(dates: string[], today: string): number {
   for (let i = 1; i < sortedDates.length; i++) {
     const current = new Date(sortedDates[i]);
     const previous = new Date(sortedDates[i - 1]);
-    const dayDiff = Math.floor(
-      (previous.getTime() - current.getTime()) / (1000 * 60 * 60 * 24)
-    );
+    const dayDiff = Math.floor((previous.getTime() - current.getTime()) / (1000 * 60 * 60 * 24));
 
     if (dayDiff === 1) {
       streak++;

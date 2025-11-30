@@ -21,13 +21,15 @@ export async function GET() {
   // Fetch shopping lists with item counts
   const { data: lists, error } = await supabase
     .from("shopping_lists")
-    .select(`
+    .select(
+      `
       *,
       shopping_list_items (
         id,
         is_checked
       )
-    `)
+    `
+    )
     .eq("user_id", user.id)
     .order("updated_at", { ascending: false });
 

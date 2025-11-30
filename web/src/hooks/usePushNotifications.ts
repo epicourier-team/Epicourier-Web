@@ -50,7 +50,9 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
 
 export function usePushNotifications(): UsePushNotificationsReturn {
   const [isSupported, setIsSupported] = useState(false);
-  const [permission, setPermission] = useState<NotificationPermission | "unsupported">("unsupported");
+  const [permission, setPermission] = useState<NotificationPermission | "unsupported">(
+    "unsupported"
+  );
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -164,12 +166,8 @@ export function usePushNotifications(): UsePushNotificationsReturn {
           subscription: {
             endpoint: subscription.endpoint,
             keys: {
-              p256dh: btoa(
-                String.fromCharCode(...new Uint8Array(subscription.getKey("p256dh")!))
-              ),
-              auth: btoa(
-                String.fromCharCode(...new Uint8Array(subscription.getKey("auth")!))
-              ),
+              p256dh: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey("p256dh")!))),
+              auth: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey("auth")!))),
             },
           },
         }),

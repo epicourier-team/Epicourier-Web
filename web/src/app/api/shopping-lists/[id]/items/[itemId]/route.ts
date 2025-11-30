@@ -79,15 +79,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       .update(updateData)
       .eq("id", itemId)
       .eq("shopping_list_id", listId)
-      .select(`
+      .select(
+        `
         *,
         Ingredient:ingredient_id (
           id,
           name,
-          aisle,
           unit
         )
-      `)
+      `
+      )
       .single();
 
     if (error) {

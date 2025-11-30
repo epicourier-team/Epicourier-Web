@@ -109,10 +109,7 @@ export async function DELETE() {
       .eq("user_id", authUserId);
 
     // Delete all subscriptions for this user
-    const { error } = await supabase
-      .from("push_subscriptions")
-      .delete()
-      .eq("user_id", authUserId);
+    const { error } = await supabase.from("push_subscriptions").delete().eq("user_id", authUserId);
 
     if (error) {
       console.error("Error deleting all push subscriptions:", error.message);
@@ -129,9 +126,6 @@ export async function DELETE() {
     });
   } catch (error) {
     console.error("Error in unsubscribe all endpoint:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

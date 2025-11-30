@@ -339,7 +339,9 @@ describe("Achievements API", () => {
         .mockImplementationOnce(() => userAchievementsChain([]))
         .mockImplementationOnce(() => calendarCountChain(3))
         .mockImplementationOnce(() => greenMealsChain([]))
-        .mockImplementationOnce(() => calendarDatesChain(["2024-01-01", "2023-12-31", "2023-12-30"]))
+        .mockImplementationOnce(() =>
+          calendarDatesChain(["2024-01-01", "2023-12-31", "2023-12-30"])
+        )
         .mockImplementationOnce(() => nutrientViewsChain(0))
         .mockImplementationOnce(() => nutrientMealsChain([]));
 

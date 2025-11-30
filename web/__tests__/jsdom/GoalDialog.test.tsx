@@ -70,7 +70,13 @@ jest.mock("@/components/ui/field", () => ({
       {children}
     </div>
   ),
-  FieldDescription: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  FieldDescription: ({
+    children,
+    className,
+  }: {
+    children: React.ReactNode;
+    className?: string;
+  }) => (
     <p data-testid="field-description" className={className}>
       {children}
     </p>
@@ -103,13 +109,7 @@ jest.mock("@/components/ui/input-group", () => ({
   InputGroup: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="input-group">{children}</div>
   ),
-  InputGroupAddon: ({
-    children,
-    align,
-  }: {
-    children: React.ReactNode;
-    align?: string;
-  }) => (
+  InputGroupAddon: ({ children, align }: { children: React.ReactNode; align?: string }) => (
     <div data-testid="input-group-addon" data-align={align}>
       {children}
     </div>
@@ -231,7 +231,14 @@ describe("GoalDialog", () => {
     it("displays 'Set Daily Goals' when calories is 0", () => {
       render(
         <GoalDialogTestWrapper
-          defaultValues={{ calories_kcal: 0, protein_g: 0, carbs_g: 0, fats_g: 0, sodium_mg: 0, fiber_g: 0 }}
+          defaultValues={{
+            calories_kcal: 0,
+            protein_g: 0,
+            carbs_g: 0,
+            fats_g: 0,
+            sodium_mg: 0,
+            fiber_g: 0,
+          }}
         />
       );
       expect(screen.getByTestId("dialog-title")).toHaveTextContent("Set Daily Goals");
@@ -240,7 +247,14 @@ describe("GoalDialog", () => {
     it("displays 'Edit Daily Goals' when calories has value", () => {
       render(
         <GoalDialogTestWrapper
-          defaultValues={{ calories_kcal: 2000, protein_g: 50, carbs_g: 100, fats_g: 50, sodium_mg: 2000, fiber_g: 25 }}
+          defaultValues={{
+            calories_kcal: 2000,
+            protein_g: 50,
+            carbs_g: 100,
+            fats_g: 50,
+            sodium_mg: 2000,
+            fiber_g: 25,
+          }}
         />
       );
       expect(screen.getByTestId("dialog-title")).toHaveTextContent("Edit Daily Goals");
@@ -269,7 +283,14 @@ describe("GoalDialog", () => {
     it("renders 'Save Goal' button when calories is 0", () => {
       render(
         <GoalDialogTestWrapper
-          defaultValues={{ calories_kcal: 0, protein_g: 0, carbs_g: 0, fats_g: 0, sodium_mg: 0, fiber_g: 0 }}
+          defaultValues={{
+            calories_kcal: 0,
+            protein_g: 0,
+            carbs_g: 0,
+            fats_g: 0,
+            sodium_mg: 0,
+            fiber_g: 0,
+          }}
         />
       );
       expect(screen.getByText("Save Goal")).toBeInTheDocument();
@@ -278,7 +299,14 @@ describe("GoalDialog", () => {
     it("renders 'Update Goal' button when calories has value", () => {
       render(
         <GoalDialogTestWrapper
-          defaultValues={{ calories_kcal: 2000, protein_g: 50, carbs_g: 100, fats_g: 50, sodium_mg: 2000, fiber_g: 25 }}
+          defaultValues={{
+            calories_kcal: 2000,
+            protein_g: 50,
+            carbs_g: 100,
+            fats_g: 50,
+            sodium_mg: 2000,
+            fiber_g: 25,
+          }}
         />
       );
       expect(screen.getByText("Update Goal")).toBeInTheDocument();
@@ -336,7 +364,14 @@ describe("GoalDialog", () => {
     it("sets value to 0 when input is cleared", () => {
       render(
         <GoalDialogTestWrapper
-          defaultValues={{ calories_kcal: 2000, protein_g: 50, carbs_g: 100, fats_g: 50, sodium_mg: 2000, fiber_g: 25 }}
+          defaultValues={{
+            calories_kcal: 2000,
+            protein_g: 50,
+            carbs_g: 100,
+            fats_g: 50,
+            sodium_mg: 2000,
+            fiber_g: 25,
+          }}
         />
       );
 

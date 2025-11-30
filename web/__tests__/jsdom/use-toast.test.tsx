@@ -238,7 +238,7 @@ describe("use-toast", () => {
       act(() => {
         clearResult.current.toasts.forEach((t) => clearResult.current.dismiss(t.id));
       });
-      
+
       // Run timers to complete removals
       act(() => {
         jest.runAllTimers();
@@ -314,7 +314,7 @@ describe("use-toast", () => {
 
     it("should clean up listener on unmount", () => {
       const { unmount } = renderHook(() => useToast());
-      
+
       // Should not throw when unmounting
       expect(() => unmount()).not.toThrow();
     });

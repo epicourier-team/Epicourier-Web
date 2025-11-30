@@ -28,14 +28,14 @@ export default function GenerateShoppingListModal({
 }: GenerateShoppingListModalProps) {
   const { toast } = useToast();
   const router = useRouter();
-  
+
   // Default to current week
   const today = new Date();
   const weekStart = new Date(today);
   weekStart.setDate(today.getDate() - today.getDay()); // Sunday
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekStart.getDate() + 6); // Saturday
-  
+
   const formatDate = (date: Date) => date.toISOString().split("T")[0];
 
   const [startDate, setStartDate] = useState(formatDate(weekStart));
@@ -228,7 +228,7 @@ export default function GenerateShoppingListModal({
               {mealTypes.map((type) => (
                 <label
                   key={type.id}
-                  className="flex cursor-pointer items-center gap-3 border-b border-r border-gray-200 p-3 hover:bg-gray-50 last:border-r-0 [&:nth-child(2)]:border-r-0 [&:nth-child(3)]:border-b-0 [&:nth-child(4)]:border-b-0"
+                  className="flex cursor-pointer items-center gap-3 border-r border-b border-gray-200 p-3 last:border-r-0 hover:bg-gray-50 [&:nth-child(2)]:border-r-0 [&:nth-child(3)]:border-b-0 [&:nth-child(4)]:border-b-0"
                 >
                   <Checkbox
                     checked={selectedMealTypes.has(type.id)}

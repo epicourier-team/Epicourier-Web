@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 
 /**
  * Inventory page - manage user's ingredient inventory
- * 
+ *
  * Features:
  * - "Suggest Recipes" button (Issue #96)
  * - Inventory list view (coming in Issue #88)

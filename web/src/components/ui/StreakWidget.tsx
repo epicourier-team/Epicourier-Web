@@ -107,23 +107,26 @@ function StreakItem({ streak, compact = false }: StreakItemProps) {
 
   if (compact) {
     return (
-      <div className={cn("flex items-center gap-2 px-3 py-2 rounded-lg", bgColorClass)}>
+      <div className={cn("flex items-center gap-2 rounded-lg px-3 py-2", bgColorClass)}>
         <Icon
           className={cn(
-            "w-4 h-4",
+            "h-4 w-4",
             colorClass,
             streak.current >= 7 && streak.type === "daily_log" && "animate-flame-low"
           )}
         />
         <div className="flex flex-col">
-          <span className="text-xs text-muted-foreground">{streak.label}</span>
+          <span className="text-muted-foreground text-xs">{streak.label}</span>
           <span className="text-sm font-semibold">
             {streak.current}
-            <span className="text-xs font-normal text-muted-foreground ml-1">days</span>
+            <span className="text-muted-foreground ml-1 text-xs font-normal">days</span>
           </span>
         </div>
         {atRisk && (
-          <AlertTriangle className="w-3 h-3 text-amber-500 animate-pulse" aria-label="Streak at risk!" />
+          <AlertTriangle
+            className="h-3 w-3 animate-pulse text-amber-500"
+            aria-label="Streak at risk!"
+          />
         )}
       </div>
     );
@@ -132,19 +135,19 @@ function StreakItem({ streak, compact = false }: StreakItemProps) {
   return (
     <div
       className={cn(
-        "flex items-center justify-between p-4 rounded-xl border transition-all",
+        "flex items-center justify-between rounded-xl border p-4 transition-all",
         bgColorClass,
         streak.isActiveToday && "ring-2 ring-offset-2",
         streak.isActiveToday && streak.type === "daily_log" && "ring-orange-400",
         streak.isActiveToday && streak.type === "nutrient_goal" && "ring-blue-400",
         streak.isActiveToday && streak.type === "green_recipe" && "ring-green-400",
-        atRisk && "border-amber-400 border-2"
+        atRisk && "border-2 border-amber-400"
       )}
     >
       <div className="flex items-center gap-3">
         <div
           className={cn(
-            "p-2 rounded-lg bg-white dark:bg-gray-800 transition-all",
+            "rounded-lg bg-white p-2 transition-all dark:bg-gray-800",
             colorClass,
             intensity.glowClass,
             streak.type === "daily_log" && intensity.animationClass
@@ -154,19 +157,21 @@ function StreakItem({ streak, compact = false }: StreakItemProps) {
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <h4 className="font-medium text-sm">{streak.label}</h4>
+            <h4 className="text-sm font-medium">{streak.label}</h4>
             {atRisk && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs rounded-full animate-pulse">
-                <AlertTriangle className="w-3 h-3" />
+              <span className="inline-flex animate-pulse items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                <AlertTriangle className="h-3 w-3" />
                 At risk!
               </span>
             )}
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             {streak.isActiveToday ? (
               <span className="text-green-600 dark:text-green-400">✓ Active today</span>
             ) : atRisk ? (
-              <span className="text-amber-600 dark:text-amber-400">Log today to keep your streak!</span>
+              <span className="text-amber-600 dark:text-amber-400">
+                Log today to keep your streak!
+              </span>
             ) : streak.lastActivity ? (
               `Last: ${new Date(streak.lastActivity).toLocaleDateString()}`
             ) : (
@@ -179,8 +184,8 @@ function StreakItem({ streak, compact = false }: StreakItemProps) {
         <div className={cn(intensity.textSize, "font-bold transition-all", colorClass)}>
           {streak.current}
         </div>
-        <div className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
-          <Award className="w-3 h-3" />
+        <div className="text-muted-foreground flex items-center justify-end gap-1 text-xs">
+          <Award className="h-3 w-3" />
           Best: {streak.longest}
         </div>
       </div>
@@ -219,7 +224,11 @@ interface StreakWidgetProps {
  * // Compact widget for sidebar
  * <StreakWidget variant="compact" />
  */
-export function StreakWidget({ variant = "full", className, title = "Your Streaks" }: StreakWidgetProps) {
+export function StreakWidget({
+  variant = "full",
+  className,
+  title = "Your Streaks",
+}: StreakWidgetProps) {
   const [data, setData] = useState<StreaksResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -259,11 +268,11 @@ export function StreakWidget({ variant = "full", className, title = "Your Streak
   if (loading) {
     return (
       <div className={cn("animate-pulse", className)}>
-        <div className="h-6 w-32 bg-muted rounded mb-4" />
+        <div className="bg-muted mb-4 h-6 w-32 rounded" />
         <div className="space-y-3">
-          <div className="h-20 bg-muted rounded-xl" />
-          <div className="h-20 bg-muted rounded-xl" />
-          <div className="h-20 bg-muted rounded-xl" />
+          <div className="bg-muted h-20 rounded-xl" />
+          <div className="bg-muted h-20 rounded-xl" />
+          <div className="bg-muted h-20 rounded-xl" />
         </div>
       </div>
     );
@@ -272,8 +281,8 @@ export function StreakWidget({ variant = "full", className, title = "Your Streak
   // Error state
   if (error) {
     return (
-      <div className={cn("text-center py-6", className)}>
-        <p className="text-sm text-muted-foreground">{error}</p>
+      <div className={cn("py-6 text-center", className)}>
+        <p className="text-muted-foreground text-sm">{error}</p>
       </div>
     );
   }
@@ -281,9 +290,9 @@ export function StreakWidget({ variant = "full", className, title = "Your Streak
   // Empty state (not logged in or no data)
   if (!data || data.streaks.length === 0) {
     return (
-      <div className={cn("text-center py-6", className)}>
-        <Flame className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-        <p className="text-sm text-muted-foreground">Log in to track your streaks!</p>
+      <div className={cn("py-6 text-center", className)}>
+        <Flame className="text-muted-foreground mx-auto mb-2 h-8 w-8" />
+        <p className="text-muted-foreground text-sm">Log in to track your streaks!</p>
       </div>
     );
   }
@@ -292,9 +301,9 @@ export function StreakWidget({ variant = "full", className, title = "Your Streak
   if (variant === "compact") {
     return (
       <div className={cn("space-y-2", className)}>
-        <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-4 h-4 text-primary" />
-          <h3 className="font-medium text-sm">{title}</h3>
+        <div className="mb-3 flex items-center gap-2">
+          <TrendingUp className="text-primary h-4 w-4" />
+          <h3 className="text-sm font-medium">{title}</h3>
         </div>
         <div className="flex flex-wrap gap-2">
           {data.streaks.map((streak) => (
@@ -311,12 +320,12 @@ export function StreakWidget({ variant = "full", className, title = "Your Streak
       {/* Header with total */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-primary" />
+          <TrendingUp className="text-primary h-5 w-5" />
           <h3 className="font-semibold">{title}</h3>
         </div>
-        <div className="flex items-center gap-1 px-3 py-1 bg-primary/10 rounded-full">
-          <Flame className="w-4 h-4 text-primary" />
-          <span className="font-medium text-sm">{data.totalCurrentStreak} total</span>
+        <div className="bg-primary/10 flex items-center gap-1 rounded-full px-3 py-1">
+          <Flame className="text-primary h-4 w-4" />
+          <span className="text-sm font-medium">{data.totalCurrentStreak} total</span>
         </div>
       </div>
 
@@ -329,7 +338,7 @@ export function StreakWidget({ variant = "full", className, title = "Your Streak
 
       {/* Motivational message */}
       {data.totalCurrentStreak > 0 && (
-        <p className="text-xs text-center text-muted-foreground">
+        <p className="text-muted-foreground text-center text-xs">
           {data.totalCurrentStreak >= 21
             ? "🏆 Amazing dedication! You've built lasting habits!"
             : data.totalCurrentStreak >= 7

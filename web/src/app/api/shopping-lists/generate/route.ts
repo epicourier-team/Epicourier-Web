@@ -32,16 +32,14 @@ export async function POST(req: Request) {
 
     // Validate required fields
     if (!startDate || !endDate) {
-      return NextResponse.json(
-        { error: "startDate and endDate are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "startDate and endDate are required" }, { status: 400 });
     }
 
     // Fetch calendar entries within the date range
     let calendarQuery = supabase
       .from("Calendar")
-      .select(`
+      .select(
+        `
         id,
         date,
         meal_type,
@@ -49,7 +47,8 @@ export async function POST(req: Request) {
           id,
           name
         )
-      `)
+      `
+      )
       .eq("user_id", user.id)
       .gte("date", startDate)
       .lte("date", endDate)
@@ -75,19 +74,22 @@ export async function POST(req: Request) {
     }
 
     // Get unique recipe IDs - Recipe is a single object, not an array
-    const recipeIds = [...new Set(
-      calendarEntries
-        .map((e) => {
-          const recipe = e.Recipe as unknown as { id: number; name: string } | null;
-          return recipe?.id;
-        })
-        .filter((id): id is number => id !== undefined && id !== null)
-    )];
+    const recipeIds = [
+      ...new Set(
+        calendarEntries
+          .map((e) => {
+            const recipe = e.Recipe as unknown as { id: number; name: string } | null;
+            return recipe?.id;
+          })
+          .filter((id): id is number => id !== undefined && id !== null)
+      ),
+    ];
 
     // Fetch ingredients for all recipes
     const { data: recipeIngredients, error: ingredientsError } = await supabase
       .from("Recipe-Ingredient_Map")
-      .select(`
+      .select(
+        `
         recipe_id,
         relative_unit_100,
         Ingredient (
@@ -95,7 +97,8 @@ export async function POST(req: Request) {
           name,
           unit
         )
-      `)
+      `
+      )
       .in("recipe_id", recipeIds);
 
     if (ingredientsError) {
@@ -117,7 +120,11 @@ export async function POST(req: Request) {
 
     for (const ri of recipeIngredients || []) {
       // Ingredient is a single object from the join
-      const ingredient = ri.Ingredient as unknown as { id: number; name: string | null; unit: string | null } | null;
+      const ingredient = ri.Ingredient as unknown as {
+        id: number;
+        name: string | null;
+        unit: string | null;
+      } | null;
       if (!ingredient) continue;
 
       const existing = ingredientMap.get(ingredient.id);
@@ -138,8 +145,7 @@ export async function POST(req: Request) {
     }
 
     // Create the shopping list
-    const listName =
-      name || `Shopping List (${startDate} to ${endDate})`;
+    const listName = name || `Shopping List (${startDate} to ${endDate})`;
     const recipeNames = calendarEntries
       .map((e) => {
         const recipe = e.Recipe as unknown as { id: number; name: string } | null;
@@ -179,9 +185,7 @@ export async function POST(req: Request) {
     }));
 
     if (items.length > 0) {
-      const { error: itemsError } = await supabase
-        .from("shopping_list_items")
-        .insert(items);
+      const { error: itemsError } = await supabase.from("shopping_list_items").insert(items);
 
       if (itemsError) {
         console.error("Error adding items:", itemsError);
@@ -199,9 +203,6 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("Error generating shopping list:", error);
-    return NextResponse.json(
-      { error: "Failed to generate shopping list" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to generate shopping list" }, { status: 500 });
   }
 }

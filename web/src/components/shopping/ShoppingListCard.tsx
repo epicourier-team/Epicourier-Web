@@ -15,7 +15,7 @@ interface ShoppingListCardProps {
 
 /**
  * Shopping list card component
- * 
+ *
  * Features:
  * - Display list name, description, creation date
  * - Show item count (placeholder for now)

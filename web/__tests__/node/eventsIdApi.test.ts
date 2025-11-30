@@ -142,7 +142,11 @@ describe("PATCH /api/events/[id]", () => {
           }),
         };
       }
-      return { update: mockUpdate.mockReturnThis(), eq: mockEq.mockReturnThis(), select: jest.fn() };
+      return {
+        update: mockUpdate.mockReturnThis(),
+        eq: mockEq.mockReturnThis(),
+        select: jest.fn(),
+      };
     });
 
     const res = await PATCH(makeRequest({ status: true }), {
@@ -170,7 +174,11 @@ describe("PATCH /api/events/[id]", () => {
           }),
         };
       }
-      return { update: mockUpdate.mockReturnThis(), eq: mockEq.mockReturnThis(), select: jest.fn() };
+      return {
+        update: mockUpdate.mockReturnThis(),
+        eq: mockEq.mockReturnThis(),
+        select: jest.fn(),
+      };
     });
 
     const res = await PATCH(makeRequest({ status: true }), {
@@ -240,9 +248,7 @@ describe("PATCH /api/events/[id]", () => {
 
   it("returns 200 and skips sync when entry has no date", async () => {
     // Line 93: updatedEntry.date is null/undefined
-    const updatedData = [
-      { id: 1, date: null, meal_type: "dinner", status: true },
-    ];
+    const updatedData = [{ id: 1, date: null, meal_type: "dinner", status: true }];
 
     mockUpdate.mockReturnValueOnce({
       eq: jest.fn().mockReturnThis(),

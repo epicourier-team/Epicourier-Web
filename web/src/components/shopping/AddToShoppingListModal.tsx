@@ -246,7 +246,9 @@ export default function AddToShoppingListModal({
           {/* Ingredients Selection */}
           <div className="mb-4">
             <div className="mb-2 flex items-center justify-between">
-              <Label className="font-bold">Ingredients ({selectedIngredients.size}/{ingredients.length})</Label>
+              <Label className="font-bold">
+                Ingredients ({selectedIngredients.size}/{ingredients.length})
+              </Label>
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -270,7 +272,7 @@ export default function AddToShoppingListModal({
               {ingredients.map((ingredient) => (
                 <label
                   key={ingredient.id}
-                  className="flex cursor-pointer items-center gap-3 border-b border-gray-200 p-3 hover:bg-gray-50 last:border-b-0"
+                  className="flex cursor-pointer items-center gap-3 border-b border-gray-200 p-3 last:border-b-0 hover:bg-gray-50"
                 >
                   <Checkbox
                     checked={selectedIngredients.has(ingredient.id)}

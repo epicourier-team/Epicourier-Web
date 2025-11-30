@@ -129,9 +129,7 @@ export default function DashboardPage() {
               meals.map((m) => {
                 // Supabase returns nested relations - handle both array and object formats
                 const recipeData = m.Recipe;
-                const recipe = Array.isArray(recipeData) 
-                  ? recipeData[0] 
-                  : recipeData;
+                const recipe = Array.isArray(recipeData) ? recipeData[0] : recipeData;
                 return {
                   id: m.id,
                   date: m.date,
@@ -156,9 +154,7 @@ export default function DashboardPage() {
             userChallenges.map((uc) => {
               // Handle nested relation - could be array or object
               const challengeData = uc.challenges;
-              const challenge = Array.isArray(challengeData) 
-                ? challengeData[0] 
-                : challengeData;
+              const challenge = Array.isArray(challengeData) ? challengeData[0] : challengeData;
               return {
                 id: uc.id,
                 name: challenge?.name || "",
@@ -183,8 +179,8 @@ export default function DashboardPage() {
             achievements.map((a) => {
               // Handle nested relation - could be array or object
               const achievementData = a.achievement_definitions;
-              const achievement = Array.isArray(achievementData) 
-                ? achievementData[0] 
+              const achievement = Array.isArray(achievementData)
+                ? achievementData[0]
                 : achievementData;
               return {
                 id: a.id,
@@ -283,17 +279,17 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="mx-auto max-w-7xl space-y-6">
       {/* Welcome Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">
+          <h1 className="text-2xl font-bold sm:text-3xl">
             {getGreeting()}, {userName || "there"}! 👋
           </h1>
           <p className="text-muted-foreground">Track your nutrition journey and stay motivated</p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="w-4 h-4" />
+        <div className="text-muted-foreground flex items-center gap-2 text-sm">
+          <Clock className="h-4 w-4" />
           {new Date().toLocaleDateString("en-US", {
             weekday: "long",
             month: "long",
@@ -303,20 +299,20 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {quickStats.map((stat) => (
           <Link
             key={stat.label}
             href={stat.href}
-            className="group p-4 rounded-xl border bg-card shadow-sm hover:shadow-md transition-all hover:border-primary/30"
+            className="group bg-card hover:border-primary/30 rounded-xl border p-4 shadow-sm transition-all hover:shadow-md"
           >
             <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+              <div className={`rounded-lg p-2 ${stat.bgColor}`}>
+                <stat.icon className={`h-5 w-5 ${stat.color}`} />
               </div>
               <div>
                 <p className="text-2xl font-bold">{stat.value}</p>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
+                <p className="text-muted-foreground text-xs">{stat.label}</p>
               </div>
             </div>
           </Link>
@@ -327,51 +323,51 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Streak Widget - Left Column */}
         <div className="lg:col-span-1">
-          <div className="rounded-xl border bg-card p-5 shadow-sm h-full">
+          <div className="bg-card h-full rounded-xl border p-5 shadow-sm">
             <StreakWidget variant="full" title="Your Streaks" />
           </div>
         </div>
 
         {/* Middle & Right Columns */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 lg:col-span-2">
           {/* Active Challenges */}
-          <div className="rounded-xl border bg-card p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-card rounded-xl border p-5 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-purple-500" />
+                <Target className="h-5 w-5 text-purple-500" />
                 <h3 className="font-semibold">Active Challenges</h3>
               </div>
               <Link
                 href="/dashboard/challenges"
-                className="text-sm text-primary hover:underline flex items-center gap-1"
+                className="text-primary flex items-center gap-1 text-sm hover:underline"
               >
-                View all <ArrowRight className="w-3 h-3" />
+                View all <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
             {activeChallenges.length > 0 ? (
-              <div className="grid sm:grid-cols-2 gap-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {activeChallenges.map((challenge) => (
                   <div
                     key={challenge.id}
-                    className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                    className="bg-muted/50 hover:bg-muted rounded-lg p-3 transition-colors"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-sm truncate">{challenge.title}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="truncate text-sm font-medium">{challenge.title}</span>
+                      <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
                         {challenge.type}
                       </span>
                     </div>
                     {challenge.progress && (
                       <div className="space-y-1">
-                        <div className="flex justify-between text-xs text-muted-foreground">
+                        <div className="text-muted-foreground flex justify-between text-xs">
                           <span>Progress</span>
                           <span>
                             {challenge.progress.current}/{challenge.progress.target}
                           </span>
                         </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="bg-muted h-2 overflow-hidden rounded-full">
                           <div
-                            className="h-full bg-purple-500 rounded-full transition-all"
+                            className="h-full rounded-full bg-purple-500 transition-all"
                             style={{
                               width: `${Math.min(100, (challenge.progress.current / challenge.progress.target) * 100)}%`,
                             }}
@@ -383,10 +379,10 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-6 text-muted-foreground">
-                <Target className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <div className="text-muted-foreground py-6 text-center">
+                <Target className="mx-auto mb-2 h-8 w-8 opacity-50" />
                 <p className="text-sm">No active challenges</p>
-                <Link href="/dashboard/challenges" className="text-sm text-primary hover:underline">
+                <Link href="/dashboard/challenges" className="text-primary text-sm hover:underline">
                   Join a challenge
                 </Link>
               </div>
@@ -394,19 +390,19 @@ export default function DashboardPage() {
           </div>
 
           {/* Two Column: Recent Meals & Achievements */}
-          <div className="grid sm:grid-cols-2 gap-6">
+          <div className="grid gap-6 sm:grid-cols-2">
             {/* Recent Meals */}
-            <div className="rounded-xl border bg-card p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-card rounded-xl border p-5 shadow-sm">
+              <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ChefHat className="w-5 h-5 text-green-500" />
+                  <ChefHat className="h-5 w-5 text-green-500" />
                   <h3 className="font-semibold">Recent Meals</h3>
                 </div>
                 <Link
                   href="/dashboard/calendar"
-                  className="text-sm text-primary hover:underline flex items-center gap-1"
+                  className="text-primary flex items-center gap-1 text-sm hover:underline"
                 >
-                  Calendar <ArrowRight className="w-3 h-3" />
+                  Calendar <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
               {recentMeals.length > 0 ? (
@@ -414,14 +410,14 @@ export default function DashboardPage() {
                   {recentMeals.slice(0, 4).map((meal) => (
                     <div
                       key={meal.id}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                      className="hover:bg-muted/50 flex items-center gap-3 rounded-lg p-2 transition-colors"
                     >
                       <span className="text-lg">{getMealIcon(meal.meal_type)}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">
                           {meal.recipe?.name || "Unnamed meal"}
                         </p>
-                        <p className="text-xs text-muted-foreground capitalize">
+                        <p className="text-muted-foreground text-xs capitalize">
                           {formatDate(meal.date)} · {meal.meal_type}
                         </p>
                       </div>
@@ -429,10 +425,10 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-6 text-muted-foreground">
-                  <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <div className="text-muted-foreground py-6 text-center">
+                  <Calendar className="mx-auto mb-2 h-8 w-8 opacity-50" />
                   <p className="text-sm">No meals logged yet</p>
-                  <Link href="/dashboard/calendar" className="text-sm text-primary hover:underline">
+                  <Link href="/dashboard/calendar" className="text-primary text-sm hover:underline">
                     Log your first meal
                   </Link>
                 </div>
@@ -440,17 +436,17 @@ export default function DashboardPage() {
             </div>
 
             {/* Recent Achievements */}
-            <div className="rounded-xl border bg-card p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-card rounded-xl border p-5 shadow-sm">
+              <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-amber-500" />
+                  <Trophy className="h-5 w-5 text-amber-500" />
                   <h3 className="font-semibold">Recent Achievements</h3>
                 </div>
                 <Link
                   href="/dashboard/achievements"
-                  className="text-sm text-primary hover:underline flex items-center gap-1"
+                  className="text-primary flex items-center gap-1 text-sm hover:underline"
                 >
-                  View all <ArrowRight className="w-3 h-3" />
+                  View all <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
               {recentAchievements.length > 0 ? (
@@ -458,14 +454,14 @@ export default function DashboardPage() {
                   {recentAchievements.map((achievement) => (
                     <div
                       key={achievement.id}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                      className="hover:bg-muted/50 flex items-center gap-3 rounded-lg p-2 transition-colors"
                     >
-                      <div className={`p-2 rounded-lg ${getTierColor(achievement.tier)}`}>
-                        <Trophy className="w-4 h-4" />
+                      <div className={`rounded-lg p-2 ${getTierColor(achievement.tier)}`}>
+                        <Trophy className="h-4 w-4" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{achievement.title}</p>
-                        <p className="text-xs text-muted-foreground capitalize">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{achievement.title}</p>
+                        <p className="text-muted-foreground text-xs capitalize">
                           {achievement.tier} · {formatDate(achievement.earned_at)}
                         </p>
                       </div>
@@ -473,12 +469,12 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-6 text-muted-foreground">
-                  <Trophy className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <div className="text-muted-foreground py-6 text-center">
+                  <Trophy className="mx-auto mb-2 h-8 w-8 opacity-50" />
                   <p className="text-sm">No achievements yet</p>
                   <Link
                     href="/dashboard/achievements"
-                    className="text-sm text-primary hover:underline"
+                    className="text-primary text-sm hover:underline"
                   >
                     Start earning
                   </Link>
@@ -490,35 +486,35 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions Footer */}
-      <div className="rounded-xl border bg-card p-5 shadow-sm">
-        <h3 className="font-semibold mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="bg-card rounded-xl border p-5 shadow-sm">
+        <h3 className="mb-4 font-semibold">Quick Actions</h3>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Link
             href="/dashboard/calendar"
-            className="flex flex-col items-center gap-2 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/20 hover:bg-blue-100 dark:hover:bg-blue-950/40 transition-colors"
+            className="flex flex-col items-center gap-2 rounded-lg bg-blue-50 p-4 transition-colors hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/40"
           >
-            <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             <span className="text-sm font-medium">Log Meal</span>
           </Link>
           <Link
             href="/dashboard/recipes"
-            className="flex flex-col items-center gap-2 p-4 rounded-lg bg-green-50 dark:bg-green-950/20 hover:bg-green-100 dark:hover:bg-green-950/40 transition-colors"
+            className="flex flex-col items-center gap-2 rounded-lg bg-green-50 p-4 transition-colors hover:bg-green-100 dark:bg-green-950/20 dark:hover:bg-green-950/40"
           >
-            <ChefHat className="w-6 h-6 text-green-600 dark:text-green-400" />
+            <ChefHat className="h-6 w-6 text-green-600 dark:text-green-400" />
             <span className="text-sm font-medium">Browse Recipes</span>
           </Link>
           <Link
             href="/dashboard/challenges"
-            className="flex flex-col items-center gap-2 p-4 rounded-lg bg-purple-50 dark:bg-purple-950/20 hover:bg-purple-100 dark:hover:bg-purple-950/40 transition-colors"
+            className="flex flex-col items-center gap-2 rounded-lg bg-purple-50 p-4 transition-colors hover:bg-purple-100 dark:bg-purple-950/20 dark:hover:bg-purple-950/40"
           >
-            <Target className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            <Target className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             <span className="text-sm font-medium">Challenges</span>
           </Link>
           <Link
             href="/dashboard/achievements"
-            className="flex flex-col items-center gap-2 p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 hover:bg-amber-100 dark:hover:bg-amber-950/40 transition-colors"
+            className="flex flex-col items-center gap-2 rounded-lg bg-amber-50 p-4 transition-colors hover:bg-amber-100 dark:bg-amber-950/20 dark:hover:bg-amber-950/40"
           >
-            <Trophy className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+            <Trophy className="h-6 w-6 text-amber-600 dark:text-amber-400" />
             <span className="text-sm font-medium">Achievements</span>
           </Link>
         </div>

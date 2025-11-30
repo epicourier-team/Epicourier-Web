@@ -129,8 +129,7 @@ describe("GET /api/events", () => {
     mockSelect.mockReturnValueOnce({
       eq: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnValue({
-        then: async (resolve: (...args: unknown[]) => void) =>
-          resolve({ data: [], error: null }),
+        then: async (resolve: (...args: unknown[]) => void) => resolve({ data: [], error: null }),
       }),
     });
 
@@ -275,8 +274,7 @@ describe("POST /api/events", () => {
     mockSelect.mockReturnValueOnce({
       eq: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnValue({
-        then: async (resolve: (...args: unknown[]) => void) =>
-          resolve({ data: [], error: null }),
+        then: async (resolve: (...args: unknown[]) => void) => resolve({ data: [], error: null }),
       }),
     });
 

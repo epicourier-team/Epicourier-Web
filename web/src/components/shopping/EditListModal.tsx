@@ -23,7 +23,7 @@ interface EditListModalProps {
 
 /**
  * Modal for editing an existing shopping list
- * 
+ *
  * Features:
  * - Edit name and description
  * - Form validation

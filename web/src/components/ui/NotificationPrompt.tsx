@@ -86,13 +86,13 @@ export function NotificationPrompt({
       <div className={`flex items-center justify-between gap-4 ${className}`}>
         <div className="flex items-center gap-3">
           {isSubscribed ? (
-            <Bell className="w-5 h-5 text-green-600" />
+            <Bell className="h-5 w-5 text-green-600" />
           ) : (
-            <BellOff className="w-5 h-5 text-muted-foreground" />
+            <BellOff className="text-muted-foreground h-5 w-5" />
           )}
           <div>
             <p className="font-medium">Push Notifications</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               {isSubscribed
                 ? "You'll receive notifications for achievements"
                 : "Get notified when you earn achievements"}
@@ -103,14 +103,14 @@ export function NotificationPrompt({
         <button
           onClick={isSubscribed ? handleDisableNotifications : handleEnableNotifications}
           disabled={isLoading || permission === "denied"}
-          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
             isSubscribed
               ? "bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
               : "bg-primary text-primary-foreground hover:opacity-90"
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
+          } disabled:cursor-not-allowed disabled:opacity-50`}
         >
           {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : isSubscribed ? (
             "Disable"
           ) : (
@@ -125,17 +125,17 @@ export function NotificationPrompt({
   if (permission === "denied") {
     return (
       <div
-        className={`p-4 rounded-xl border bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800 ${className}`}
+        className={`rounded-xl border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-950/20 ${className}`}
       >
         <div className="flex items-start gap-3">
-          <XCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+          <XCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-600 dark:text-yellow-400" />
           <div>
             <p className="font-medium text-yellow-800 dark:text-yellow-200">
               Notifications Blocked
             </p>
-            <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-              You&apos;ve blocked notifications for this site. To enable them, click the lock icon in
-              your browser&apos;s address bar and allow notifications.
+            <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
+              You&apos;ve blocked notifications for this site. To enable them, click the lock icon
+              in your browser&apos;s address bar and allow notifications.
             </p>
           </div>
         </div>
@@ -146,23 +146,23 @@ export function NotificationPrompt({
   if (isSubscribed) {
     return (
       <div
-        className={`p-4 rounded-xl border bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 ${className}`}
+        className={`rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950/20 ${className}`}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+            <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
             <div>
               <p className="font-medium text-green-800 dark:text-green-200">
                 Notifications Enabled
               </p>
-              <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+              <p className="mt-1 text-sm text-green-700 dark:text-green-300">
                 You&apos;ll receive notifications when you earn achievements.
               </p>
             </div>
           </div>
           <button
             onClick={handleDismiss}
-            className="text-sm text-green-600 dark:text-green-400 hover:underline"
+            className="text-sm text-green-600 hover:underline dark:text-green-400"
           >
             Dismiss
           </button>
@@ -173,31 +173,27 @@ export function NotificationPrompt({
 
   return (
     <div
-      className={`p-4 rounded-xl border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 ${className}`}
+      className={`rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/20 ${className}`}
     >
       <div className="flex items-start gap-3">
-        <Bell className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+        <Bell className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
         <div className="flex-1">
-          <p className="font-medium text-blue-800 dark:text-blue-200">
-            Enable Push Notifications
-          </p>
-          <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+          <p className="font-medium text-blue-800 dark:text-blue-200">Enable Push Notifications</p>
+          <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
             Get notified when you unlock achievements, even when you&apos;re not using the app.
           </p>
 
-          {error && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-2">{error}</p>
-          )}
+          {error && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
 
-          <div className="flex items-center gap-3 mt-4">
+          <div className="mt-4 flex items-center gap-3">
             <button
               onClick={handleEnableNotifications}
               disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Enabling...
                 </span>
               ) : (
@@ -206,7 +202,7 @@ export function NotificationPrompt({
             </button>
             <button
               onClick={handleDismiss}
-              className="px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+              className="px-4 py-2 text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
             >
               Not now
             </button>

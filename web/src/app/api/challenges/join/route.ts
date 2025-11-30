@@ -50,10 +50,7 @@ export async function POST(request: Request) {
       .single();
 
     if (challengeError || !challenge) {
-      return NextResponse.json(
-        { error: "Challenge not found or not active" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Challenge not found or not active" }, { status: 404 });
     }
 
     // Check if user already joined this challenge

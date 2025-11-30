@@ -95,7 +95,7 @@ async function sendToSubscription(
     return true;
   } catch (error: unknown) {
     const webPushError = error as { statusCode?: number };
-    
+
     // Handle expired or invalid subscriptions
     if (webPushError.statusCode === 410 || webPushError.statusCode === 404) {
       console.log(`Removing expired subscription ${subscription.id}`);
@@ -115,7 +115,7 @@ export async function sendAchievementNotification(
   achievement: Achievement
 ): Promise<{ sent: number; failed: number }> {
   const subscriptions = await getUserSubscriptions(userId);
-  
+
   if (subscriptions.length === 0) {
     return { sent: 0, failed: 0 };
   }
@@ -185,7 +185,7 @@ export async function sendNotification(
   data?: Record<string, unknown>
 ): Promise<{ sent: number; failed: number }> {
   const subscriptions = await getUserSubscriptions(userId);
-  
+
   if (subscriptions.length === 0) {
     return { sent: 0, failed: 0 };
   }

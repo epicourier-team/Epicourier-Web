@@ -59,9 +59,7 @@ self.addEventListener("push", (event) => {
     ],
   };
 
-  event.waitUntil(
-    self.registration.showNotification(title || "EpiCourier", options)
-  );
+  event.waitUntil(self.registration.showNotification(title || "EpiCourier", options));
 });
 
 // Notification click event
@@ -89,21 +87,19 @@ self.addEventListener("notificationclick", (event) => {
 
   // Open or focus the app
   event.waitUntil(
-    self.clients
-      .matchAll({ type: "window", includeUncontrolled: true })
-      .then((clientList) => {
-        // If there's already a window open, focus it
-        for (const client of clientList) {
-          if (client.url.includes(self.location.origin) && "focus" in client) {
-            client.navigate(urlToOpen);
-            return client.focus();
-          }
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      // If there's already a window open, focus it
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && "focus" in client) {
+          client.navigate(urlToOpen);
+          return client.focus();
         }
-        // Otherwise, open a new window
-        if (self.clients.openWindow) {
-          return self.clients.openWindow(urlToOpen);
-        }
-      })
+      }
+      // Otherwise, open a new window
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(urlToOpen);
+      }
+    })
   );
 });
 

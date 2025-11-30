@@ -115,7 +115,8 @@ export async function GET() {
     for (const challenge of challenges ?? []) {
       const userChallenge = userChallengeMap.get(challenge.id);
       const isJoined = !!userChallenge;
-      const isCompleted = userChallenge?.completed_at !== null && userChallenge?.completed_at !== undefined;
+      const isCompleted =
+        userChallenge?.completed_at !== null && userChallenge?.completed_at !== undefined;
 
       // Calculate progress
       const progress = calculateProgress(challenge as Challenge, stats);
@@ -216,9 +217,7 @@ async function calculateUserStats(
         return meal.Recipe?.["Recipe-Tag_Map"]?.some((tm) => {
           const tagName = tm.Tag?.name?.toLowerCase() || "";
           return (
-            tagName.includes("sustainable") ||
-            tagName.includes("green") ||
-            tagName.includes("eco")
+            tagName.includes("sustainable") || tagName.includes("green") || tagName.includes("eco")
           );
         });
       }).length;
@@ -233,9 +232,7 @@ async function calculateUserStats(
         return meal.Recipe?.["Recipe-Tag_Map"]?.some((tm) => {
           const tagName = tm.Tag?.name?.toLowerCase() || "";
           return (
-            tagName.includes("sustainable") ||
-            tagName.includes("green") ||
-            tagName.includes("eco")
+            tagName.includes("sustainable") || tagName.includes("green") || tagName.includes("eco")
           );
         });
       }).length;
@@ -250,9 +247,7 @@ async function calculateUserStats(
         return meal.Recipe?.["Recipe-Tag_Map"]?.some((tm) => {
           const tagName = tm.Tag?.name?.toLowerCase() || "";
           return (
-            tagName.includes("sustainable") ||
-            tagName.includes("green") ||
-            tagName.includes("eco")
+            tagName.includes("sustainable") || tagName.includes("green") || tagName.includes("eco")
           );
         });
       }).length;
@@ -295,10 +290,7 @@ async function calculateUserStats(
 /**
  * Calculate progress for a specific challenge
  */
-function calculateProgress(
-  challenge: Challenge,
-  stats: Record<string, number>
-): ChallengeProgress {
+function calculateProgress(challenge: Challenge, stats: Record<string, number>): ChallengeProgress {
   const { criteria } = challenge;
   const period = criteria.period;
   let current = 0;
@@ -377,9 +369,7 @@ function calculateDaysRemaining(challenge: Challenge): number {
 function calculateStreak(dates: string[]): number {
   if (dates.length === 0) return 0;
 
-  const sortedDates = dates
-    .map((d) => new Date(d))
-    .sort((a, b) => b.getTime() - a.getTime());
+  const sortedDates = dates.map((d) => new Date(d)).sort((a, b) => b.getTime() - a.getTime());
 
   let streak = 1;
   const today = new Date();
@@ -399,9 +389,7 @@ function calculateStreak(dates: string[]): number {
     current.setHours(0, 0, 0, 0);
     previous.setHours(0, 0, 0, 0);
 
-    const dayDiff = Math.floor(
-      (previous.getTime() - current.getTime()) / (1000 * 60 * 60 * 24)
-    );
+    const dayDiff = Math.floor((previous.getTime() - current.getTime()) / (1000 * 60 * 60 * 24));
     if (dayDiff === 1) {
       streak++;
     } else {

@@ -42,7 +42,11 @@ export async function POST(request: Request) {
   }
 
   // Validate subscription data
-  if (!body.subscription?.endpoint || !body.subscription?.keys?.p256dh || !body.subscription?.keys?.auth) {
+  if (
+    !body.subscription?.endpoint ||
+    !body.subscription?.keys?.p256dh ||
+    !body.subscription?.keys?.auth
+  ) {
     return NextResponse.json<NotificationResponse>(
       { success: false, message: "Invalid subscription data: missing endpoint or keys" },
       { status: 400 }
@@ -85,14 +89,12 @@ export async function POST(request: Request) {
     }
 
     // Insert new subscription
-    const { error: insertError } = await supabase
-      .from("push_subscriptions")
-      .insert({
-        user_id: authUserId,
-        endpoint,
-        p256dh: keys.p256dh,
-        auth: keys.auth,
-      });
+    const { error: insertError } = await supabase.from("push_subscriptions").insert({
+      user_id: authUserId,
+      endpoint,
+      p256dh: keys.p256dh,
+      auth: keys.auth,
+    });
 
     if (insertError) {
       console.error("Error inserting push subscription:", insertError.message);
@@ -132,10 +134,7 @@ export async function GET() {
     ({ authUserId } = await getUserIdentity(supabase));
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : "Unauthorized";
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 401 });
   }
 
   try {
@@ -146,10 +145,7 @@ export async function GET() {
 
     if (error) {
       console.error("Error checking subscriptions:", error.message);
-      return NextResponse.json(
-        { error: "Failed to check subscriptions" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Failed to check subscriptions" }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -159,9 +155,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Error in subscription check:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

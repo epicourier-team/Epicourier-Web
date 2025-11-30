@@ -261,7 +261,7 @@ export default function ChallengesPage() {
             <button
               key={key}
               onClick={() => setTab(key as typeof tab)}
-              className={`brutalism-border whitespace-nowrap px-4 py-2 text-sm font-bold transition-all ${
+              className={`brutalism-border px-4 py-2 text-sm font-bold whitespace-nowrap transition-all ${
                 tab === key
                   ? "brutalism-shadow -translate-y-0.5 bg-black text-white"
                   : "bg-white text-gray-700 hover:bg-gray-100"
@@ -408,7 +408,9 @@ export default function ChallengesPage() {
             <p className="text-sm font-medium text-blue-600">Available</p>
           </div>
           <div className="brutalism-border brutalism-shadow bg-yellow-50 p-4 text-center">
-            <p className="brutalism-text-bold text-2xl text-yellow-700">{joinedChallenges.length}</p>
+            <p className="brutalism-text-bold text-2xl text-yellow-700">
+              {joinedChallenges.length}
+            </p>
             <p className="text-sm font-medium text-yellow-600">In Progress</p>
           </div>
           <div className="brutalism-border brutalism-shadow bg-green-50 p-4 text-center">

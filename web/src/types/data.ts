@@ -191,7 +191,12 @@ export type ChallengeType = "weekly" | "monthly" | "special";
 /**
  * Challenge category: content-based grouping
  */
-export type ChallengeCategory = "nutrition" | "sustainability" | "habits" | "recipes" | "milestones";
+export type ChallengeCategory =
+  | "nutrition"
+  | "sustainability"
+  | "habits"
+  | "recipes"
+  | "milestones";
 
 /**
  * Challenge criteria structure (stored as JSONB in database)

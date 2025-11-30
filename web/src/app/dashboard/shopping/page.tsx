@@ -11,7 +11,7 @@ import type { ShoppingList } from "@/types/data";
 
 /**
  * Shopping Lists page - manage multiple shopping lists
- * 
+ *
  * Features:
  * - Display all shopping lists as cards
  * - Create new shopping list via modal

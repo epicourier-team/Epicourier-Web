@@ -10,7 +10,7 @@ import { getVapidPublicKey, isPushConfigured } from "@/lib/pushNotifications";
 export async function GET() {
   if (!isPushConfigured()) {
     return NextResponse.json(
-      { 
+      {
         error: "Push notifications not configured",
         configured: false,
       },
