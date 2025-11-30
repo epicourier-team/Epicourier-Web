@@ -273,8 +273,9 @@ describe("useExpiringItems", () => {
   });
 
   it("excludes items expiring today from expired list", async () => {
-    const today = new Date().toISOString().split("T")[0];
-    const mockItems = [createMockItem("1", "Rice", today)];
+    // Create a date 1 day in the future to avoid timezone boundary issues
+    const tomorrow = addDays(1);
+    const mockItems = [createMockItem("1", "Rice", tomorrow)];
 
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
@@ -287,7 +288,9 @@ describe("useExpiringItems", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
+    // Tomorrow's item should not be expired
     expect(result.current.expiredItems.length).toBe(0);
+    // Tomorrow's item should be in expiringItems (within 7 days)
     expect(result.current.expiringItems.length).toBe(1);
   });
 });

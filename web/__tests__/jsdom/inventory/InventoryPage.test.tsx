@@ -20,7 +20,7 @@ describe("InventoryPage", () => {
     jest.clearAllMocks();
     // Default mock: empty inventory
     mockFetch.mockImplementation((url: string) => {
-      if (url === "/api/inventory") {
+      if (url.startsWith("/api/inventory")) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -103,11 +103,11 @@ describe("InventoryPage", () => {
     });
   });
 
-  it("has button with proper title attribute", async () => {
+  it("has Suggest Recipes button with disabled state when empty", async () => {
     render(<InventoryPage />);
     await waitFor(() => {
       const button = screen.getByRole("button", { name: /suggest recipes/i });
-      expect(button).toHaveAttribute("title", "Suggest recipes based on inventory");
+      expect(button).toBeDisabled();
     });
   });
 
@@ -135,24 +135,28 @@ describe("InventoryPage", () => {
     fireEvent.click(screen.getByText("Add Item"));
 
     await waitFor(() => {
-      expect(screen.getByText("Add Inventory Item")).toBeInTheDocument();
+      // Check for dialog title (h2 element)
+      expect(screen.getByRole("heading", { name: /add to inventory/i })).toBeInTheDocument();
     });
   });
 
   it("shows toast when fetch fails", async () => {
-    mockFetch.mockImplementationOnce(() =>
-      Promise.resolve({
-        ok: false,
-        status: 500,
-      })
-    );
+    mockFetch.mockImplementation((url: string) => {
+      if (url.startsWith("/api/inventory")) {
+        return Promise.resolve({
+          ok: false,
+          status: 500,
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
 
     render(<InventoryPage />);
 
     await waitFor(() => {
       expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: "❌ Error",
+          title: "Error",
           description: "Failed to load inventory",
           variant: "destructive",
         })
@@ -161,19 +165,22 @@ describe("InventoryPage", () => {
   });
 
   it("shows authentication toast when unauthorized", async () => {
-    mockFetch.mockImplementationOnce(() =>
-      Promise.resolve({
-        ok: false,
-        status: 401,
-      })
-    );
+    mockFetch.mockImplementation((url: string) => {
+      if (url.startsWith("/api/inventory")) {
+        return Promise.resolve({
+          ok: false,
+          status: 401,
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
 
     render(<InventoryPage />);
 
     await waitFor(() => {
       expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: "⚠️ Authentication Required",
+          title: "Authentication Required",
           description: "Please sign in to view your inventory",
           variant: "destructive",
         })
@@ -183,7 +190,7 @@ describe("InventoryPage", () => {
 
   it("renders inventory items when available", async () => {
     mockFetch.mockImplementation((url: string) => {
-      if (url === "/api/inventory") {
+      if (url.startsWith("/api/inventory")) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -236,7 +243,7 @@ describe("InventoryPage", () => {
 
   it("shows location filter buttons with counts", async () => {
     mockFetch.mockImplementation((url: string) => {
-      if (url === "/api/inventory") {
+      if (url.startsWith("/api/inventory")) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -282,15 +289,52 @@ describe("InventoryPage", () => {
     render(<InventoryPage />);
 
     await waitFor(() => {
-      // Check that location summary is shown
-      expect(screen.getByText("fridge")).toBeInTheDocument();
-      expect(screen.getByText("pantry")).toBeInTheDocument();
+      // Check that location tabs are shown (capitalized labels)
+      expect(screen.getByText("Fridge")).toBeInTheDocument();
+      expect(screen.getByText("Pantry")).toBeInTheDocument();
     });
   });
 
   it("filters items by search query", async () => {
+    // Initial mock returns two items
     mockFetch.mockImplementation((url: string) => {
-      if (url === "/api/inventory") {
+      if (url.startsWith("/api/inventory")) {
+        // Check if this is a search request
+        if (url.includes("search=Chicken")) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                items: [
+                  {
+                    id: "1",
+                    user_id: "user-1",
+                    ingredient_id: 1,
+                    quantity: 2,
+                    unit: "kg",
+                    location: "fridge",
+                    expiration_date: null,
+                    min_quantity: null,
+                    notes: null,
+                    created_at: "2025-01-01",
+                    updated_at: "2025-01-01",
+                    ingredient: { id: 1, name: "Chicken", unit: "kg" },
+                    expiration_status: "unknown",
+                    days_until_expiration: null,
+                    is_low_stock: false,
+                  },
+                ],
+                summary: {
+                  total_items: 1,
+                  expiring_soon: 0,
+                  expired: 0,
+                  low_stock: 0,
+                  by_location: { pantry: 0, fridge: 1, freezer: 0, other: 0 },
+                },
+              }),
+          });
+        }
+        // Default: return both items
         return Promise.resolve({
           ok: true,
           json: () =>

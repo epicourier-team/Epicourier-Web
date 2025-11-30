@@ -2,6 +2,18 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import EditInventoryModal from "@/components/inventory/EditInventoryModal";
 import type { InventoryItemWithDetails, Ingredient } from "@/types/data";
 
+// Mock useToast
+const mockToast = jest.fn();
+jest.mock("@/hooks/use-toast", () => ({
+  useToast: () => ({
+    toast: mockToast,
+  }),
+}));
+
+// Mock fetch
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
+
 describe("EditInventoryModal", () => {
   const mockIngredient: Ingredient = {
     id: 1,
@@ -42,32 +54,27 @@ describe("EditInventoryModal", () => {
   };
 
   const mockOnClose = jest.fn();
-  const mockOnSubmit = jest.fn();
+  const mockOnSuccess = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockOnSubmit.mockResolvedValue(true);
-  });
-
-  it("renders nothing when isOpen is false", () => {
-    render(
-      <EditInventoryModal
-        item={mockItem}
-        isOpen={false}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-      />
-    );
-
-    expect(screen.queryByTestId("edit-inventory-modal")).not.toBeInTheDocument();
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true }),
+    });
   });
 
   it("renders nothing when item is null", () => {
-    render(
-      <EditInventoryModal item={null} isOpen={true} onClose={mockOnClose} onSubmit={mockOnSubmit} />
+    const { container } = render(
+      <EditInventoryModal
+        item={null}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSuccess={mockOnSuccess}
+      />
     );
 
-    expect(screen.queryByTestId("edit-inventory-modal")).not.toBeInTheDocument();
+    expect(container).toBeEmptyDOMElement();
   });
 
   it("renders modal when isOpen is true and item is provided", () => {
@@ -76,21 +83,21 @@ describe("EditInventoryModal", () => {
         item={mockItem}
         isOpen={true}
         onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
+        onSuccess={mockOnSuccess}
       />
     );
 
-    expect(screen.getByTestId("edit-inventory-modal")).toBeInTheDocument();
-    expect(screen.getByText("Edit Inventory Item")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /edit item/i })).toBeInTheDocument();
+    expect(screen.getByText("Chicken Breast")).toBeInTheDocument();
   });
 
-  it("displays ingredient name as read-only", () => {
+  it("displays ingredient name in the description", () => {
     render(
       <EditInventoryModal
         item={mockItem}
         isOpen={true}
         onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
+        onSuccess={mockOnSuccess}
       />
     );
 
@@ -103,143 +110,191 @@ describe("EditInventoryModal", () => {
         item={mockItem}
         isOpen={true}
         onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
+        onSuccess={mockOnSuccess}
       />
     );
 
-    expect(screen.getByTestId("quantity-input")).toHaveValue(5);
-    expect(screen.getByTestId("unit-input")).toHaveValue("kg");
-    expect(screen.getByTestId("location-select")).toHaveValue("fridge");
-    expect(screen.getByTestId("expiration-input")).toHaveValue("2025-12-25");
-    expect(screen.getByTestId("min-quantity-input")).toHaveValue(2);
-    expect(screen.getByTestId("notes-input")).toHaveValue("Test notes");
+    // Check quantity input - first spinbutton in the form
+    const spinbuttons = screen.getAllByRole("spinbutton");
+    expect(spinbuttons[0]).toHaveValue(5);
+
+    // Check unit input
+    const unitInput = screen.getByPlaceholderText(/g, ml, pcs/i);
+    expect(unitInput).toHaveValue("kg");
+
+    // Check location is selected (fridge button should be active)
+    const fridgeButton = screen.getByRole("button", { name: /fridge/i });
+    expect(fridgeButton).toHaveClass("bg-black");
+
+    // Check notes
+    const notesInput = screen.getByPlaceholderText(/optional notes/i);
+    expect(notesInput).toHaveValue("Test notes");
   });
 
-  it("calls onClose when close button is clicked", () => {
+  it("calls onClose when cancel button is clicked", () => {
     render(
       <EditInventoryModal
         item={mockItem}
         isOpen={true}
         onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
+        onSuccess={mockOnSuccess}
       />
     );
 
-    fireEvent.click(screen.getByTestId("close-modal-button"));
+    fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it("validates quantity before submission", () => {
+  it("validates quantity before submission", async () => {
     render(
       <EditInventoryModal
         item={mockItem}
         isOpen={true}
         onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
+        onSuccess={mockOnSuccess}
       />
     );
 
-    const quantityInput = screen.getByTestId("quantity-input");
-    // HTML5 validation: input has min="0.01" attribute
-    expect(quantityInput).toHaveAttribute("min", "0.01");
-    expect(quantityInput).toHaveAttribute("required");
-  });
+    // Clear quantity - first spinbutton is the quantity input
+    const spinbuttons = screen.getAllByRole("spinbutton");
+    fireEvent.change(spinbuttons[0], { target: { value: "" } });
 
-  it("calls onSubmit with correct data when form is submitted", async () => {
-    render(
-      <EditInventoryModal
-        item={mockItem}
-        isOpen={true}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-      />
-    );
-
-    // Update some fields
-    const quantityInput = screen.getByTestId("quantity-input");
-    fireEvent.change(quantityInput, { target: { value: "10" } });
-
-    const locationSelect = screen.getByTestId("location-select");
-    fireEvent.change(locationSelect, { target: { value: "pantry" } });
-
-    const submitButton = screen.getByTestId("submit-button");
+    // Submit form
+    const submitButton = screen.getByRole("button", { name: /save changes/i });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(mockOnSubmit).toHaveBeenCalledWith("test-id-123", {
-        quantity: 10,
-        unit: "kg",
-        location: "pantry",
-        expiration_date: "2025-12-25",
-        min_quantity: 2,
-        notes: "Test notes",
-      });
-    });
-  });
-
-  it("closes modal on successful submission", async () => {
-    render(
-      <EditInventoryModal
-        item={mockItem}
-        isOpen={true}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-      />
-    );
-
-    const submitButton = screen.getByTestId("submit-button");
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(mockOnClose).toHaveBeenCalled();
-    });
-  });
-
-  it("shows error message when submission fails", async () => {
-    mockOnSubmit.mockResolvedValueOnce(false);
-
-    render(
-      <EditInventoryModal
-        item={mockItem}
-        isOpen={true}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-      />
-    );
-
-    const submitButton = screen.getByTestId("submit-button");
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("form-error")).toHaveTextContent(
-        "Failed to update item. Please try again."
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "⚠️ Invalid Quantity",
+          variant: "destructive",
+        })
       );
     });
 
-    expect(mockOnClose).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it("shows loading state when submitting", async () => {
-    mockOnSubmit.mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve(true), 100))
+  it("calls API with correct data when form is submitted", async () => {
+    render(
+      <EditInventoryModal
+        item={mockItem}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSuccess={mockOnSuccess}
+      />
     );
+
+    // Update quantity - first spinbutton is the quantity input
+    const spinbuttons = screen.getAllByRole("spinbutton");
+    fireEvent.change(spinbuttons[0], { target: { value: "10" } });
+
+    // Change location to pantry
+    const pantryButton = screen.getByRole("button", { name: /pantry/i });
+    fireEvent.click(pantryButton);
+
+    // Submit form
+    const submitButton = screen.getByRole("button", { name: /save changes/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        `/api/inventory/${mockItem.id}`,
+        expect.objectContaining({
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: expect.stringContaining('"quantity":10'),
+        })
+      );
+    });
+  });
+
+  it("calls onSuccess after successful submission", async () => {
+    render(
+      <EditInventoryModal
+        item={mockItem}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSuccess={mockOnSuccess}
+      />
+    );
+
+    const submitButton = screen.getByRole("button", { name: /save changes/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockOnSuccess).toHaveBeenCalled();
+    });
+
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "✅ Updated",
+      })
+    );
+  });
+
+  it("shows error toast when API call fails", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: "Server error" }),
+    });
 
     render(
       <EditInventoryModal
         item={mockItem}
         isOpen={true}
         onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
+        onSuccess={mockOnSuccess}
       />
     );
 
-    const submitButton = screen.getByTestId("submit-button");
+    const submitButton = screen.getByRole("button", { name: /save changes/i });
     fireEvent.click(submitButton);
 
-    expect(screen.getByText("Saving...")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "❌ Error",
+          variant: "destructive",
+        })
+      );
+    });
+
+    expect(mockOnSuccess).not.toHaveBeenCalled();
+  });
+
+  it("shows loading state when submitting", async () => {
+    let resolvePromise: (value: unknown) => void;
+    const pendingPromise = new Promise((resolve) => {
+      resolvePromise = resolve;
+    });
+
+    mockFetch.mockImplementationOnce(() => pendingPromise);
+
+    render(
+      <EditInventoryModal
+        item={mockItem}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSuccess={mockOnSuccess}
+      />
+    );
+
+    const submitButton = screen.getByRole("button", { name: /save changes/i });
+    fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(mockOnClose).toHaveBeenCalled();
+      expect(screen.getByText("Saving...")).toBeInTheDocument();
+    });
+
+    // Resolve the promise
+    resolvePromise!({
+      ok: true,
+      json: async () => ({ success: true }),
+    });
+
+    await waitFor(() => {
+      expect(mockOnSuccess).toHaveBeenCalled();
     });
   });
 
@@ -249,11 +304,13 @@ describe("EditInventoryModal", () => {
         item={mockItem}
         isOpen={true}
         onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
+        onSuccess={mockOnSuccess}
       />
     );
 
-    expect(screen.getByTestId("quantity-input")).toHaveValue(5);
+    // First spinbutton is quantity input
+    const spinbuttons = screen.getAllByRole("spinbutton");
+    expect(spinbuttons[0]).toHaveValue(5);
 
     const updatedItem: InventoryItemWithDetails = {
       ...mockItem,
@@ -266,43 +323,78 @@ describe("EditInventoryModal", () => {
         item={updatedItem}
         isOpen={true}
         onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
+        onSuccess={mockOnSuccess}
       />
     );
 
-    expect(screen.getByTestId("quantity-input")).toHaveValue(15);
-    expect(screen.getByTestId("location-select")).toHaveValue("freezer");
+    expect(spinbuttons[0]).toHaveValue(15);
   });
 
-  it("clears optional fields correctly", async () => {
+  it("allows changing storage location", () => {
     render(
       <EditInventoryModal
         item={mockItem}
         isOpen={true}
         onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
+        onSuccess={mockOnSuccess}
       />
     );
 
-    // Clear expiration date
-    const expirationInput = screen.getByTestId("expiration-input");
-    fireEvent.change(expirationInput, { target: { value: "" } });
+    // Initially fridge is selected
+    const fridgeButton = screen.getByRole("button", { name: /fridge/i });
+    expect(fridgeButton).toHaveClass("bg-black");
 
-    // Clear min quantity
-    const minQuantityInput = screen.getByTestId("min-quantity-input");
-    fireEvent.change(minQuantityInput, { target: { value: "" } });
+    // Click freezer
+    const freezerButton = screen.getByRole("button", { name: /freezer/i });
+    fireEvent.click(freezerButton);
 
-    const submitButton = screen.getByTestId("submit-button");
+    // Now freezer should be selected
+    expect(freezerButton).toHaveClass("bg-black");
+    expect(fridgeButton).not.toHaveClass("bg-black");
+  });
+
+  it("handles item without ingredient name gracefully", () => {
+    // Test edge case where ingredient might be missing (using type assertion)
+    const itemWithoutIngredient = {
+      ...mockItem,
+      ingredient: undefined,
+    } as unknown as InventoryItemWithDetails;
+
+    render(
+      <EditInventoryModal
+        item={itemWithoutIngredient}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSuccess={mockOnSuccess}
+      />
+    );
+
+    expect(screen.getByText(/ingredient #1/i)).toBeInTheDocument();
+  });
+
+  it("clears optional fields correctly when submitting", async () => {
+    render(
+      <EditInventoryModal
+        item={mockItem}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSuccess={mockOnSuccess}
+      />
+    );
+
+    // Clear notes
+    const notesInput = screen.getByPlaceholderText(/optional notes/i);
+    fireEvent.change(notesInput, { target: { value: "" } });
+
+    // Submit form
+    const submitButton = screen.getByRole("button", { name: /save changes/i });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(mockOnSubmit).toHaveBeenCalledWith(
-        "test-id-123",
-        expect.objectContaining({
-          expiration_date: null,
-          min_quantity: null,
-        })
-      );
+      expect(mockFetch).toHaveBeenCalled();
     });
+
+    const requestBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(requestBody.notes).toBeNull();
   });
 });

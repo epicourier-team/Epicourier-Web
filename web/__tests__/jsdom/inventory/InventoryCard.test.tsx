@@ -124,9 +124,11 @@ describe("InventoryCard", () => {
     expect(screen.queryByTestId("stock-status")).not.toBeInTheDocument();
   });
 
-  it("displays expiration badge", () => {
+  it("displays expiration badge with status", () => {
     render(<InventoryCard item={createMockItem()} />);
-    expect(screen.getByTestId("expiration-badge")).toBeInTheDocument();
+    // Check for expiration badge content (14 days for good status)
+    expect(screen.getByText("14 days")).toBeInTheDocument();
+    expect(screen.getByText("✓")).toBeInTheDocument();
   });
 
   it("displays notes when available", () => {
