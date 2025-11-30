@@ -11,16 +11,12 @@ import {
   Check,
   MoreVertical,
   Trash2,
-  Edit2,
-  GripVertical,
   Square,
   CheckSquare,
   Copy,
   Printer,
   Share2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -273,7 +269,7 @@ export default function ShoppingListDetailPage() {
         title: "✅ Copied!",
         description: "Shopping list copied to clipboard",
       });
-    } catch (err) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to copy to clipboard",
@@ -284,7 +280,6 @@ export default function ShoppingListDetailPage() {
 
   // Print shopping list
   const handlePrint = () => {
-    const text = generateExportText();
     const printWindow = window.open("", "_blank");
     if (printWindow) {
       printWindow.document.write(`
@@ -348,7 +343,7 @@ export default function ShoppingListDetailPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="flex items-center gap-2 text-gray-600">
           <Loader2 className="size-5 animate-spin" />
           <span className="font-semibold">Loading shopping list...</span>
@@ -360,15 +355,20 @@ export default function ShoppingListDetailPage() {
   // Error state
   if (error || !list) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center p-4">
-        <div className="bg-card max-w-md rounded-xl border p-6 text-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+        <div className="brutalism-panel max-w-md p-6 text-center">
           <p className="mb-2 font-bold text-red-600">Error</p>
-          <p className="text-muted-foreground text-sm">{error || "List not found"}</p>
+          <p className="text-sm text-gray-600">{error || "List not found"}</p>
           <div className="mt-4 flex justify-center gap-2">
-            <Button variant="outline" onClick={() => router.push("/dashboard/shopping")}>
+            <button
+              onClick={() => router.push("/dashboard/shopping")}
+              className="brutalism-button-neutral px-4 py-2"
+            >
               Back to Lists
-            </Button>
-            <Button onClick={fetchList}>Try Again</Button>
+            </button>
+            <button onClick={fetchList} className="brutalism-button-primary px-4 py-2">
+              Try Again
+            </button>
           </div>
         </div>
       </div>
@@ -379,169 +379,177 @@ export default function ShoppingListDetailPage() {
   const { groups, sortedCategories } = groupItemsByCategory(list.shopping_list_items);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <Link
-            href="/dashboard/shopping"
-            className="hover:bg-muted mt-1 rounded-lg p-2 transition-colors"
-          >
-            <ArrowLeft className="size-5" />
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold">{list.name}</h1>
-            {list.description && (
-              <p className="text-muted-foreground mt-1 text-sm">{list.description}</p>
-            )}
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="mx-auto max-w-3xl space-y-6">
+        {/* Header Banner */}
+        <div className="brutalism-banner p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <Link href="/dashboard/shopping" className="mt-1">
+                <button className="brutalism-button-neutral p-2">
+                  <ArrowLeft className="size-5" />
+                </button>
+              </Link>
+              <div>
+                <h1 className="brutalism-title text-2xl">{list.name}</h1>
+                {list.description && (
+                  <p className="mt-1 text-sm font-semibold text-gray-700">{list.description}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Export Actions */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="brutalism-button-secondary flex items-center gap-2 px-3 py-2">
+                  <Share2 className="size-4" />
+                  <span className="hidden sm:inline">Share</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={handleCopyToClipboard}>
+                  <Copy className="mr-2 size-4" />
+                  Copy to Clipboard
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handlePrint}>
+                  <Printer className="mr-2 size-4" />
+                  Print List
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
-        {/* Export Actions */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Share2 className="size-4" />
-              <span className="hidden sm:inline">Share</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem onClick={handleCopyToClipboard}>
-              <Copy className="mr-2 size-4" />
-              Copy to Clipboard
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handlePrint}>
-              <Printer className="mr-2 size-4" />
-              Print List
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* Progress */}
-      <div className="bg-card rounded-xl border p-4 shadow-sm">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-medium">
-            {progress.checked} of {progress.total} items checked
-          </span>
-          <span className="text-sm font-bold text-emerald-600">{progress.percentage}%</span>
+        {/* Progress Panel */}
+        <div className="brutalism-panel p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-sm font-semibold">
+              {progress.checked} of {progress.total} items checked
+            </span>
+            <span className="text-sm font-bold text-emerald-600">{progress.percentage}%</span>
+          </div>
+          <div className="brutalism-border h-3 overflow-hidden bg-gray-100">
+            <div
+              className="h-full bg-emerald-400 transition-all"
+              style={{ width: `${progress.percentage}%` }}
+            />
+          </div>
         </div>
-        <div className="bg-muted h-2 overflow-hidden rounded-full">
-          <div
-            className="h-full rounded-full bg-emerald-500 transition-all"
-            style={{ width: `${progress.percentage}%` }}
+
+        {/* Add Item Form */}
+        <form onSubmit={handleAddItem} className="flex gap-2">
+          <input
+            value={newItemName}
+            onChange={(e) => setNewItemName(e.target.value)}
+            placeholder="Add an item..."
+            disabled={isAddingItem}
+            className="brutalism-input flex-1 px-3 py-2"
           />
-        </div>
-      </div>
-
-      {/* Add Item Form */}
-      <form onSubmit={handleAddItem} className="flex gap-2">
-        <Input
-          value={newItemName}
-          onChange={(e) => setNewItemName(e.target.value)}
-          placeholder="Add an item..."
-          disabled={isAddingItem}
-          className="flex-1"
-        />
-        <Button type="submit" disabled={!newItemName.trim() || isAddingItem}>
-          {isAddingItem ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-          <span className="ml-1 hidden sm:inline">Add</span>
-        </Button>
-      </form>
-
-      {/* Items List */}
-      {list.shopping_list_items.length === 0 ? (
-        <div className="bg-card rounded-xl border p-12 text-center">
-          <ShoppingCart className="text-muted-foreground/50 mx-auto size-12" />
-          <h3 className="mt-4 text-lg font-semibold">No items yet</h3>
-          <p className="text-muted-foreground mt-2 text-sm">
-            Add items to your shopping list above
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {sortedCategories.map((category) => (
-            <div key={category} className="bg-card overflow-hidden rounded-xl border shadow-sm">
-              <div className="bg-muted/50 border-b px-4 py-2">
-                <h3 className="text-sm font-semibold">{category}</h3>
-              </div>
-              <div className="divide-y">
-                {groups[category].map((item) => (
-                  <div
-                    key={item.id}
-                    className={`hover:bg-muted/30 flex items-center gap-3 p-3 transition-colors ${
-                      item.is_checked ? "opacity-60" : ""
-                    }`}
-                  >
-                    <button
-                      onClick={() => handleToggleItem(item)}
-                      className="hover:bg-muted flex-shrink-0 rounded p-1 transition-colors"
-                    >
-                      {item.is_checked ? (
-                        <CheckSquare className="size-5 text-emerald-500" />
-                      ) : (
-                        <Square className="text-muted-foreground size-5" />
-                      )}
-                    </button>
-
-                    <div className="min-w-0 flex-1">
-                      <p
-                        className={`truncate font-medium ${
-                          item.is_checked ? "text-muted-foreground line-through" : ""
-                        }`}
-                      >
-                        {item.item_name}
-                      </p>
-                      {(item.quantity > 1 || item.unit) && (
-                        <p className="text-muted-foreground text-xs">
-                          {item.quantity} {item.unit || ""}
-                        </p>
-                      )}
-                    </div>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="size-8">
-                          <MoreVertical className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-32">
-                        <DropdownMenuItem
-                          onClick={() => handleDeleteItem(item)}
-                          className="text-red-600 focus:text-red-600"
-                        >
-                          <Trash2 className="mr-2 size-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Complete All Button */}
-      {list.shopping_list_items.length > 0 && progress.checked < progress.total && (
-        <div className="flex justify-center">
-          <Button
-            variant="outline"
-            onClick={async () => {
-              // Check all unchecked items
-              const uncheckedItems = list.shopping_list_items.filter((i) => !i.is_checked);
-              for (const item of uncheckedItems) {
-                await handleToggleItem(item);
-              }
-            }}
-            className="gap-2"
+          <button
+            type="submit"
+            disabled={!newItemName.trim() || isAddingItem}
+            className="brutalism-button-primary flex items-center gap-1 px-4 py-2 disabled:opacity-40"
           >
-            <Check className="size-4" />
-            Mark All Complete
-          </Button>
-        </div>
-      )}
+            {isAddingItem ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Plus className="size-4" />
+            )}
+            <span className="hidden sm:inline">Add</span>
+          </button>
+        </form>
+
+        {/* Items List */}
+        {list.shopping_list_items.length === 0 ? (
+          <div className="brutalism-panel p-12 text-center">
+            <ShoppingCart className="mx-auto size-12 text-gray-400" />
+            <h3 className="brutalism-heading mt-4 text-lg">No items yet</h3>
+            <p className="mt-2 text-sm text-gray-600">Add items to your shopping list above</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {sortedCategories.map((category) => (
+              <div key={category} className="brutalism-panel overflow-hidden">
+                <div className="brutalism-border border-x-0 border-t-0 bg-amber-100 px-4 py-2">
+                  <h3 className="brutalism-text-bold text-sm">{category}</h3>
+                </div>
+                <div>
+                  {groups[category].map((item) => (
+                    <div
+                      key={item.id}
+                      className={`brutalism-border flex items-center gap-3 border-x-0 border-t-0 p-3 transition-opacity last:border-b-0 ${
+                        item.is_checked ? "opacity-60" : ""
+                      }`}
+                    >
+                      <button
+                        onClick={() => handleToggleItem(item)}
+                        className="shrink-0 p-1 transition-transform hover:scale-110"
+                      >
+                        {item.is_checked ? (
+                          <CheckSquare className="size-5 text-emerald-500" />
+                        ) : (
+                          <Square className="size-5 text-gray-600" />
+                        )}
+                      </button>
+
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={`truncate font-semibold ${
+                            item.is_checked ? "text-gray-500 line-through" : ""
+                          }`}
+                        >
+                          {item.item_name}
+                        </p>
+                        {(item.quantity > 1 || item.unit) && (
+                          <p className="text-xs text-gray-600">
+                            {item.quantity} {item.unit || ""}
+                          </p>
+                        )}
+                      </div>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="brutalism-button-neutral p-2">
+                            <MoreVertical className="size-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-32">
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteItem(item)}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            <Trash2 className="mr-2 size-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Complete All Button */}
+        {list.shopping_list_items.length > 0 && progress.checked < progress.total && (
+          <div className="flex justify-center">
+            <button
+              onClick={async () => {
+                // Check all unchecked items
+                const uncheckedItems = list.shopping_list_items.filter((i) => !i.is_checked);
+                for (const item of uncheckedItems) {
+                  await handleToggleItem(item);
+                }
+              }}
+              className="brutalism-button-secondary flex items-center gap-2 px-6 py-3"
+            >
+              <Check className="size-4" />
+              Mark All Complete
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

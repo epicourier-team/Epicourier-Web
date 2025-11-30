@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Trash2, Edit2, ShoppingBag, Calendar } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import EditListModal from "./EditListModal";
 import DeleteListDialog from "./DeleteListDialog";
 
-import type { ShoppingList } from "@/types/data";
+import type { ShoppingListWithStats } from "@/types/data";
 
 interface ShoppingListCardProps {
-  list: ShoppingList;
+  list: ShoppingListWithStats;
   onUpdate: () => void;
 }
 
@@ -23,7 +23,7 @@ interface ShoppingListCardProps {
  * - Hover effects with brutalism styling
  */
 export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardProps) {
-  const { toast } = useToast();
+  const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -35,11 +35,7 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
   });
 
   const handleClick = () => {
-    // TODO: Navigate to list detail page (Issue #83)
-    toast({
-      title: "📝 List Details",
-      description: `Opening "${list.name}"... (Coming in Issue #83)`,
-    });
+    router.push(`/dashboard/shopping/${list.id}`);
   };
 
   const handleEditSuccess = () => {
@@ -57,15 +53,14 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
-      className={`brutalism-card group cursor-pointer overflow-hidden transition-all ${
-        isHovered ? "translate-x-[-2px] translate-y-[-2px]" : ""
+      className={`brutalism-card group flex cursor-pointer flex-col overflow-hidden transition-all ${
+        isHovered ? "-translate-x-0.5 -translate-y-0.5" : ""
       }`}
     >
-      <div className="p-5">
+      <div className="flex flex-1 flex-col p-5">
         {/* Header */}
         <div className="mb-3 flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <ShoppingBag className="size-5 text-gray-700" />
             <h3 className="brutalism-text-bold text-lg leading-tight">{list.name}</h3>
           </div>
         </div>
@@ -75,11 +70,16 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
           <p className="mb-3 line-clamp-2 text-sm text-gray-600">{list.description}</p>
         )}
 
+        {/* Spacer to push actions to bottom */}
+        <div className="flex-1" />
+
         {/* Stats */}
         <div className="mb-3 flex items-center gap-4 text-sm font-semibold text-gray-700">
           <div className="flex items-center gap-1">
             <ShoppingBag className="size-4" />
-            <span>0 items</span>
+            <span>
+              {list.item_count} {list.item_count === 1 ? "item" : "items"}
+            </span>
           </div>
           <div className="flex items-center gap-1">
             <Calendar className="size-4" />
@@ -94,18 +94,20 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
               e.stopPropagation();
               setIsEditModalOpen(true);
             }}
-            className="brutalism-button-neutral flex-1 px-3 py-2 text-sm"
+            className="brutalism-button-neutral r flex flex-1 items-center gap-1 px-3 py-2 text-sm"
           >
-            <Edit2 className="size-4" />
+            <Edit2 className="size-4 text-black" />
+            Edit
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
               setIsDeleteDialogOpen(true);
             }}
-            className="brutalism-button-neutral flex-1 px-3 py-2 text-sm"
+            className="brutalism-button-neutral flex flex-1 items-center gap-1 px-3 py-2 text-sm"
           >
-            <Trash2 className="size-4" />
+            <Trash2 className="size-4 text-black" />
+            Delete
           </button>
         </div>
       </div>
@@ -114,20 +116,28 @@ export default function ShoppingListCard({ list, onUpdate }: ShoppingListCardPro
       <div className="h-2 bg-emerald-400" />
 
       {/* Edit Modal */}
-      <EditListModal
-        list={list}
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onSuccess={handleEditSuccess}
-      />
+      {isEditModalOpen && (
+        <div onClick={(e) => e.stopPropagation()}>
+          <EditListModal
+            list={list}
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            onSuccess={handleEditSuccess}
+          />
+        </div>
+      )}
 
       {/* Delete Dialog */}
-      <DeleteListDialog
-        list={list}
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onSuccess={handleDeleteSuccess}
-      />
+      {isDeleteDialogOpen && (
+        <div onClick={(e) => e.stopPropagation()}>
+          <DeleteListDialog
+            list={list}
+            isOpen={isDeleteDialogOpen}
+            onClose={() => setIsDeleteDialogOpen(false)}
+            onSuccess={handleDeleteSuccess}
+          />
+        </div>
+      )}
     </div>
   );
 }

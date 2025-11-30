@@ -156,7 +156,9 @@ describe("Shopping Lists API", () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
             eq: jest.fn().mockReturnValue({
-              order: jest.fn().mockResolvedValue({ data: mockListsWithItems, error: null }),
+              eq: jest.fn().mockReturnValue({
+                order: jest.fn().mockResolvedValue({ data: mockListsWithItems, error: null }),
+              }),
             }),
           }),
         }),
@@ -185,7 +187,9 @@ describe("Shopping Lists API", () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
             eq: jest.fn().mockReturnValue({
-              order: jest.fn().mockResolvedValue({ data: [], error: null }),
+              eq: jest.fn().mockReturnValue({
+                order: jest.fn().mockResolvedValue({ data: [], error: null }),
+              }),
             }),
           }),
         }),
