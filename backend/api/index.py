@@ -34,8 +34,11 @@ def test_endpoint():
 class RecommendRequest(BaseModel):
     goal: str
     num_meals: int = Field(..., alias="numMeals")
+    user_profile: dict | None = Field(None, alias="userProfile")
+    pantry_items: list[str] | None = Field(None, alias="pantryItems")
 
     model_config = {"populate_by_name": True}
+
 
 
 @app.post("/recommender")
@@ -49,5 +52,10 @@ def recommend_meals(req: RecommendRequest):
     if req.num_meals not in [3, 5, 7]:
         raise HTTPException(status_code=400, detail="numMeals must be one of 3, 5, or 7")
 
-    plan, expanded_goal = create_meal_plan(req.goal, n_meals=req.num_meals)
+    plan, expanded_goal = create_meal_plan(
+      req.goal, 
+      n_meals=req.num_meals,
+      user_profile=req.user_profile,
+      pantry_items=req.pantry_items
+  )
     return {"recipes": plan, "goal_expanded": expanded_goal}

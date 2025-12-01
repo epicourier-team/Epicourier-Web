@@ -6,24 +6,34 @@ import {
   SidebarLink,
 } from "@/components/ui/animated-sidebar";
 import { createClient } from "@/utils/supabase/client";
-import { Calendar, ChefHat, Lightbulb } from "lucide-react";
+import { Calendar, ChefHat, Lightbulb, ShoppingBasket, UserCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const menuItems = [
+  {
+    label: "Profile",
+    href: "/dashboard/profile",
+    icon: <UserCircle className="text-neutral-300 h-5 w-5 flex-shrink-0" />
+  },
+  {
+    label: "Pantry",
+    href: "/dashboard/pantry",
+    icon: <ShoppingBasket className="text-neutral-300 h-5 w-5 flex-shrink-0" />
+  },
   {
     label: "Recipes",
     href: "/dashboard/recipes",
     icon: <ChefHat className="text-neutral-300 h-5 w-5 flex-shrink-0" />
   },
   {
-    label: "Calendar",
-    href: "/dashboard/calendar",
-    icon: <Calendar className="text-neutral-300 h-5 w-5 flex-shrink-0" />
-  },
-  {
     label: "Recommender",
     href: "/dashboard/recommender",
     icon: <Lightbulb className="text-neutral-300 h-5 w-5 flex-shrink-0" />
+  },
+  {
+    label: "Calendar",
+    href: "/dashboard/calendar",
+    icon: <Calendar className="text-neutral-300 h-5 w-5 flex-shrink-0" />
   },
 ];
 

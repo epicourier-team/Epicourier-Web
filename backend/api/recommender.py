@@ -1,5 +1,5 @@
 """
-recommender.py — Lazy-load + Render-safe version
+recommender.py - Lazy-load + Render-safe version
 """
 
 import os
@@ -133,8 +133,23 @@ def expand_goal(goal_text):
 # --------------------------------------------------
 # 5. Recommendation pipeline
 # --------------------------------------------------
-def rank_recipes_by_goal(goal_text, top_k=20):
+def rank_recipes_by_goal(goal_text, user_profile=None, pantry_items=None, top_k=20):
+    """Rank recipes by goal with optional personalization (Step 3: filtering added)."""
     recipe_data = load_recipe_data()
+    
+    # Step 3: Apply filters if user_profile is provided
+    if user_profile:
+        # Filter allergens FIRST (critical safety filter)
+        if user_profile.get('allergies'):
+            recipe_data = filter_allergens(recipe_data, user_profile['allergies'])
+            print(f"After allergen filter: {len(recipe_data)} recipes")
+        
+        # Filter by dietary preferences (optional)
+        if user_profile.get('dietary_preferences'):
+            recipe_data = filter_dietary_preferences(recipe_data, user_profile['dietary_preferences'])
+            print(f"After dietary filter: {len(recipe_data)} recipes")
+    
+    # Continue with existing logic
     recipe_embeddings = get_recipe_embeddings(recipe_data)
     embedder = load_embedder()
 
@@ -168,8 +183,8 @@ def select_diverse_recipes(ranked_df, n_meals=3):
 
 
 # CREATE MEAL PLAN
-def create_meal_plan(goal_text, n_meals=3):
-    ranked, nutri_goal = rank_recipes_by_goal(goal_text)
+def create_meal_plan(goal_text, n_meals=3, user_profile=None, pantry_items=None):
+    ranked, nutri_goal = rank_recipes_by_goal(goal_text, user_profile, pantry_items)
     diverse = select_diverse_recipes(ranked, n_meals)
     exp_goal = expand_goal(goal_text)
 
@@ -188,3 +203,70 @@ def create_meal_plan(goal_text, n_meals=3):
 
     # print(f"Expanded goal: {exp_goal}\n")
     return meal_plan, exp_goal
+# --------------------------------------------------
+# 6. Personalization helpers (Step 1)
+# --------------------------------------------------
+def filter_allergens(recipe_data, allergies):
+    """Remove recipes containing allergens."""
+    if not allergies or len(allergies) == 0:
+        return recipe_data
+    
+    # Handle "No Allergy" option
+    if "No Allergy" in allergies or "no allergy" in [a.lower() for a in allergies]:
+        return recipe_data
+    
+    filtered = recipe_data.copy()
+    for allergen in allergies:
+        allergen_lower = allergen.lower()
+        mask = filtered['ingredients'].apply(
+            lambda ing_list: not any(allergen_lower in str(ing).lower() for ing in ing_list)
+        )
+        filtered = filtered[mask]
+    
+    return filtered.reset_index(drop=True)
+
+
+def filter_dietary_preferences(recipe_data, preferences):
+    """Filter recipes by dietary tags (Vegetarian, Vegan, etc.)."""
+    if not preferences or len(preferences) == 0:
+        return recipe_data
+    
+    # Match recipes that have at least one of the preferred tags
+    mask = recipe_data['tags'].apply(
+        lambda tags: any(pref.lower() in [t.lower() for t in tags] for pref in preferences)
+    )
+    return recipe_data[mask].reset_index(drop=True)
+
+
+def calculate_pantry_score(ingredients, pantry_items):
+    """Calculate what % of recipe ingredients are in user's pantry."""
+    if not pantry_items or not ingredients:
+        return 0.0
+    
+    ingredients_lower = [str(ing).lower() for ing in ingredients]
+    pantry_lower = [str(item).lower() for item in pantry_items]
+    
+    matches = 0
+    for ing in ingredients_lower:
+        for pantry_item in pantry_lower:
+            if pantry_item in ing or ing in pantry_item:
+                matches += 1
+                break
+    
+    return matches / len(ingredients) if ingredients else 0.0
+
+
+def score_kitchen_equipment(recipe, available_equipment):
+    """Give bonus if recipe matches available equipment."""
+    if not available_equipment or not recipe.get('tags'):
+        return 0.0
+    
+    equipment_lower = [e.lower() for e in available_equipment]
+    recipe_tags_lower = [t.lower() for t in recipe['tags']]
+    
+    # Check if any equipment is mentioned in tags
+    for equip in equipment_lower:
+        if any(equip in tag for tag in recipe_tags_lower):
+            return 1.0  # Full bonus if equipment matches
+    
+    return 0.0

@@ -6,6 +6,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import AddMealModal from "../../../components/ui/AddMealModal";
 import { supabase } from "../../../lib/supabaseClient";
+import { cn } from "@/lib/utils";
 
 interface Recipe {
   id: number;
@@ -38,6 +39,8 @@ export default function RecommendPage() {
 
     setLoading(true);
     setRecipes([]);
+    setExpandedGoal(""); // Clear previous results
+
     try {
       const res = await fetch("/api/recommender", {
         method: "POST",
@@ -71,14 +74,14 @@ export default function RecommendPage() {
                 .maybeSingle();
 
               if (error) {
-                console.error("Supabase lookup error for", r.name, error);
+                // Recipe not found in database - this is expected for AI-generated names
                 return { ...r };
               }
 
               const id = row?.id ?? r.id ?? null;
               return { ...r, id };
             } catch (e) {
-              console.error("Unexpected error looking up recipe id:", e);
+              // Silently handle lookup errors - recipe will work without database ID
               return { ...r };
             }
           })

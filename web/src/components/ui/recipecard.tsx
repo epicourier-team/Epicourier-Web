@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Recipe } from "../../types/data";
 import AddMealModal from "@/components/ui/AddMealModal";
+import { CalendarPlus, Clock, Flame } from "lucide-react";
 
 export default function RecipeCard({ recipe }: { recipe: Recipe }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
