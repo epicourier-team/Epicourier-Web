@@ -12,13 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChefHat,
   Clock,
@@ -34,10 +28,7 @@ import {
   Plus,
   Utensils,
 } from "lucide-react";
-import type {
-  InventoryRecipeRecommendation,
-  InventoryRecommendResponse,
-} from "@/types/data";
+import type { InventoryRecipeRecommendation, InventoryRecommendResponse } from "@/types/data";
 
 interface RecipeRecommendationModalProps {
   isOpen: boolean;
@@ -76,12 +67,12 @@ export function RecipeRecommendationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] p-0 gap-0 overflow-hidden rounded-none border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+      <DialogContent className="max-h-[90vh] max-w-3xl gap-0 overflow-hidden rounded-none border-2 border-black p-0 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
         {/* Header - Neo-Brutalism style */}
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border-b-2 border-black p-6">
+        <div className="border-b-2 border-black bg-gradient-to-br from-emerald-50 to-teal-50 p-6">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-foreground text-xl">
-              <div className="p-2 bg-emerald-100 border-2 border-black rounded-none">
+            <DialogTitle className="text-foreground flex items-center gap-3 text-xl">
+              <div className="rounded-none border-2 border-black bg-emerald-100 p-2">
                 <Sparkles className="size-5 text-emerald-600" />
               </div>
               AI Recipe Recommendations
@@ -96,18 +87,18 @@ export function RecipeRecommendationModal({
           <LoadingState />
         ) : recommendations ? (
           <ScrollArea className="max-h-[calc(90vh-180px)]">
-            <div className="p-6 space-y-6">
+            <div className="space-y-6 p-6">
               {/* AI Summary Card */}
               {recommendations.overall_reasoning && (
                 <Card className="rounded-none border-2 border-black bg-gradient-to-br from-emerald-50 to-teal-50 shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
                   <CardContent className="p-4">
                     <div className="flex gap-3">
-                      <div className="p-2 bg-emerald-100 border-2 border-black rounded-none h-fit">
+                      <div className="h-fit rounded-none border-2 border-black bg-emerald-100 p-2">
                         <Lightbulb className="size-4 text-emerald-600" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground mb-1">AI Analysis</p>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
+                        <p className="text-foreground mb-1 text-sm font-medium">AI Analysis</p>
+                        <p className="text-muted-foreground text-sm leading-relaxed">
                           {recommendations.overall_reasoning}
                         </p>
                       </div>
@@ -119,8 +110,8 @@ export function RecipeRecommendationModal({
               {/* Recipe Cards */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-lg flex items-center gap-2">
-                    <Utensils className="size-5 text-muted-foreground" />
+                  <h3 className="flex items-center gap-2 text-lg font-semibold">
+                    <Utensils className="text-muted-foreground size-5" />
                     Recommended Recipes
                   </h3>
                   <Badge variant="secondary" className="font-normal">
@@ -161,8 +152,12 @@ export function RecipeRecommendationModal({
         )}
 
         {/* Footer */}
-        <div className="flex justify-end p-4 border-t-2 border-black bg-muted/30">
-          <Button variant="outline" onClick={onClose} className="rounded-none border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+        <div className="bg-muted/30 flex justify-end border-t-2 border-black p-4">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="rounded-none border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+          >
             Close
           </Button>
         </div>
@@ -174,17 +169,15 @@ export function RecipeRecommendationModal({
 // Loading State Component
 function LoadingState() {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-6 gap-6">
+    <div className="flex flex-col items-center justify-center gap-6 px-6 py-16">
       <div className="relative">
-        <div className="p-4 bg-gradient-to-br from-emerald-100 to-teal-100 border-2 border-black rounded-none shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+        <div className="rounded-none border-2 border-black bg-gradient-to-br from-emerald-100 to-teal-100 p-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
           <Loader2 className="size-8 animate-spin text-emerald-600" />
         </div>
       </div>
-      <div className="text-center space-y-2">
-        <p className="font-medium text-foreground">
-          Analyzing your inventory...
-        </p>
-        <p className="text-sm text-muted-foreground max-w-xs">
+      <div className="space-y-2 text-center">
+        <p className="text-foreground font-medium">Analyzing your inventory...</p>
+        <p className="text-muted-foreground max-w-xs text-sm">
           Our AI is finding the best recipes that use your expiring ingredients first
         </p>
       </div>
@@ -195,13 +188,13 @@ function LoadingState() {
 // Empty State Component
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-6 gap-4">
-      <div className="p-4 bg-muted border-2 border-black rounded-none">
-        <ChefHat className="size-10 text-muted-foreground" />
+    <div className="flex flex-col items-center justify-center gap-4 px-6 py-16">
+      <div className="bg-muted rounded-none border-2 border-black p-4">
+        <ChefHat className="text-muted-foreground size-10" />
       </div>
-      <div className="text-center space-y-1">
-        <p className="font-medium text-foreground">No recommendations yet</p>
-        <p className="text-sm text-muted-foreground">
+      <div className="space-y-1 text-center">
+        <p className="text-foreground font-medium">No recommendations yet</p>
+        <p className="text-muted-foreground text-sm">
           Add items to your inventory to get personalized recipe suggestions
         </p>
       </div>
@@ -221,12 +214,12 @@ function ShoppingSuggestions({ suggestions, onAddToShoppingList }: ShoppingSugge
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-teal-100 border-2 border-black rounded-none">
+            <div className="rounded-none border-2 border-black bg-teal-100 p-2">
               <ShoppingCart className="size-4 text-teal-600" />
             </div>
             <div>
               <CardTitle className="text-base">Shopping Suggestions</CardTitle>
-              <CardDescription className="text-xs mt-0.5">
+              <CardDescription className="mt-0.5 text-xs">
                 These ingredients unlock more recipe possibilities
               </CardDescription>
             </div>
@@ -234,10 +227,10 @@ function ShoppingSuggestions({ suggestions, onAddToShoppingList }: ShoppingSugge
           {onAddToShoppingList && (
             <Button
               size="sm"
-              className="bg-teal-600 hover:bg-teal-700 text-white rounded-none border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+              className="rounded-none border-2 border-black bg-teal-600 text-white shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:bg-teal-700 hover:shadow-none"
               onClick={() => onAddToShoppingList(suggestions)}
             >
-              <Plus className="size-3 mr-1.5" />
+              <Plus className="mr-1.5 size-3" />
               Add All
             </Button>
           )}
@@ -249,10 +242,10 @@ function ShoppingSuggestions({ suggestions, onAddToShoppingList }: ShoppingSugge
             <Badge
               key={ingredient}
               variant="secondary"
-              className="px-3 py-1.5 bg-white hover:bg-teal-100 cursor-pointer transition-all border-2 border-black rounded-none shadow-[1px_1px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]"
+              className="cursor-pointer rounded-none border-2 border-black bg-white px-3 py-1.5 shadow-[1px_1px_0_0_rgba(0,0,0,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:bg-teal-100 hover:shadow-none"
               onClick={() => onAddToShoppingList?.([ingredient])}
             >
-              <Plus className="size-3 mr-1.5 text-teal-600" />
+              <Plus className="mr-1.5 size-3 text-teal-600" />
               {ingredient}
             </Badge>
           ))}
@@ -284,33 +277,29 @@ function RecipeCard({
   getMatchScoreLabel,
 }: RecipeCardProps) {
   const totalIngredients = recipe.ingredients_available.length + recipe.ingredients_missing.length;
-  const progressValue = totalIngredients > 0 
-    ? (recipe.ingredients_available.length / totalIngredients) * 100 
-    : 0;
+  const progressValue =
+    totalIngredients > 0 ? (recipe.ingredients_available.length / totalIngredients) * 100 : 0;
 
   return (
-    <Card className={`overflow-hidden transition-all duration-200 rounded-none border-2 border-black ${isExpanded ? 'shadow-none translate-x-[2px] translate-y-[2px]' : 'shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]'}`}>
+    <Card
+      className={`overflow-hidden rounded-none border-2 border-black transition-all duration-200 ${isExpanded ? "translate-x-[2px] translate-y-[2px] shadow-none" : "shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)]"}`}
+    >
       {/* Card Header - Clickable */}
-      <button
-        onClick={onToggle}
-        className="w-full text-left"
-      >
+      <button onClick={onToggle} className="w-full text-left">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="flex items-center justify-center size-6 bg-black text-white text-xs font-bold">
+            <div className="min-w-0 flex-1">
+              <div className="mb-2 flex items-center gap-2">
+                <div className="flex size-6 items-center justify-center bg-black text-xs font-bold text-white">
                   {index + 1}
                 </div>
-                <CardTitle className="text-base truncate">{recipe.recipe_name}</CardTitle>
+                <CardTitle className="truncate text-base">{recipe.recipe_name}</CardTitle>
               </div>
-              <CardDescription className="line-clamp-2">
-                {recipe.reason}
-              </CardDescription>
+              <CardDescription className="line-clamp-2">{recipe.reason}</CardDescription>
             </div>
-            
+
             {/* Match Score */}
-            <div className="flex flex-col items-end gap-1 shrink-0">
+            <div className="flex shrink-0 flex-col items-end gap-1">
               <div className={`text-2xl font-bold ${getMatchScoreColor(recipe.match_score)}`}>
                 {recipe.match_score}%
               </div>
@@ -322,47 +311,44 @@ function RecipeCard({
 
           {/* Progress Bar */}
           <div className="mt-3 space-y-1.5">
-            <div className="flex justify-between text-xs text-muted-foreground">
+            <div className="text-muted-foreground flex justify-between text-xs">
               <span>Ingredient coverage</span>
-              <span>{recipe.ingredients_available.length} of {totalIngredients}</span>
+              <span>
+                {recipe.ingredients_available.length} of {totalIngredients}
+              </span>
             </div>
-            <Progress 
-              value={progressValue} 
-              className="h-2 rounded-none border border-black"
-            />
+            <Progress value={progressValue} className="h-2 rounded-none border border-black" />
           </div>
 
           {/* Expiring Warning */}
           {recipe.expiring_ingredients_used.length > 0 && (
-            <div className="flex items-center gap-2 mt-3 px-3 py-2 bg-amber-100 border-2 border-black rounded-none">
-              <Clock className="size-4 text-amber-700 shrink-0" />
-              <span className="text-xs text-amber-800 font-medium">
-                Uses {recipe.expiring_ingredients_used.length} expiring ingredient{recipe.expiring_ingredients_used.length > 1 ? 's' : ''}: {recipe.expiring_ingredients_used.join(", ")}
+            <div className="mt-3 flex items-center gap-2 rounded-none border-2 border-black bg-amber-100 px-3 py-2">
+              <Clock className="size-4 shrink-0 text-amber-700" />
+              <span className="text-xs font-medium text-amber-800">
+                Uses {recipe.expiring_ingredients_used.length} expiring ingredient
+                {recipe.expiring_ingredients_used.length > 1 ? "s" : ""}:{" "}
+                {recipe.expiring_ingredients_used.join(", ")}
               </span>
             </div>
           )}
 
           {/* Expand Indicator */}
-          <div className="flex items-center justify-center mt-2 text-muted-foreground">
-            {isExpanded ? (
-              <ChevronUp className="size-5" />
-            ) : (
-              <ChevronDown className="size-5" />
-            )}
+          <div className="text-muted-foreground mt-2 flex items-center justify-center">
+            {isExpanded ? <ChevronUp className="size-5" /> : <ChevronDown className="size-5" />}
           </div>
         </CardHeader>
       </button>
 
       {/* Expanded Content */}
       {isExpanded && (
-        <CardContent className="pt-0 border-t-2 border-black bg-muted/20">
-          <div className="pt-4 space-y-4">
+        <CardContent className="bg-muted/20 border-t-2 border-black pt-0">
+          <div className="space-y-4 pt-4">
             {/* Ingredients Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {/* Available Ingredients */}
               {recipe.ingredients_available.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-bold flex items-center gap-2 text-emerald-700">
+                  <h4 className="flex items-center gap-2 text-sm font-bold text-emerald-700">
                     <Check className="size-4" />
                     You Have ({recipe.ingredients_available.length})
                   </h4>
@@ -371,9 +357,9 @@ function RecipeCard({
                       <Badge
                         key={ing}
                         variant="outline"
-                        className="bg-emerald-100 text-emerald-800 border-2 border-emerald-600 rounded-none"
+                        className="rounded-none border-2 border-emerald-600 bg-emerald-100 text-emerald-800"
                       >
-                        <Check className="size-3 mr-1" />
+                        <Check className="mr-1 size-3" />
                         {ing}
                       </Badge>
                     ))}
@@ -384,7 +370,7 @@ function RecipeCard({
               {/* Missing Ingredients */}
               {recipe.ingredients_missing.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-bold flex items-center gap-2 text-rose-700">
+                  <h4 className="flex items-center gap-2 text-sm font-bold text-rose-700">
                     <AlertCircle className="size-4" />
                     Missing ({recipe.ingredients_missing.length})
                   </h4>
@@ -393,7 +379,7 @@ function RecipeCard({
                       <Badge
                         key={ing}
                         variant="outline"
-                        className="bg-rose-100 text-rose-800 border-2 border-rose-600 rounded-none"
+                        className="rounded-none border-2 border-rose-600 bg-rose-100 text-rose-800"
                       >
                         {ing}
                       </Badge>
@@ -408,11 +394,11 @@ function RecipeCard({
               <Button
                 size="sm"
                 variant="default"
-                className="rounded-none border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                className="rounded-none border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
                 asChild
               >
                 <a href={`/dashboard/recipes?id=${recipe.recipe_id}`} target="_blank">
-                  <ExternalLink className="size-4 mr-2" />
+                  <ExternalLink className="mr-2 size-4" />
                   View Recipe
                 </a>
               </Button>
@@ -420,10 +406,10 @@ function RecipeCard({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="rounded-none border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                  className="rounded-none border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
                   onClick={() => onAddToShoppingList(recipe.ingredients_missing)}
                 >
-                  <ShoppingCart className="size-4 mr-2" />
+                  <ShoppingCart className="mr-2 size-4" />
                   Add {recipe.ingredients_missing.length} Missing to List
                 </Button>
               )}

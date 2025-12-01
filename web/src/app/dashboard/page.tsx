@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { StreakWidget } from "@/components/ui/StreakWidget";
+import { SmartCartWidget } from "@/components/ui/SmartCartWidget";
 import {
   Calendar,
   Trophy,
@@ -13,6 +15,8 @@ import {
   Beef,
   Wheat,
   Droplets,
+  ShoppingCart,
+  Package,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -356,8 +360,9 @@ export default function DashboardPage() {
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Nutrient Summary - Left Column */}
-        <div className="lg:col-span-1">
+        {/* Left Column - Nutrient Summary, Streak Widget and Smart Cart Widget */}
+        <div className="space-y-6 lg:col-span-1">
+          {/* Nutrient Summary */}
           <div className="brutalism-card h-full rounded-none bg-white p-5">
             <div className="mb-4 flex items-center justify-between border-b-2 border-black pb-3">
               <div className="flex items-center gap-2">
@@ -624,7 +629,7 @@ export default function DashboardPage() {
       {/* Quick Actions Footer - Neo-Brutalism Style */}
       <div className="brutalism-card rounded-none bg-white p-5">
         <h3 className="mb-4 border-b-2 border-black pb-3 font-black uppercase">Quick Actions</h3>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           <Link
             href="/dashboard/calendar"
             className="brutalism-card flex flex-col items-center gap-2 rounded-none bg-blue-200 p-4 hover:bg-blue-300"
@@ -638,6 +643,20 @@ export default function DashboardPage() {
           >
             <ChefHat className="h-7 w-7" />
             <span className="text-sm font-bold uppercase">Recipes</span>
+          </Link>
+          <Link
+            href="/dashboard/shopping"
+            className="brutalism-card flex flex-col items-center gap-2 rounded-none bg-teal-200 p-4 hover:bg-teal-300"
+          >
+            <ShoppingCart className="h-7 w-7" />
+            <span className="text-sm font-bold uppercase">Shopping</span>
+          </Link>
+          <Link
+            href="/dashboard/inventory"
+            className="brutalism-card flex flex-col items-center gap-2 rounded-none bg-cyan-200 p-4 hover:bg-cyan-300"
+          >
+            <Package className="h-7 w-7" />
+            <span className="text-sm font-bold uppercase">Inventory</span>
           </Link>
           <Link
             href="/dashboard/challenges"

@@ -14,9 +14,9 @@ import {
   BatchDeleteDialog,
   RecipeRecommendationModal,
 } from "@/components/inventory";
-import type { 
-  InventoryLocation, 
-  InventoryItemWithDetails, 
+import type {
+  InventoryLocation,
+  InventoryItemWithDetails,
   InventorySummary,
   InventoryRecommendResponse,
   InventoryItemForRecommendation,
