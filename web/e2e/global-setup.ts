@@ -3,8 +3,12 @@ import path from "path";
 import fs from "fs";
 import dotenv from "dotenv";
 
-// Load e2e specific environment variables
-dotenv.config({ path: path.join(__dirname, ".env") });
+// Load e2e specific environment variables (for local development)
+// In CI, environment variables are set directly via GitHub Secrets
+const envPath = path.join(__dirname, ".env");
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+}
 
 /**
  * Global setup for E2E tests
