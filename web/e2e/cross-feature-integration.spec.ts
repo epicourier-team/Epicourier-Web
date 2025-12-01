@@ -1,4 +1,4 @@
-import { test, expect, generateTestListName } from "./fixtures";
+import { test, expect } from "./fixtures";
 
 /**
  * E2E Test: Cross-Feature Integration Journey
@@ -57,7 +57,10 @@ test.describe("Cross-Feature Integration", () => {
 
     // Dashboard should have some form of navigation to smart cart features
     // If direct navigation works, the page structure is valid
-    const canNavigate = await page.goto("/dashboard/shopping").then(() => true).catch(() => false);
+    const canNavigate = await page
+      .goto("/dashboard/shopping")
+      .then(() => true)
+      .catch(() => false);
     expect(hasNavigation || canNavigate).toBeTruthy();
   });
 
@@ -128,9 +131,7 @@ test.describe("Cross-Feature Integration", () => {
 
     // Add multiple items
     const items = ["Bread", "Butter", "Cheese", "Tomatoes", "Lettuce"];
-    const addItemInput = page.locator(
-      'input[placeholder*="Add"], [data-testid="add-item-input"]'
-    );
+    const addItemInput = page.locator('input[placeholder*="Add"], [data-testid="add-item-input"]');
 
     for (const item of items) {
       await addItemInput.first().fill(item);
@@ -209,9 +210,7 @@ test.describe("Cross-Feature Integration", () => {
     await page.waitForURL(/\/dashboard\/shopping\/.+/);
 
     // Add an item
-    const addItemInput = page.locator(
-      'input[placeholder*="Add"], [data-testid="add-item-input"]'
-    );
+    const addItemInput = page.locator('input[placeholder*="Add"], [data-testid="add-item-input"]');
     await addItemInput.first().fill("Export Item");
     await addItemInput.first().press("Enter");
     await page.waitForTimeout(300);
@@ -221,7 +220,10 @@ test.describe("Cross-Feature Integration", () => {
       'button:has-text("Share"), [data-testid="share-button"], button:has(svg)'
     );
 
-    const hasExportFeature = await shareButton.first().isVisible().catch(() => false);
+    const hasExportFeature = await shareButton
+      .first()
+      .isVisible()
+      .catch(() => false);
 
     if (hasExportFeature) {
       await shareButton.first().click();
@@ -231,7 +233,10 @@ test.describe("Cross-Feature Integration", () => {
       const copyOption = page.locator(
         '[role="menuitem"]:has-text("Copy"), button:has-text("Copy")'
       );
-      const hasCopyOption = await copyOption.first().isVisible().catch(() => false);
+      const hasCopyOption = await copyOption
+        .first()
+        .isVisible()
+        .catch(() => false);
 
       expect(hasCopyOption).toBeTruthy();
     }
@@ -260,14 +265,18 @@ test.describe("Cross-Feature Integration", () => {
     await page.waitForTimeout(500);
 
     // Look for success toast
-    const toast = page.locator(
-      '[role="alert"], [data-testid="toast"], [class*="toast"]'
-    );
-    const hasToast = await toast.first().isVisible().catch(() => false);
+    const toast = page.locator('[role="alert"], [data-testid="toast"], [class*="toast"]');
+    const hasToast = await toast
+      .first()
+      .isVisible()
+      .catch(() => false);
 
     // List should be created successfully
     // Verify by checking if the list appears in the grid
-    const listCreated = await page.locator(`text="${listName}"`).isVisible().catch(() => false);
+    const listCreated = await page
+      .locator(`text="${listName}"`)
+      .isVisible()
+      .catch(() => false);
     expect(hasToast || listCreated).toBeTruthy();
   });
 
@@ -302,7 +311,10 @@ test.describe("Cross-Feature Integration", () => {
       'a[href*="shopping"]:not([href*="shopping/"]), button:has(svg[class*="arrow"]), [data-testid="back-button"]'
     );
 
-    const hasBackButton = await backButton.first().isVisible().catch(() => false);
+    const hasBackButton = await backButton
+      .first()
+      .isVisible()
+      .catch(() => false);
 
     if (hasBackButton) {
       await backButton.first().click();

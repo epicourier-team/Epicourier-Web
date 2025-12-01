@@ -1,9 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
+import path from "path";
 
 /**
  * Playwright configuration for E2E Smart Cart User Journey Tests
  * @see https://playwright.dev/docs/test-configuration
  */
+
+// Path to store authentication state
+const STORAGE_STATE = path.join(__dirname, "e2e/.auth/user.json");
+
 export default defineConfig({
   testDir: "./e2e",
   /* Run tests in files in parallel */
@@ -16,6 +21,10 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [["html", { open: "never" }], ["list"]],
+
+  /* Global setup for authentication */
+  globalSetup: require.resolve("./e2e/global-setup"),
+
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -26,6 +35,9 @@ export default defineConfig({
 
     /* Take screenshot only on failure */
     screenshot: "only-on-failure",
+
+    /* Use stored authentication state */
+    storageState: STORAGE_STATE,
   },
 
   /* Configure projects for major browsers */

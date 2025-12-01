@@ -1,4 +1,4 @@
-import { test, expect, generateFutureDate } from "./fixtures";
+import { test, expect } from "./fixtures";
 
 /**
  * E2E Test: Inventory Management Journey
@@ -22,7 +22,7 @@ test.describe("Inventory Management", () => {
     await expect(pageHeader.first()).toBeVisible({ timeout: 10000 });
 
     // Verify the package icon or inventory branding
-    const inventoryIndicator = page.locator('svg, text=/Inventory|items/i');
+    const inventoryIndicator = page.locator("svg, text=/Inventory|items/i");
     await expect(inventoryIndicator.first()).toBeVisible();
   });
 
@@ -36,7 +36,7 @@ test.describe("Inventory Management", () => {
 
     // Look for either items or empty state message
     const hasEmptyState = await page
-      .locator('text=/No.*Item|Empty|Add.*ingredient/i')
+      .locator("text=/No.*Item|Empty|Add.*ingredient/i")
       .isVisible()
       .catch(() => false);
 
@@ -74,7 +74,10 @@ test.describe("Inventory Management", () => {
     );
 
     // Button should be disabled or show message when inventory is empty
-    const isDisabled = await suggestButton.first().isDisabled().catch(() => false);
+    const isDisabled = await suggestButton
+      .first()
+      .isDisabled()
+      .catch(() => false);
 
     if (!isDisabled) {
       // Try clicking if not disabled
@@ -82,9 +85,7 @@ test.describe("Inventory Management", () => {
       await page.waitForTimeout(500);
 
       // Should show a toast or message about empty inventory
-      const feedbackMessage = page.locator(
-        'text=/empty|add.*ingredient/i, [role="alert"]'
-      );
+      const feedbackMessage = page.locator('text=/empty|add.*ingredient/i, [role="alert"]');
       const hasFeedback = await feedbackMessage.isVisible().catch(() => false);
 
       // Button should either be disabled or provide feedback when clicked
@@ -101,7 +102,7 @@ test.describe("Inventory Management", () => {
     await page.waitForLoadState("networkidle");
 
     // Look for item count display (0 items or N items)
-    const itemCount = page.locator('text=/\\d+\\s*item/i');
+    const itemCount = page.locator("text=/\\d+\\s*item/i");
     await expect(itemCount.first()).toBeVisible({ timeout: 10000 });
   });
 
@@ -114,9 +115,7 @@ test.describe("Inventory Management", () => {
     await expect(header.first()).toBeVisible();
 
     // Verify main content area exists
-    const mainContent = page.locator(
-      '[class*="panel"], main, [class*="content"], [class*="card"]'
-    );
+    const mainContent = page.locator('[class*="panel"], main, [class*="content"], [class*="card"]');
     await expect(mainContent.first()).toBeVisible();
   });
 
@@ -136,6 +135,6 @@ test.describe("Inventory Management", () => {
     // Check if button has a title with keyboard shortcut info
     const title = await button.getAttribute("title");
     // Button may or may not have title, but should be functional
-    expect(await button.isEnabled() || title !== null).toBeTruthy();
+    expect((await button.isEnabled()) || title !== null).toBeTruthy();
   });
 });

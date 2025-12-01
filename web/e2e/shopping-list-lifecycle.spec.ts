@@ -50,9 +50,7 @@ test.describe("Shopping List Lifecycle", () => {
     await page.waitForURL(/\/dashboard\/shopping\/.+/);
 
     // Add first item - Milk
-    const addItemInput = page.locator(
-      'input[placeholder*="Add"], [data-testid="add-item-input"]'
-    );
+    const addItemInput = page.locator('input[placeholder*="Add"], [data-testid="add-item-input"]');
     await expect(addItemInput.first()).toBeVisible({ timeout: 5000 });
     await addItemInput.first().fill("Milk");
     await addItemInput.first().press("Enter");
@@ -68,10 +66,6 @@ test.describe("Shopping List Lifecycle", () => {
     await expect(page.locator('text="Eggs"').first()).toBeVisible();
 
     // Step 3: Check the first item
-    const checkboxButtons = page.locator(
-      '[data-testid^="item-checkbox"], button:has(svg)'
-    );
-
     // Find and click the checkbox for Milk item
     const milkRow = page.locator('div:has(p:text("Milk"))').first();
     const milkCheckbox = milkRow.locator("button").first();
@@ -79,12 +73,12 @@ test.describe("Shopping List Lifecycle", () => {
     await page.waitForTimeout(300);
 
     // Verify progress shows 1/2 (or similar)
-    const progressText = page.locator('text=/\\d+ of \\d+/');
+    const progressText = page.locator("text=/\\d+ of \\d+/");
     await expect(progressText.first()).toBeVisible();
 
     // Step 4: Delete an item
     const eggsRow = page.locator('div:has(p:text("Eggs"))').first();
-    const eggsMenuButton = eggsRow.locator('button[aria-haspopup]').first();
+    const eggsMenuButton = eggsRow.locator("button[aria-haspopup]").first();
 
     if (await eggsMenuButton.isVisible()) {
       await eggsMenuButton.click();
@@ -149,9 +143,12 @@ test.describe("Shopping List Lifecycle", () => {
     await expect(pageContent).toBeVisible();
 
     // Look for either lists or empty state
-    const hasLists = await page.locator('[class*="grid"]').isVisible().catch(() => false);
+    const hasLists = await page
+      .locator('[class*="grid"]')
+      .isVisible()
+      .catch(() => false);
     const hasEmptyState = await page
-      .locator('text=/No.*List|Create.*First/i')
+      .locator("text=/No.*List|Create.*First/i")
       .isVisible()
       .catch(() => false);
 
@@ -186,9 +183,7 @@ test.describe("Shopping List Lifecycle", () => {
     await page.waitForURL(/\/dashboard\/shopping\/.+/);
 
     // Add two items
-    const addItemInput = page.locator(
-      'input[placeholder*="Add"], [data-testid="add-item-input"]'
-    );
+    const addItemInput = page.locator('input[placeholder*="Add"], [data-testid="add-item-input"]');
     await addItemInput.first().fill("Apple");
     await addItemInput.first().press("Enter");
     await page.waitForTimeout(300);

@@ -1,4 +1,4 @@
-import { test, expect, generateTestListName, generateFutureDate } from "./fixtures";
+import { test, expect } from "./fixtures";
 
 /**
  * E2E Test: Shopping to Inventory Transfer Journey
@@ -56,9 +56,7 @@ test.describe("Shopping to Inventory Transfer", () => {
     await page.waitForURL(/\/dashboard\/shopping\/.+/);
 
     // Add items
-    const addItemInput = page.locator(
-      'input[placeholder*="Add"], [data-testid="add-item-input"]'
-    );
+    const addItemInput = page.locator('input[placeholder*="Add"], [data-testid="add-item-input"]');
     await addItemInput.first().fill("Milk for Transfer");
     await addItemInput.first().press("Enter");
     await page.waitForTimeout(300);
@@ -147,9 +145,7 @@ test.describe("Shopping to Inventory Transfer", () => {
     await page.waitForURL(/\/dashboard\/shopping\/.+/);
 
     // Add and check an item
-    const addItemInput = page.locator(
-      'input[placeholder*="Add"], [data-testid="add-item-input"]'
-    );
+    const addItemInput = page.locator('input[placeholder*="Add"], [data-testid="add-item-input"]');
     await addItemInput.first().fill("Transfer Item");
     await addItemInput.first().press("Enter");
     await page.waitForTimeout(300);
@@ -187,12 +183,20 @@ test.describe("Shopping to Inventory Transfer", () => {
     const sidebar = page.locator(
       '[data-testid="sidebar"], aside, nav[class*="sidebar"], [class*="sidebar"]'
     );
-    const hasSidebar = await sidebar.first().isVisible().catch(() => false);
+    const hasSidebar = await sidebar
+      .first()
+      .isVisible()
+      .catch(() => false);
 
     if (hasSidebar) {
       // Try to find inventory link in sidebar
-      const inventoryLink = sidebar.locator('a[href*="inventory"], [role="link"]:has-text("Inventory")');
-      const hasInventoryLink = await inventoryLink.first().isVisible().catch(() => false);
+      const inventoryLink = sidebar.locator(
+        'a[href*="inventory"], [role="link"]:has-text("Inventory")'
+      );
+      const hasInventoryLink = await inventoryLink
+        .first()
+        .isVisible()
+        .catch(() => false);
 
       if (hasInventoryLink) {
         await inventoryLink.first().click();

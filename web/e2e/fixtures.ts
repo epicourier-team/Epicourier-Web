@@ -1,8 +1,12 @@
-import { test as base, Page, expect } from "@playwright/test";
+/* eslint-disable react-hooks/rules-of-hooks */
+import { test as base, expect } from "@playwright/test";
 
 /**
  * Extended test fixtures for Smart Cart E2E tests
  * Provides reusable helper functions for common operations
+ *
+ * Note: The `use` parameter is from Playwright fixtures, not a React Hook.
+ * The eslint-disable comment above disables the React hooks rule for this file.
  */
 
 export interface ShoppingListFixtures {
@@ -74,13 +78,12 @@ export const test = base.extend<SmartCartFixtures>({
       await page.click('[data-testid="create-list-button"], button:has-text("New List")');
 
       // Wait for modal to appear
-      await page.waitForSelector('[data-testid="list-name-input"], input[placeholder*="Groceries"]');
+      await page.waitForSelector(
+        '[data-testid="list-name-input"], input[placeholder*="Groceries"]'
+      );
 
       // Fill in list name
-      await page.fill(
-        '[data-testid="list-name-input"], input[placeholder*="Groceries"]',
-        name
-      );
+      await page.fill('[data-testid="list-name-input"], input[placeholder*="Groceries"]', name);
 
       // Submit the form
       await page.click('[data-testid="create-list-submit"], button:has-text("Create List")');
@@ -95,14 +98,8 @@ export const test = base.extend<SmartCartFixtures>({
         await page.waitForURL(/\/dashboard\/shopping\/.+/);
 
         for (const item of items) {
-          await page.fill(
-            '[data-testid="add-item-input"], input[placeholder*="Add"]',
-            item
-          );
-          await page.press(
-            '[data-testid="add-item-input"], input[placeholder*="Add"]',
-            "Enter"
-          );
+          await page.fill('[data-testid="add-item-input"], input[placeholder*="Add"]', item);
+          await page.press('[data-testid="add-item-input"], input[placeholder*="Add"]', "Enter");
           await page.waitForTimeout(200);
         }
       }
@@ -123,14 +120,8 @@ export const test = base.extend<SmartCartFixtures>({
   addItemsToList: async ({ page }, use) => {
     const addItemsToList = async (items: string[]) => {
       for (const item of items) {
-        await page.fill(
-          '[data-testid="add-item-input"], input[placeholder*="Add"]',
-          item
-        );
-        await page.press(
-          '[data-testid="add-item-input"], input[placeholder*="Add"]',
-          "Enter"
-        );
+        await page.fill('[data-testid="add-item-input"], input[placeholder*="Add"]', item);
+        await page.press('[data-testid="add-item-input"], input[placeholder*="Add"]', "Enter");
         await page.waitForTimeout(200);
       }
     };
@@ -159,14 +150,8 @@ export const test = base.extend<SmartCartFixtures>({
   },
 
   addInventoryItem: async ({ page }, use) => {
-    const addInventoryItem = async (
-      name: string,
-      quantity: number,
-      expiration?: string
-    ) => {
-      await page.click(
-        '[data-testid="add-inventory-button"], button:has-text("Add")'
-      );
+    const addInventoryItem = async (name: string, quantity: number, expiration?: string) => {
+      await page.click('[data-testid="add-inventory-button"], button:has-text("Add")');
 
       // Search for ingredient
       await page.fill('[data-testid="ingredient-search"], input[type="search"]', name);
@@ -180,16 +165,11 @@ export const test = base.extend<SmartCartFixtures>({
 
       // Fill expiration if provided
       if (expiration) {
-        await page.fill(
-          '[data-testid="expiration-input"], input[type="date"]',
-          expiration
-        );
+        await page.fill('[data-testid="expiration-input"], input[type="date"]', expiration);
       }
 
       // Submit
-      await page.click(
-        '[data-testid="add-inventory-submit"], button:has-text("Add")'
-      );
+      await page.click('[data-testid="add-inventory-submit"], button:has-text("Add")');
       await page.waitForTimeout(300);
     };
 
