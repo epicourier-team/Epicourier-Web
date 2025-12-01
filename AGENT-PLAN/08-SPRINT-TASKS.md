@@ -321,52 +321,106 @@ The following issues were addressed during v1.3.0 development:
 | #94   | feat(python): AI recipe suggestions from inventory          | Python API     | P0       | -        | 📝 To Do     |
 | #95   | feat(python): Expiration priority in suggestions            | Python API     | P0       | -        | 📝 To Do     |
 
-**AI Inventory Recommendation Design** (Python FastAPI Extension):
+**AI Inventory Recommendation Design** (Gemini-Powered Direct Recommendation):
+
+> **Design Decision**: Use Gemini 2.5 Flash for direct recipe recommendations instead of vector search + KMeans hybrid approach. This provides more intelligent recommendations with natural language reasoning at minimal cost (~$0.00015/request).
+
 ```python
 # New endpoint: POST /inventory-recommend
-# Extends existing recommender.py architecture
+# Uses Gemini for intelligent recipe recommendations
 
 class InventoryRecommendRequest(BaseModel):
-    inventory: List[InventoryItem]  # [{ingredient_id, quantity, expiration_date}]
+    inventory: List[InventoryItem]  # [{ingredient_id, name, quantity, expiration_date}]
     preferences: Optional[str] = None  # "low carb", "high protein", etc.
     num_recipes: int = 5
 
 class InventoryItem(BaseModel):
     ingredient_id: int
+    name: str
     quantity: float
     unit: str
     expiration_date: Optional[str] = None  # ISO date string
 
-# Algorithm Flow:
-# 1. Load user inventory → map to ingredient embeddings
-# 2. Find recipes that use inventory ingredients (SQL filter)
-# 3. Rank by:
-#    - Ingredient coverage (% of recipe ingredients available)
-#    - Expiration urgency (prioritize soon-to-expire items)
-#    - User preferences (if provided, use Gemini expansion)
-# 4. Use existing KMeans diversity selection
-# 5. Return top N diverse recipes with reasoning
+# Algorithm Flow (Gemini-Powered):
+# 1. Load user inventory with expiration dates
+# 2. Load recipe database (filtered to reduce context)
+# 3. Construct prompt with:
+#    - Available ingredients + expiration status
+#    - Recipe options with ingredients
+#    - User preferences (optional)
+# 4. Gemini generates recommendations with:
+#    - Match score (0-100)
+#    - Missing ingredients list
+#    - Expiring ingredients utilized
+#    - Human-readable reasoning
+# 5. Return structured JSON response
 
-def recommend_from_inventory(inventory: List[InventoryItem], preferences: str = None):
-    # Reuse existing embedding + clustering infrastructure
+def recommend_from_inventory_gemini(
+    inventory: List[InventoryItem], 
+    preferences: str = None,
+    num_recipes: int = 5
+):
+    """
+    Use Gemini 2.5 Flash for intelligent recipe recommendations.
+    
+    Advantages over vector search:
+    - Understands complex preferences ("use expiring milk for dessert")
+    - Generates natural language reasoning
+    - Considers nutritional balance across meals
+    - More accurate ingredient matching
+    """
     recipe_data = load_recipe_data()
-    embedder = load_embedder()
     
-    # Filter recipes by available ingredients
-    available_ingredient_ids = [item.ingredient_id for item in inventory]
-    candidate_recipes = filter_by_ingredients(recipe_data, available_ingredient_ids)
+    # Build inventory context with expiration urgency
+    inventory_text = format_inventory_with_expiration(inventory)
     
-    # Score by coverage + expiration urgency
-    scored = score_recipes(candidate_recipes, inventory)
+    # Build recipe options (limit to control tokens)
+    recipes_text = format_recipes_for_prompt(recipe_data, limit=100)
     
-    # Optional: Apply preference filter via Gemini
-    if preferences:
-        scored = apply_preference_filter(scored, preferences)
+    prompt = build_recommendation_prompt(
+        inventory_text, 
+        recipes_text, 
+        preferences, 
+        num_recipes
+    )
     
-    # Diversity selection (reuse existing KMeans)
-    diverse = select_diverse_recipes(scored, n_meals=5)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
+        generation_config={"response_mime_type": "application/json"}
+    )
     
-    return diverse, generate_reasoning(diverse, inventory)
+    return parse_gemini_response(response.text)
+```
+
+**Gemini Prompt Design**:
+```
+You are a smart meal planning assistant.
+Based on the user's available ingredients, recommend {num_recipes} recipes.
+
+## User's Inventory:
+- Chicken breast: 500g (expires: 2025-12-02) ⚠️ EXPIRING SOON
+- Eggs: 12 count
+- Milk: 1L (expires: 2025-12-05)
+...
+
+## Available Recipes:
+ID:1 | Chicken Stir Fry | Ingredients: chicken, vegetables, soy sauce
+ID:2 | Omelette | Ingredients: eggs, cheese, vegetables
+...
+
+## Instructions:
+1. Prioritize recipes using ingredients expiring soon
+2. Maximize ingredient utilization 
+3. Consider nutritional balance
+4. Ensure meal variety
+
+## Output Format (JSON):
+{
+  "recommendations": [...],
+  "shopping_suggestions": [...],
+  "overall_reasoning": "..."
+}
 ```
 
 **API Endpoints Preview**:
