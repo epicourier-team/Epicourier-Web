@@ -30,9 +30,9 @@ This document tracks development milestones, tasks, and roadmap for the Epicouri
 |---------|-------------------|----------------------|----------|
 | v1.1.0  | Nutrient Tracking | ✅ Complete          | 10/10    |
 | v1.2.0  | Gamification      | ✅ Complete          | 15/15 (core + extended + testing) |
-| v1.3.0  | Smart Cart        | 🚧 In Progress       | 24/30 (E1 ✅, E2 ✅, E3 ✅, E4-E5 🚧) |
+| v1.3.0  | Smart Cart        | 🚧 In Progress       | 29/30 (E1 ✅, E2 ✅, E3 ✅, E4 ✅, E5 🚧) |
 
-**Overall Phase 2 Progress**: ~93% (v1.1.0 + v1.2.0 complete, v1.3.0 80% complete)
+**Overall Phase 2 Progress**: ~97% (v1.1.0 + v1.2.0 complete, v1.3.0 97% complete)
 
 ---
 
@@ -197,8 +197,8 @@ The following features were originally planned for v1.2.0 but deferred due to pr
 | #75    | Epic: Database Foundation (E1)                  | #76-#79    | P0       | ✅ Complete   |
 | #80    | Epic: Shopping List System (E2)                 | #81-#86    | P0       | ✅ Complete   |
 | #87    | Epic: Inventory Management System (E3)          | #88-#92    | P0       | ✅ Complete   |
-| #93    | Epic: AI Recipe Recommendations (E4)            | #94-#98    | P1       | 📝 Planned    |
-| #99    | Epic: Integration, Polish & Deployment (E5)     | #100-#104  | P0       | 📝 Planned    |
+| #93    | Epic: AI Recipe Recommendations (E4)            | #94-#98    | P1       | ✅ Complete   |
+| #99    | Epic: Integration, Polish & Deployment (E5)     | #100-#104  | P0       | � In Progress |
 
 #### ✅ Epic 1: Database Foundation (Sprint 1) - COMPLETE
 
@@ -273,16 +273,28 @@ user_inventory (
 - ✅ 35 unit tests (96% line coverage)
 - ✅ TypeScript types for all inventory entities
 
-#### 🚧 Epic 4: AI Recipe Recommendations (Sprint 4) - IN PROGRESS
+#### ✅ Epic 4: AI Recipe Recommendations (Sprint 4) - COMPLETE
 
 | Issue | Title                                                    | Type       | Priority | Status     |
 | ----- | -------------------------------------------------------- | ---------- | -------- | ---------- |
-| #93   | Epic: AI Recipe Recommendations from Inventory (E4)      | Epic       | P1       | 🚧 In Progress |
-| #94   | feat(python): AI recipe suggestions from inventory       | Python API | P0       | 📝 To Do   |
-| #95   | feat(python): Expiration priority in suggestions         | Python API | P0       | 📝 To Do   |
-| #96   | feat(frontend): Suggest recipes from inventory button    | Frontend   | P0       | ✅ Complete (PR #108) |
-| #97   | feat(frontend): Recipe recommendation modal              | Frontend   | P0       | 📝 To Do   |
-| #98   | test(python): Inventory recommendation API tests         | Testing    | P1       | 📝 To Do   |
+| #93   | Epic: AI Recipe Recommendations from Inventory (E4)      | Epic       | P1       | ✅ Complete (PR #137) |
+| #94   | feat(python): AI recipe suggestions from inventory       | Python API | P0       | ✅ Complete (PR #137) |
+| #95   | feat(python): Expiration priority in suggestions         | Python API | P0       | ✅ Complete (PR #137) |
+| #96   | feat(frontend): Suggest recipes from inventory button    | Frontend   | P0       | ✅ Complete (PR #137) |
+| #97   | feat(frontend): Recipe recommendation modal              | Frontend   | P0       | ✅ Complete (PR #137) |
+| #98   | test(python): Inventory recommendation API tests         | Testing    | P1       | ✅ Complete (PR #137) |
+
+**Epic 4 Deliverables** (PR #137):
+- ✅ `POST /inventory-recommend` - Gemini 2.5 Flash powered recommendations
+- ✅ Expiration priority scoring (expired items weighted higher)
+- ✅ Match score calculation (0-100 based on available ingredients)
+- ✅ Shopping suggestions for missing ingredients
+- ✅ `RecipeRecommendationModal` with Neo-Brutalism UI design
+- ✅ Progress bars for ingredient coverage visualization
+- ✅ "Add to Shopping List" integration for missing ingredients
+- ✅ 15 Python backend tests (100% pass)
+- ✅ 30 frontend component tests (100% pass)
+- ✅ Shopping seed data script (`data/import_shopping_seed.py`)
 
 #### 🚧 Epic 5: Integration, Polish & Deployment (Sprint 5) - IN PROGRESS
 
@@ -294,6 +306,12 @@ user_inventory (
 | #102  | feat(frontend): Performance optimization                 | Frontend   | P1       | 📝 To Do   |
 | #103  | test(e2e): Smart cart user journey tests                 | Testing    | P1       | 📝 To Do   |
 | #104  | docs: Smart cart feature documentation                   | Docs       | P1       | ✅ Complete (PR #110) |
+
+**Remaining Tasks for v1.3.0 Completion**:
+- Dashboard widget showing expiring items + shopping summary
+- Transfer purchased items from shopping list to inventory
+- Performance audit and lazy loading optimization
+- End-to-end user journey tests
 
 ---
 
@@ -311,19 +329,29 @@ The following issues were addressed during v1.3.0 development:
 | #128  | fix: Hydration mismatch in AppSidebar DropdownMenu       | Bug      | ✅ Fixed   | #129   |
 | #130  | feat: Add concurrently for dev:full command              | DX       | ✅ Done    | #131   |
 | #133  | fix: Improve Recommender page layout and styling         | UI       | ✅ Fixed   | #134   |
+| -     | feat(epic-4): AI recipe recommendations                  | Feature  | ✅ Done    | #137   |
+
+#### Seed Data Scripts
+
+| Script | Description | Location |
+| ------ | ----------- | -------- |
+| `import_to_supabase.py` | Import recipes, ingredients, tags to Supabase | `data/` |
+| `import_shopping_seed.py` | Import shopping list test data (4 lists, 31 items) | `data/` |
+| `inventory_seed.sql` | SQL seed for user inventory (fridge/pantry/freezer) | `supabase/seed/` |
+| `shopping_seed.sql` | SQL seed for shopping lists (manual execution) | `supabase/seed/` |
 
 #### Backend API Design
 
-> **Note**: Shopping list CRUD uses Next.js API Routes. **AI-powered recipe suggestions** require extending the Python FastAPI backend with a new `/inventory-recommend` endpoint.
+> **Note**: Shopping list CRUD uses Next.js API Routes. **AI-powered recipe suggestions** use the Python FastAPI backend with `/inventory-recommend` endpoint.
 
 | Issue | Title                                                       | Type           | Priority | Assignee | Status       |
 | ----- | ----------------------------------------------------------- | -------------- | -------- | -------- | ------------ |
-| #94   | feat(python): AI recipe suggestions from inventory          | Python API     | P0       | -        | 📝 To Do     |
-| #95   | feat(python): Expiration priority in suggestions            | Python API     | P0       | -        | 📝 To Do     |
+| #94   | feat(python): AI recipe suggestions from inventory          | Python API     | P0       | -        | ✅ Complete  |
+| #95   | feat(python): Expiration priority in suggestions            | Python API     | P0       | -        | ✅ Complete  |
 
-**AI Inventory Recommendation Design** (Gemini-Powered Direct Recommendation):
+**AI Inventory Recommendation Implementation** (Gemini 2.5 Flash):
 
-> **Design Decision**: Use Gemini 2.5 Flash for direct recipe recommendations instead of vector search + KMeans hybrid approach. This provides more intelligent recommendations with natural language reasoning at minimal cost (~$0.00015/request).
+> **Design Decision**: Use Gemini 2.5 Flash for direct recipe recommendations. This provides intelligent recommendations with natural language reasoning at minimal cost (~$0.00015/request).
 
 ```python
 # New endpoint: POST /inventory-recommend
