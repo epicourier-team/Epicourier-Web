@@ -75,7 +75,7 @@ export default function RecommendPage() {
                 return { ...r };
               }
 
-              const id = row?.id ?? null;
+              const id = row?.id ?? r.id ?? null;
               return { ...r, id };
             } catch (e) {
               console.error("Unexpected error looking up recipe id:", e);

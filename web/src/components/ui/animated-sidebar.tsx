@@ -161,8 +161,7 @@ export const SidebarLink = ({
 }: {
     link: Links;
     className?: string;
-    props?: LinkProps;
-}) => {
+} & Omit<LinkProps, "href">) => {
     const { open, animate } = useSidebar();
     return (
         <Link

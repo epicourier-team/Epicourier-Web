@@ -20,6 +20,7 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
               src={recipe.image_url}
               alt={recipe.name ?? "recipe"}
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
           </div>
