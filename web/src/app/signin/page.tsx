@@ -75,7 +75,14 @@ const SignIn = () => {
         title: "Success",
         description: "Welcome back!",
       });
-    } catch {
+    } catch (err) {
+      // Next.js redirect() throws a special error - this is expected behavior
+      // Check if it's a redirect error (NEXT_REDIRECT)
+      if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) {
+        // This is expected - redirect is working, don't show error
+        return;
+      }
+
       const errorMessage = "An unexpected error occurred. Please try again.";
       setError(errorMessage);
       toast({
