@@ -35,9 +35,7 @@ const mockRecommendations: InventoryRecommendResponse = {
 // Helper function to find and click recipe card
 const clickRecipeCard = (recipeName: string) => {
   const recipeButtons = screen.getAllByRole("button");
-  const button = recipeButtons.find((btn) =>
-    btn.textContent?.includes(recipeName)
-  );
+  const button = recipeButtons.find((btn) => btn.textContent?.includes(recipeName));
   if (button) {
     fireEvent.click(button);
   }
@@ -80,69 +78,40 @@ describe("RecipeRecommendationModal", () => {
     it("should display empty state when recommendations is null", () => {
       render(<RecipeRecommendationModal {...defaultProps} />);
 
-      expect(
-        screen.getByText(/no recommendations yet/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/no recommendations yet/i)).toBeInTheDocument();
     });
   });
 
   describe("With Recommendations", () => {
     it("should display overall reasoning", () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
-      expect(
-        screen.getByText(/prioritize your expiring eggs/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/prioritize your expiring eggs/i)).toBeInTheDocument();
     });
 
     it("should display all recipe names", () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       expect(screen.getByText("Chocolate Gateau")).toBeInTheDocument();
       expect(screen.getByText("Simple Omelette")).toBeInTheDocument();
     });
 
     it("should display match scores", () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       expect(screen.getByText(/85%/)).toBeInTheDocument();
       expect(screen.getByText(/95%/)).toBeInTheDocument();
     });
 
     it("should display recipe reasons", () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       expect(screen.getByText(/uses expiring eggs/i)).toBeInTheDocument();
       expect(screen.getByText(/quick breakfast/i)).toBeInTheDocument();
     });
 
     it("should display shopping suggestions", () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       expect(screen.getByText("Chocolate")).toBeInTheDocument();
       expect(screen.getByText("Heavy Cream")).toBeInTheDocument();
@@ -152,24 +121,14 @@ describe("RecipeRecommendationModal", () => {
 
   describe("Recipe Card Expansion", () => {
     it("should render expandable recipe cards", () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       const chocolateGateauButton = clickRecipeCard("Chocolate Gateau");
       expect(chocolateGateauButton).toBeDefined();
     });
 
     it("should toggle expansion and show details when clicking recipe card", async () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       await act(async () => {
         clickRecipeCard("Chocolate Gateau");
@@ -182,24 +141,14 @@ describe("RecipeRecommendationModal", () => {
     });
 
     it("should show expiring ingredients badge before expansion", () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       // The expiring ingredients warning is shown in card header
       expect(screen.getByText(/Uses 1 expiring ingredient/i)).toBeInTheDocument();
     });
 
     it("should show missing ingredients section when expanded", async () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       await act(async () => {
         clickRecipeCard("Chocolate Gateau");
@@ -211,12 +160,7 @@ describe("RecipeRecommendationModal", () => {
     });
 
     it("should show View Recipe link when expanded", async () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       await act(async () => {
         clickRecipeCard("Chocolate Gateau");
@@ -229,7 +173,7 @@ describe("RecipeRecommendationModal", () => {
 
     it("should show Add Missing button when expanded with missing ingredients", async () => {
       const onAddToShoppingList = jest.fn();
-      
+
       render(
         <RecipeRecommendationModal
           {...defaultProps}
@@ -249,7 +193,7 @@ describe("RecipeRecommendationModal", () => {
 
     it("should call onAddToShoppingList when Add Missing button is clicked", async () => {
       const onAddToShoppingList = jest.fn();
-      
+
       render(
         <RecipeRecommendationModal
           {...defaultProps}
@@ -273,12 +217,7 @@ describe("RecipeRecommendationModal", () => {
 
   describe("Match Score Colors", () => {
     it("should show Great Match for score >= 70", () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       const greatBadges = screen.getAllByText(/Great Match/i);
       expect(greatBadges.length).toBeGreaterThan(0);
@@ -302,10 +241,7 @@ describe("RecipeRecommendationModal", () => {
       };
 
       render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={goodMatchRecommendations}
-        />
+        <RecipeRecommendationModal {...defaultProps} recommendations={goodMatchRecommendations} />
       );
 
       const goodMatchTexts = screen.getAllByText(/Good Match/i);
@@ -330,10 +266,7 @@ describe("RecipeRecommendationModal", () => {
       };
 
       render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={lowScoreRecommendations}
-        />
+        <RecipeRecommendationModal {...defaultProps} recommendations={lowScoreRecommendations} />
       );
 
       const needsShoppingTexts = screen.getAllByText(/Needs Shopping/i);
@@ -429,10 +362,7 @@ describe("RecipeRecommendationModal", () => {
       };
 
       render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={noExpiringRecommendations}
-        />
+        <RecipeRecommendationModal {...defaultProps} recommendations={noExpiringRecommendations} />
       );
 
       // Should NOT show expiring ingredient warning
@@ -456,12 +386,7 @@ describe("RecipeRecommendationModal", () => {
         overall_reasoning: "Expand your cooking!",
       };
 
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={noAvailable}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={noAvailable} />);
 
       await act(async () => {
         clickRecipeCard("New Recipe");
@@ -490,23 +415,13 @@ describe("RecipeRecommendationModal", () => {
         overall_reasoning: "All set!",
       };
 
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={noSuggestions}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={noSuggestions} />);
 
       expect(screen.queryByText("Shopping Suggestions")).not.toBeInTheDocument();
     });
 
     it("should handle recipe with no missing ingredients - hide Missing section", async () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       await act(async () => {
         clickRecipeCard("Simple Omelette");
@@ -522,24 +437,14 @@ describe("RecipeRecommendationModal", () => {
 
   describe("Progress Bar", () => {
     it("should display ingredient coverage text", () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       const coverageTexts = screen.getAllByText(/Ingredient coverage/i);
       expect(coverageTexts.length).toBeGreaterThan(0);
     });
 
     it("should show correct count of available ingredients", () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       // Chocolate Gateau: 4 available out of 5 total
       expect(screen.getByText(/4 of 5/i)).toBeInTheDocument();
@@ -548,23 +453,13 @@ describe("RecipeRecommendationModal", () => {
 
   describe("Accessibility", () => {
     it("should have dialog role", () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       expect(screen.getByRole("dialog")).toBeInTheDocument();
     });
 
     it("should have proper heading", () => {
-      render(
-        <RecipeRecommendationModal
-          {...defaultProps}
-          recommendations={mockRecommendations}
-        />
-      );
+      render(<RecipeRecommendationModal {...defaultProps} recommendations={mockRecommendations} />);
 
       expect(screen.getByText("AI Recipe Recommendations")).toBeInTheDocument();
     });

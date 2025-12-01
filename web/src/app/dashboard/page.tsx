@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { SmartCartWidget } from "@/components/ui/SmartCartWidget";
 import {
   Calendar,
   Trophy,
@@ -13,6 +14,8 @@ import {
   Beef,
   Wheat,
   Droplets,
+  ShoppingCart,
+  Package,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -354,11 +357,17 @@ export default function DashboardPage() {
         </Link>
       </div>
 
+      {/* Smart Cart Widget - Full Width Horizontal */}
+      <div className="brutalism-card rounded-none bg-white p-5">
+        <SmartCartWidget title="Smart Cart" />
+      </div>
+
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Nutrient Summary - Left Column */}
-        <div className="lg:col-span-1">
-          <div className="brutalism-card h-full rounded-none bg-white p-5">
+        {/* Left Column - Nutrient Summary */}
+        <div className="flex flex-col lg:col-span-1">
+          {/* Nutrient Summary */}
+          <div className="brutalism-card flex-1 rounded-none bg-white p-5">
             <div className="mb-4 flex items-center justify-between border-b-2 border-black pb-3">
               <div className="flex items-center gap-2">
                 <div className="brutalism-border bg-orange-300 p-1.5">
@@ -389,7 +398,7 @@ export default function DashboardPage() {
                       <Flame className="h-5 w-5 text-orange-500" />
                       <span className="font-bold">Calories</span>
                     </div>
-                    <span className="text-2xl font-black text-orange-600">
+                    <span className="flex items-center gap-1 text-2xl font-black text-orange-600">
                       {Math.round(todayNutrients.calories_kcal)}
                     </span>
                   </div>
@@ -624,7 +633,7 @@ export default function DashboardPage() {
       {/* Quick Actions Footer - Neo-Brutalism Style */}
       <div className="brutalism-card rounded-none bg-white p-5">
         <h3 className="mb-4 border-b-2 border-black pb-3 font-black uppercase">Quick Actions</h3>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           <Link
             href="/dashboard/calendar"
             className="brutalism-card flex flex-col items-center gap-2 rounded-none bg-blue-200 p-4 hover:bg-blue-300"
@@ -638,6 +647,20 @@ export default function DashboardPage() {
           >
             <ChefHat className="h-7 w-7" />
             <span className="text-sm font-bold uppercase">Recipes</span>
+          </Link>
+          <Link
+            href="/dashboard/shopping"
+            className="brutalism-card flex flex-col items-center gap-2 rounded-none bg-teal-200 p-4 hover:bg-teal-300"
+          >
+            <ShoppingCart className="h-7 w-7" />
+            <span className="text-sm font-bold uppercase">Shopping</span>
+          </Link>
+          <Link
+            href="/dashboard/inventory"
+            className="brutalism-card flex flex-col items-center gap-2 rounded-none bg-cyan-200 p-4 hover:bg-cyan-300"
+          >
+            <Package className="h-7 w-7" />
+            <span className="text-sm font-bold uppercase">Inventory</span>
           </Link>
           <Link
             href="/dashboard/challenges"

@@ -31,20 +31,20 @@ export default function ExpiringSoonBanner({
   return (
     <div
       className={cn(
-        "flex items-center justify-between rounded-lg border-2 border-black p-4",
-        hasExpired ? "bg-red-50" : "bg-yellow-50",
+        "flex items-center justify-between border-2 border-black p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]",
+        hasExpired ? "bg-red-100" : "bg-yellow-100",
         className
       )}
     >
       <div className="flex items-center gap-3">
         <div
           className={cn(
-            "flex size-10 items-center justify-center rounded-full",
-            hasExpired ? "bg-red-200" : "bg-yellow-200"
+            "flex size-10 items-center justify-center border-2 border-black",
+            hasExpired ? "bg-red-300" : "bg-yellow-300"
           )}
         >
           <AlertTriangle
-            className={cn("size-5", hasExpired ? "text-red-700" : "text-yellow-700")}
+            className={cn("size-5", hasExpired ? "text-red-800" : "text-yellow-800")}
           />
         </div>
         <div>
@@ -75,8 +75,8 @@ export default function ExpiringSoonBanner({
       <button
         onClick={onViewAll}
         className={cn(
-          "flex items-center gap-1 rounded-lg border-2 border-black px-4 py-2 font-semibold transition-colors",
-          hasExpired ? "bg-red-200 hover:bg-red-300" : "bg-yellow-200 hover:bg-yellow-300"
+          "brutalism-button flex items-center gap-1 px-4 py-2 transition-colors",
+          hasExpired ? "bg-red-300 hover:bg-red-400" : "bg-yellow-300 hover:bg-yellow-400"
         )}
       >
         <span>View All</span>
