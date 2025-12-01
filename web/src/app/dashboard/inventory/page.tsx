@@ -357,15 +357,15 @@ export default function InventoryPage() {
 
       {/* Show filter indicator when viewing expiring items */}
       {isExpiringView && (
-        <div className="mb-4 flex items-center justify-between rounded-lg border-2 border-orange-400 bg-orange-50 px-4 py-3">
-          <span className="font-semibold text-orange-800">
+        <div className="brutalism-panel mb-4 flex items-center justify-between border-orange-500 bg-orange-100 px-4 py-3">
+          <span className="font-bold text-orange-900">
             🔍 Viewing {displayItems.length} expiring/expired item
             {displayItems.length !== 1 ? "s" : ""}
             {activeLocation !== "all" && ` in ${activeLocation}`}
           </span>
           <button
             onClick={handleShowAll}
-            className="flex items-center gap-1 rounded-md bg-orange-200 px-3 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-300"
+            className="brutalism-button flex items-center gap-1 border-orange-600 bg-orange-300 px-3 py-1 text-sm text-orange-900 hover:bg-orange-400"
           >
             <X className="size-4" />
             Exit Filter
@@ -389,14 +389,14 @@ export default function InventoryPage() {
 
       {/* Selection mode action bar */}
       {isSelectMode && (
-        <div className="mb-4 flex items-center justify-between rounded-lg border-2 border-blue-400 bg-blue-50 px-4 py-3">
+        <div className="brutalism-panel mb-4 flex items-center justify-between border-sky-500 bg-sky-100 px-4 py-3">
           <div className="flex items-center gap-4">
-            <span className="font-semibold text-blue-800">
+            <span className="font-bold text-sky-900">
               {selectedItems.size} item{selectedItems.size !== 1 ? "s" : ""} selected
             </span>
             <button
               onClick={handleSelectAll}
-              className="flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-800"
+              className="brutalism-button flex items-center gap-1 border-sky-600 bg-sky-200 px-3 py-1 text-sm text-sky-900 hover:bg-sky-300"
             >
               {selectedItems.size === displayItems.length ? (
                 <>
@@ -414,7 +414,7 @@ export default function InventoryPage() {
           <button
             onClick={() => setIsBatchDeleteOpen(true)}
             disabled={selectedItems.size === 0}
-            className="brutalism-button shadow-brutal-sm flex items-center gap-2 border-2 border-black bg-red-500 px-4 py-2 text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+            className="brutalism-button flex items-center gap-2 bg-red-500 px-4 py-2 text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Trash2 className="size-4" />
             Delete Selected

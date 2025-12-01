@@ -37,7 +37,7 @@ export default function LocationTabs({
   disabled = false,
 }: LocationTabsProps) {
   return (
-    <div className={cn("flex flex-wrap gap-2", disabled && "opacity-50", className)}>
+    <div className={cn("flex flex-wrap gap-3", disabled && "opacity-50", className)}>
       {LOCATIONS.map(({ value, label, emoji }) => {
         const isActive = activeLocation === value;
         const count = counts?.[value] ?? 0;
@@ -48,11 +48,12 @@ export default function LocationTabs({
             onClick={() => !disabled && onLocationChange(value)}
             disabled={disabled}
             className={cn(
-              "flex items-center gap-1.5 rounded-lg border-2 border-black px-3 py-1.5 text-sm font-semibold transition-all",
+              "flex items-center gap-1.5 border-2 border-black px-3 py-1.5 text-sm font-bold transition-all",
               isActive
-                ? "bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                : "bg-white text-black hover:bg-gray-100",
-              disabled && "cursor-not-allowed hover:bg-white"
+                ? "bg-emerald-400 text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                : "bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]",
+              disabled &&
+                "cursor-not-allowed hover:translate-x-0 hover:translate-y-0 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
             )}
           >
             <span>{emoji}</span>
@@ -60,8 +61,8 @@ export default function LocationTabs({
             {counts && (
               <span
                 className={cn(
-                  "ml-1 rounded-full px-1.5 py-0.5 text-xs",
-                  isActive ? "bg-white text-black" : "bg-gray-200 text-gray-700"
+                  "ml-1 border border-black px-1.5 py-0.5 text-xs font-bold",
+                  isActive ? "bg-white text-black" : "bg-gray-100 text-gray-800"
                 )}
               >
                 {count}

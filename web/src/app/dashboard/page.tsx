@@ -365,9 +365,9 @@ export default function DashboardPage() {
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left Column - Nutrient Summary */}
-        <div className="lg:col-span-1">
+        <div className="flex flex-col lg:col-span-1">
           {/* Nutrient Summary */}
-          <div className="brutalism-card rounded-none bg-white p-5">
+          <div className="brutalism-card flex-1 rounded-none bg-white p-5">
             <div className="mb-4 flex items-center justify-between border-b-2 border-black pb-3">
               <div className="flex items-center gap-2">
                 <div className="brutalism-border bg-orange-300 p-1.5">
@@ -398,7 +398,7 @@ export default function DashboardPage() {
                       <Flame className="h-5 w-5 text-orange-500" />
                       <span className="font-bold">Calories</span>
                     </div>
-                    <span className="text-2xl font-black text-orange-600">
+                    <span className="flex items-center gap-1 text-2xl font-black text-orange-600">
                       {Math.round(todayNutrients.calories_kcal)}
                     </span>
                   </div>
