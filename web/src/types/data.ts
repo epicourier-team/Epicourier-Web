@@ -576,8 +576,10 @@ export interface InventoryResponse {
  */
 export interface InventoryItemForRecommendation {
   ingredient_id: number;
-  quantity?: number;
-  expiration_date?: string;
+  name: string;
+  quantity: number;
+  unit?: string | null;
+  expiration_date?: string | null;
 }
 
 /**
@@ -590,32 +592,25 @@ export interface InventoryRecommendRequest {
 }
 
 /**
- * Expiring ingredient info in recommendation response
- */
-export interface ExpiringIngredientInfo {
-  name: string;
-  expires_in_days: number;
-}
-
-/**
  * Individual recipe recommendation from inventory
  */
 export interface InventoryRecipeRecommendation {
   recipe_id: number;
   recipe_name: string;
-  recipe_image?: string;
-  coverage_score: number; // 0-1, percentage of ingredients available
-  missing_ingredients: string[];
-  uses_expiring: ExpiringIngredientInfo[];
-  reasoning: string;
+  match_score: number; // 0-100
+  ingredients_available: string[];
+  ingredients_missing: string[];
+  expiring_ingredients_used: string[];
+  reason: string;
 }
 
 /**
  * Response from POST /inventory-recommend (Python API)
  */
 export interface InventoryRecommendResponse {
-  recipes: InventoryRecipeRecommendation[];
-  summary: string;
+  recommendations: InventoryRecipeRecommendation[];
+  shopping_suggestions: string[];
+  overall_reasoning: string;
 }
 
 // --- Smart Cart Dashboard Widget Types ---

@@ -7,6 +7,10 @@ from pydantic import BaseModel, Field
 from supabase import Client, create_client
 
 from api.recommender import create_meal_plan
+from api.inventory_recommender import (
+    InventoryRecommendRequest,
+    recommend_from_inventory,
+)
 
 load_dotenv()
 
@@ -55,3 +59,36 @@ def recommend_meals(req: RecommendRequest):
 
     plan, expanded_goal = create_meal_plan(req.goal, n_meals=req.num_meals)
     return {"recipes": plan, "goal_expanded": expanded_goal}
+
+
+@app.post("/inventory-recommend")
+def inventory_recommend(req: InventoryRecommendRequest):
+    """
+    AI-powered recipe recommendations based on user's inventory.
+
+    Prioritizes recipes that use expiring ingredients.
+    Uses Gemini 2.5 Flash for intelligent recommendations.
+    """
+    # Validate inventory
+    if not req.inventory:
+        raise HTTPException(status_code=400, detail="Inventory cannot be empty")
+
+    # Validate num_recipes
+    if req.num_recipes < 1 or req.num_recipes > 10:
+        raise HTTPException(
+            status_code=400, detail="num_recipes must be between 1 and 10"
+        )
+
+    try:
+        result = recommend_from_inventory(
+            inventory=req.inventory,
+            preferences=req.preferences,
+            num_recipes=req.num_recipes,
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate recommendations: {str(e)}"
+        )
