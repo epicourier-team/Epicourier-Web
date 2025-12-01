@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { StreakWidget } from "@/components/ui/StreakWidget";
 import { SmartCartWidget } from "@/components/ui/SmartCartWidget";
 import {
   Calendar,
@@ -358,12 +357,17 @@ export default function DashboardPage() {
         </Link>
       </div>
 
+      {/* Smart Cart Widget - Full Width Horizontal */}
+      <div className="brutalism-card rounded-none bg-white p-5">
+        <SmartCartWidget title="Smart Cart" />
+      </div>
+
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column - Nutrient Summary, Streak Widget and Smart Cart Widget */}
-        <div className="space-y-6 lg:col-span-1">
+        {/* Left Column - Nutrient Summary */}
+        <div className="lg:col-span-1">
           {/* Nutrient Summary */}
-          <div className="brutalism-card h-full rounded-none bg-white p-5">
+          <div className="brutalism-card rounded-none bg-white p-5">
             <div className="mb-4 flex items-center justify-between border-b-2 border-black pb-3">
               <div className="flex items-center gap-2">
                 <div className="brutalism-border bg-orange-300 p-1.5">

@@ -163,7 +163,8 @@ describe("SmartCartWidget", () => {
       render(<SmartCartWidget />);
 
       await waitFor(() => {
-        expect(screen.getByText("Next: milk, eggs, bread")).toBeInTheDocument();
+        expect(screen.getByText("Next:")).toBeInTheDocument();
+        expect(screen.getByText("milk, eggs, bread")).toBeInTheDocument();
       });
     });
 
@@ -194,7 +195,7 @@ describe("SmartCartWidget", () => {
       render(<SmartCartWidget />);
 
       await waitFor(() => {
-        expect(screen.getByText("Complete")).toBeInTheDocument();
+        expect(screen.getByText("Done")).toBeInTheDocument();
       });
     });
   });
@@ -319,11 +320,11 @@ describe("SmartCartWidget", () => {
       render(<SmartCartWidget />);
 
       await waitFor(() => {
-        expect(screen.getByText("Inventory looking good!")).toBeInTheDocument();
+        expect(screen.getByText("All good!")).toBeInTheDocument();
       });
     });
 
-    it("should have link to view inventory", async () => {
+    it("should have link to view inventory in header", async () => {
       const mockData: SmartCartWidgetData = {
         active_list: null,
         inventory_alerts: {
@@ -342,8 +343,12 @@ describe("SmartCartWidget", () => {
       render(<SmartCartWidget />);
 
       await waitFor(() => {
-        const link = screen.getByText("View Inventory");
-        expect(link.closest("a")).toHaveAttribute("href", "/dashboard/inventory");
+        // Get all "Inventory" links/texts and find the header link
+        const links = screen.getAllByRole("link", { name: /inventory/i });
+        const headerLink = links.find(
+          (link) => link.getAttribute("href") === "/dashboard/inventory"
+        );
+        expect(headerLink).toBeInTheDocument();
       });
     });
   });

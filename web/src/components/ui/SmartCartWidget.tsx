@@ -10,46 +10,42 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import type { SmartCartWidgetData } from "@/types/data";
 
 /**
- * Skeleton loading state for the SmartCartWidget
+ * Skeleton loading state for the SmartCartWidget - Horizontal Neo-Brutalism Style
  */
 function WidgetSkeleton() {
   return (
-    <div className="space-y-4" data-testid="smart-cart-skeleton">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="smart-cart-skeleton">
       {/* Active List Section */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-5 w-5 rounded" />
-          <Skeleton className="h-4 w-32" />
-        </div>
-        <Skeleton className="h-3 w-full" />
-        <Skeleton className="h-4 w-48" />
+      <div className="brutalism-border space-y-2 bg-gray-50 p-4">
+        <div className="h-4 w-24 animate-pulse bg-gray-200" />
+        <div className="h-3 w-full animate-pulse bg-gray-200" />
+        <div className="h-4 w-32 animate-pulse bg-gray-200" />
       </div>
 
       {/* Inventory Alerts Section */}
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-24" />
+      <div className="brutalism-border space-y-2 bg-gray-50 p-4">
+        <div className="h-4 w-28 animate-pulse bg-gray-200" />
         <div className="flex gap-2">
-          <Skeleton className="h-8 w-24 rounded-full" />
-          <Skeleton className="h-8 w-24 rounded-full" />
+          <div className="h-6 w-20 animate-pulse bg-gray-200" />
+          <div className="h-6 w-20 animate-pulse bg-gray-200" />
         </div>
       </div>
 
       {/* Suggested Action Section */}
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-28" />
-        <Skeleton className="h-16 w-full rounded-lg" />
+      <div className="brutalism-border space-y-2 bg-gray-50 p-4 sm:col-span-2 lg:col-span-1">
+        <div className="h-4 w-28 animate-pulse bg-gray-200" />
+        <div className="h-12 w-full animate-pulse bg-gray-200" />
       </div>
     </div>
   );
 }
 
 /**
- * Active shopping list summary component
+ * Active shopping list summary component - Neo-Brutalism Style
  */
 interface ActiveListSummaryProps {
   id: string;
@@ -70,27 +66,29 @@ function ActiveListSummary({
   const isComplete = itemCount > 0 && checkedCount === itemCount;
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
+    <div className="brutalism-border bg-teal-50 p-4">
+      <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <ShoppingCart className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-          <span className="text-sm font-medium">{name}</span>
+          <div className="brutalism-border bg-teal-300 p-1">
+            <ShoppingCart className="h-4 w-4" />
+          </div>
+          <span className="text-sm font-bold uppercase">{name}</span>
         </div>
         {isComplete && (
-          <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+          <span className="brutalism-border flex items-center gap-1 bg-emerald-300 px-2 py-0.5 text-xs font-bold">
             <CheckCircle className="h-3 w-3" />
-            Complete
+            Done
           </span>
         )}
       </div>
 
-      {/* Progress bar */}
-      <div className="space-y-1">
-        <div className="bg-muted h-2.5 overflow-hidden rounded-full">
+      {/* Progress bar - Brutalism style */}
+      <div className="mb-2 space-y-1">
+        <div className="brutalism-border h-4 overflow-hidden bg-white">
           <div
             className={cn(
-              "h-full rounded-full transition-all duration-300",
-              isComplete ? "bg-emerald-500" : "bg-blue-500"
+              "h-full transition-all duration-300",
+              isComplete ? "bg-emerald-400" : "bg-teal-400"
             )}
             style={{ width: `${Math.round(progress)}%` }}
             role="progressbar"
@@ -99,7 +97,7 @@ function ActiveListSummary({
             aria-valuemax={100}
           />
         </div>
-        <div className="text-muted-foreground flex justify-between text-xs">
+        <div className="flex justify-between text-xs font-bold">
           <span>
             {checkedCount}/{itemCount} items
           </span>
@@ -109,12 +107,14 @@ function ActiveListSummary({
 
       {/* Next items */}
       {nextItems.length > 0 && !isComplete && (
-        <p className="text-muted-foreground text-xs">Next: {nextItems.join(", ")}</p>
+        <p className="mb-2 text-xs text-gray-600">
+          <span className="font-bold">Next:</span> {nextItems.join(", ")}
+        </p>
       )}
 
       <Link
         href={`/dashboard/shopping/${id}`}
-        className="text-primary inline-flex items-center gap-1 text-xs hover:underline"
+        className="inline-flex items-center gap-1 text-xs font-bold text-teal-700 underline hover:text-teal-900"
       >
         Open List <ArrowRight className="h-3 w-3" />
       </Link>
@@ -123,7 +123,7 @@ function ActiveListSummary({
 }
 
 /**
- * Inventory alerts badges component
+ * Inventory alerts badges component - Neo-Brutalism Style
  */
 interface InventoryAlertsProps {
   expiringSoon: number;
@@ -134,40 +134,46 @@ interface InventoryAlertsProps {
 function InventoryAlerts({ expiringSoon, expired, lowStock }: InventoryAlertsProps) {
   const hasAlerts = expiringSoon > 0 || expired > 0 || lowStock > 0;
 
-  if (!hasAlerts) {
-    return (
-      <div className="text-muted-foreground flex items-center gap-2 text-xs">
-        <Package className="h-4 w-4" />
-        <span>Inventory looking good!</span>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
-        {expired > 0 && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
-            <AlertTriangle className="h-3 w-3" aria-hidden="true" />
-            <span>{expired} expired</span>
-          </span>
-        )}
-        {expiringSoon > 0 && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-            <AlertTriangle className="h-3 w-3" aria-hidden="true" />
-            <span>{expiringSoon} expiring</span>
-          </span>
-        )}
-        {lowStock > 0 && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-            <Package className="h-3 w-3" aria-hidden="true" />
-            <span>{lowStock} low stock</span>
-          </span>
-        )}
+    <div className="brutalism-border bg-cyan-50 p-4">
+      <div className="mb-2 flex items-center gap-2">
+        <div className="brutalism-border bg-cyan-300 p-1">
+          <Package className="h-4 w-4" />
+        </div>
+        <span className="text-sm font-bold uppercase">Inventory</span>
       </div>
+
+      {!hasAlerts ? (
+        <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-600">
+          <CheckCircle className="h-4 w-4 text-emerald-500" />
+          <span>All good!</span>
+        </div>
+      ) : (
+        <div className="mb-2 flex flex-wrap gap-2">
+          {expired > 0 && (
+            <span className="brutalism-border inline-flex items-center gap-1 bg-red-300 px-2 py-0.5 text-xs font-bold">
+              <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+              {expired} expired
+            </span>
+          )}
+          {expiringSoon > 0 && (
+            <span className="brutalism-border inline-flex items-center gap-1 bg-amber-300 px-2 py-0.5 text-xs font-bold">
+              <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+              {expiringSoon} expiring
+            </span>
+          )}
+          {lowStock > 0 && (
+            <span className="brutalism-border inline-flex items-center gap-1 bg-blue-300 px-2 py-0.5 text-xs font-bold">
+              <Package className="h-3 w-3" aria-hidden="true" />
+              {lowStock} low stock
+            </span>
+          )}
+        </div>
+      )}
+
       <Link
         href="/dashboard/inventory"
-        className="text-primary inline-flex items-center gap-1 text-xs hover:underline"
+        className="inline-flex items-center gap-1 text-xs font-bold text-cyan-700 underline hover:text-cyan-900"
       >
         View Inventory <ArrowRight className="h-3 w-3" aria-hidden="true" />
       </Link>
@@ -176,7 +182,7 @@ function InventoryAlerts({ expiringSoon, expired, lowStock }: InventoryAlertsPro
 }
 
 /**
- * Suggested action card component
+ * Suggested action card component - Neo-Brutalism Style
  */
 interface SuggestedActionProps {
   type: "use_expiring" | "complete_shopping" | "restock" | "none";
@@ -196,55 +202,48 @@ function SuggestedAction({
   const getTypeStyles = () => {
     switch (type) {
       case "use_expiring":
-        return "bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800";
+        return { bg: "bg-amber-50", icon: "bg-amber-300", text: "text-amber-700" };
       case "complete_shopping":
-        return "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800";
+        return { bg: "bg-emerald-50", icon: "bg-emerald-300", text: "text-emerald-700" };
       case "restock":
-        return "bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800";
+        return { bg: "bg-blue-50", icon: "bg-blue-300", text: "text-blue-700" };
       default:
-        return "bg-gray-50 border-gray-200 dark:bg-gray-900/20 dark:border-gray-700";
+        return { bg: "bg-gray-50", icon: "bg-gray-300", text: "text-gray-700" };
     }
   };
 
   const getIcon = () => {
     switch (type) {
       case "use_expiring":
-        return (
-          <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-        );
+        return <Lightbulb className="h-4 w-4" aria-hidden="true" />;
       case "complete_shopping":
-        return (
-          <CheckCircle
-            className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
-            aria-hidden="true"
-          />
-        );
+        return <CheckCircle className="h-4 w-4" aria-hidden="true" />;
       case "restock":
-        return (
-          <ShoppingCart className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-        );
+        return <ShoppingCart className="h-4 w-4" aria-hidden="true" />;
       default:
-        return (
-          <Lightbulb className="h-5 w-5 text-gray-600 dark:text-gray-400" aria-hidden="true" />
-        );
+        return <Lightbulb className="h-4 w-4" aria-hidden="true" />;
     }
   };
 
+  const styles = getTypeStyles();
+
   return (
-    <div className={cn("rounded-lg border p-3", getTypeStyles())}>
-      <div className="flex items-start gap-2">
-        <span className="mt-0.5 flex-shrink-0">{getIcon()}</span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{title}</p>
-          <p className="text-muted-foreground text-xs">{description}</p>
-          <Link
-            href={actionHref}
-            className="text-primary mt-1 inline-flex items-center gap-1 text-xs hover:underline"
-          >
-            {actionLabel} <ArrowRight className="h-3 w-3" aria-hidden="true" />
-          </Link>
-        </div>
+    <div className={cn("brutalism-border p-4", styles.bg)}>
+      <div className="mb-2 flex items-center gap-2">
+        <div className={cn("brutalism-border p-1", styles.icon)}>{getIcon()}</div>
+        <span className="text-sm font-bold uppercase">Suggestion</span>
       </div>
+      <p className="mb-1 truncate text-sm font-bold">{title}</p>
+      <p className="mb-2 text-xs text-gray-600">{description}</p>
+      <Link
+        href={actionHref}
+        className={cn(
+          "inline-flex items-center gap-1 text-xs font-bold underline hover:opacity-80",
+          styles.text
+        )}
+      >
+        {actionLabel} <ArrowRight className="h-3 w-3" aria-hidden="true" />
+      </Link>
     </div>
   );
 }
@@ -265,6 +264,7 @@ interface SmartCartWidgetProps {
 
 /**
  * SmartCartWidget - Dashboard widget showing shopping list status, inventory alerts, and suggested actions
+ * Now with horizontal Neo-Brutalism layout
  *
  * Features:
  * - Active shopping list summary with progress bar
@@ -272,7 +272,7 @@ interface SmartCartWidgetProps {
  * - Suggested action card (e.g., "Use chicken today")
  * - Quick links to shopping list and inventory
  * - Skeleton loading state
- * - Responsive layout
+ * - Responsive horizontal layout
  *
  * @example
  * // Full widget for dashboard
@@ -317,10 +317,14 @@ export function SmartCartWidget({ className, title = "Smart Cart" }: SmartCartWi
   // Loading state
   if (loading) {
     return (
-      <div className={cn("space-y-4", className)}>
-        <div className="flex items-center gap-2">
-          <ShoppingCart className="text-primary h-5 w-5" />
-          <h3 className="font-semibold">{title}</h3>
+      <div className={cn("w-full", className)}>
+        <div className="mb-4 flex items-center justify-between border-b-2 border-black pb-3">
+          <div className="flex items-center gap-2">
+            <div className="brutalism-border bg-teal-300 p-1.5">
+              <ShoppingCart className="h-4 w-4" />
+            </div>
+            <h3 className="font-black uppercase">{title}</h3>
+          </div>
         </div>
         <WidgetSkeleton />
       </div>
@@ -330,8 +334,18 @@ export function SmartCartWidget({ className, title = "Smart Cart" }: SmartCartWi
   // Error state
   if (error) {
     return (
-      <div className={cn("py-6 text-center", className)}>
-        <p className="text-muted-foreground text-sm">{error}</p>
+      <div className={cn("w-full", className)}>
+        <div className="mb-4 flex items-center justify-between border-b-2 border-black pb-3">
+          <div className="flex items-center gap-2">
+            <div className="brutalism-border bg-teal-300 p-1.5">
+              <ShoppingCart className="h-4 w-4" />
+            </div>
+            <h3 className="font-black uppercase">{title}</h3>
+          </div>
+        </div>
+        <div className="brutalism-border bg-red-50 py-6 text-center">
+          <p className="text-sm font-bold text-red-600">{error}</p>
+        </div>
       </div>
     );
   }
@@ -339,9 +353,19 @@ export function SmartCartWidget({ className, title = "Smart Cart" }: SmartCartWi
   // Empty/not logged in state
   if (!data) {
     return (
-      <div className={cn("py-6 text-center", className)}>
-        <ShoppingCart className="text-muted-foreground mx-auto mb-2 h-8 w-8" />
-        <p className="text-muted-foreground text-sm">Log in to see your Smart Cart!</p>
+      <div className={cn("w-full", className)}>
+        <div className="mb-4 flex items-center justify-between border-b-2 border-black pb-3">
+          <div className="flex items-center gap-2">
+            <div className="brutalism-border bg-teal-300 p-1.5">
+              <ShoppingCart className="h-4 w-4" />
+            </div>
+            <h3 className="font-black uppercase">{title}</h3>
+          </div>
+        </div>
+        <div className="brutalism-border bg-gray-50 py-6 text-center">
+          <ShoppingCart className="mx-auto mb-2 h-8 w-8 opacity-40" />
+          <p className="text-sm font-bold">Log in to see your Smart Cart!</p>
+        </div>
       </div>
     );
   }
@@ -356,19 +380,23 @@ export function SmartCartWidget({ className, title = "Smart Cart" }: SmartCartWi
 
   if (!hasActiveList && !hasAlerts && !hasSuggestion) {
     return (
-      <div className={cn("space-y-4", className)}>
-        <div className="flex items-center gap-2">
-          <ShoppingCart className="text-primary h-5 w-5" />
-          <h3 className="font-semibold">{title}</h3>
+      <div className={cn("w-full", className)}>
+        <div className="mb-4 flex items-center justify-between border-b-2 border-black pb-3">
+          <div className="flex items-center gap-2">
+            <div className="brutalism-border bg-teal-300 p-1.5">
+              <ShoppingCart className="h-4 w-4" />
+            </div>
+            <h3 className="font-black uppercase">{title}</h3>
+          </div>
         </div>
-        <div className="py-4 text-center">
-          <Lightbulb className="text-muted-foreground mx-auto mb-2 h-8 w-8 opacity-50" />
-          <p className="text-muted-foreground mb-2 text-sm">Nothing to show yet</p>
+        <div className="brutalism-border bg-gray-50 py-6 text-center">
+          <Lightbulb className="mx-auto mb-2 h-8 w-8 opacity-40" />
+          <p className="mb-2 text-sm font-bold">Nothing to show yet</p>
           <div className="flex flex-col gap-1">
-            <Link href="/dashboard/shopping" className="text-primary text-xs hover:underline">
+            <Link href="/dashboard/shopping" className="text-xs font-bold text-teal-600 underline">
               Create a shopping list
             </Link>
-            <Link href="/dashboard/inventory" className="text-primary text-xs hover:underline">
+            <Link href="/dashboard/inventory" className="text-xs font-bold text-cyan-600 underline">
               Add inventory items
             </Link>
           </div>
@@ -377,42 +405,71 @@ export function SmartCartWidget({ className, title = "Smart Cart" }: SmartCartWi
     );
   }
 
+  // Calculate grid columns based on content
+  const contentCount = [hasActiveList, true, hasSuggestion].filter(Boolean).length;
+
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn("w-full", className)}>
       {/* Header */}
-      <div className="flex items-center gap-2">
-        <ShoppingCart className="text-primary h-5 w-5" />
-        <h3 className="font-semibold">{title}</h3>
+      <div className="mb-4 flex items-center justify-between border-b-2 border-black pb-3">
+        <div className="flex items-center gap-2">
+          <div className="brutalism-border bg-teal-300 p-1.5">
+            <ShoppingCart className="h-4 w-4" />
+          </div>
+          <h3 className="font-black uppercase">{title}</h3>
+        </div>
+        <div className="flex gap-2">
+          <Link
+            href="/dashboard/shopping"
+            className="brutalism-border bg-teal-200 px-3 py-1 text-xs font-bold hover:bg-teal-300"
+          >
+            Shopping
+          </Link>
+          <Link
+            href="/dashboard/inventory"
+            className="brutalism-border bg-cyan-200 px-3 py-1 text-xs font-bold hover:bg-cyan-300"
+          >
+            Inventory
+          </Link>
+        </div>
       </div>
 
-      {/* Active Shopping List */}
-      {hasActiveList && data.active_list && (
-        <ActiveListSummary
-          id={data.active_list.id}
-          name={data.active_list.name}
-          itemCount={data.active_list.item_count}
-          checkedCount={data.active_list.checked_count}
-          nextItems={data.active_list.next_items}
-        />
-      )}
+      {/* Horizontal Grid Layout */}
+      <div
+        className={cn(
+          "grid gap-4",
+          contentCount === 3 ? "sm:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-2"
+        )}
+      >
+        {/* Active Shopping List */}
+        {hasActiveList && data.active_list && (
+          <ActiveListSummary
+            id={data.active_list.id}
+            name={data.active_list.name}
+            itemCount={data.active_list.item_count}
+            checkedCount={data.active_list.checked_count}
+            nextItems={data.active_list.next_items}
+          />
+        )}
 
-      {/* Inventory Alerts */}
-      <InventoryAlerts
-        expiringSoon={data.inventory_alerts.expiring_soon}
-        expired={data.inventory_alerts.expired}
-        lowStock={data.inventory_alerts.low_stock}
-      />
-
-      {/* Suggested Action */}
-      {hasSuggestion && data.suggested_action && (
-        <SuggestedAction
-          type={data.suggested_action.type}
-          title={data.suggested_action.title}
-          description={data.suggested_action.description}
-          actionLabel={data.suggested_action.action_label}
-          actionHref={data.suggested_action.action_href}
+        {/* Inventory Alerts */}
+        <InventoryAlerts
+          expiringSoon={data.inventory_alerts.expiring_soon}
+          expired={data.inventory_alerts.expired}
+          lowStock={data.inventory_alerts.low_stock}
         />
-      )}
+
+        {/* Suggested Action */}
+        {hasSuggestion && data.suggested_action && (
+          <SuggestedAction
+            type={data.suggested_action.type}
+            title={data.suggested_action.title}
+            description={data.suggested_action.description}
+            actionLabel={data.suggested_action.action_label}
+            actionHref={data.suggested_action.action_href}
+          />
+        )}
+      </div>
     </div>
   );
 }
