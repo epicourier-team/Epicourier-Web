@@ -65,52 +65,42 @@ async function globalSetup(config: FullConfig) {
     // Click sign in button
     await page.click('button[type="submit"]');
 
-    // Wait a bit for the form submission
-    await page.waitForTimeout(3000);
+    // Wait for navigation to dashboard (redirects to /dashboard/recipes after login)
+    await page.waitForURL("**/dashboard/**", { timeout: 15000 });
 
     // Check current URL
     const currentUrl = page.url();
-    console.log(`   Current URL after submit: ${currentUrl}`);
-
-    // Take a screenshot for debugging
-    await page.screenshot({ path: path.join(__dirname, ".auth/login-debug.png") });
-    console.log(`   Screenshot saved to e2e/.auth/login-debug.png`);
-
-    // Check for any visible error message
-    const pageContent = await page.content();
-    if (
-      pageContent.includes("Invalid") ||
-      pageContent.includes("invalid") ||
-      pageContent.includes("Incorrect") ||
-      pageContent.includes("incorrect")
-    ) {
-      console.log(`   ❌ Login error: Invalid credentials detected in page`);
-    }
-
-    // Check for error message on page
-    const errorElement = page.locator(
-      '[class*="error"], [class*="red"], text=/error|invalid|incorrect/i'
-    );
-    const hasError = await errorElement
-      .first()
-      .isVisible()
-      .catch(() => false);
-    if (hasError) {
-      const errorText = await errorElement
-        .first()
-        .textContent()
-        .catch(() => "Unknown error");
-      console.log(`   ❌ Login error detected: ${errorText}`);
-    }
-
-    // Wait for navigation to dashboard (redirects to /dashboard/recipes after login)
-    await page.waitForURL("**/dashboard/**", { timeout: 10000 });
+    console.log(`   Redirected to: ${currentUrl}`);
 
     console.log("✅ Authentication successful!\n");
 
     // Save authentication state
     await context.storageState({ path: STORAGE_STATE });
   } catch (error) {
+    // Take a screenshot for debugging on failure
+    await page.screenshot({ path: path.join(__dirname, ".auth/login-debug.png") });
+    console.log(`   Screenshot saved to e2e/.auth/login-debug.png`);
+
+    // Check current URL
+    const currentUrl = page.url();
+    console.log(`   Current URL: ${currentUrl}`);
+
+    // Check for error message on signin page
+    if (currentUrl.includes("/signin")) {
+      const errorElement = page.locator('[class*="border-red"], [class*="text-red"]');
+      const hasError = await errorElement
+        .first()
+        .isVisible()
+        .catch(() => false);
+      if (hasError) {
+        const errorText = await errorElement
+          .first()
+          .textContent()
+          .catch(() => "Unknown error");
+        console.log(`   Login error: ${errorText}`);
+      }
+    }
+
     console.error("❌ Authentication failed:", error);
     console.log("   Tests requiring authentication will fail.\n");
 
