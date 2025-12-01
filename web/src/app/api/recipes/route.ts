@@ -29,7 +29,15 @@ export async function GET(req: Request) {
 
     const { data: filteredRecipes, error: recipeError } = await supabase
       .from("Recipe")
-      .select("*")
+      .select(
+        `
+        *,
+        "Recipe-Ingredient_Map" (
+          ingredient_id,
+          relative_unit_100
+        )
+      `
+      )
       .in("id", recipeIds);
 
     if (recipeError) return NextResponse.json({ error: recipeError.message }, { status: 500 });
@@ -50,7 +58,15 @@ export async function GET(req: Request) {
 
     const { data: filteredRecipes, error: recipeError } = await supabase
       .from("Recipe")
-      .select("*")
+      .select(
+        `
+        *,
+        "Recipe-Ingredient_Map" (
+          ingredient_id,
+          relative_unit_100
+        )
+      `
+      )
       .in("id", recipeIds);
 
     if (recipeError) return NextResponse.json({ error: recipeError.message }, { status: 500 });
@@ -60,7 +76,16 @@ export async function GET(req: Request) {
 
   // 🟨 Case 3: default or search
   else {
-    let queryBuilder = supabase.from("Recipe").select("*", { count: "exact" });
+    let queryBuilder = supabase.from("Recipe").select(
+      `
+      *,
+      "Recipe-Ingredient_Map" (
+        ingredient_id,
+        relative_unit_100
+      )
+    `,
+      { count: "exact" }
+    );
 
     if (query.trim()) {
       queryBuilder = queryBuilder.or(`name.ilike.%${query}%,description.ilike.%${query}%`);

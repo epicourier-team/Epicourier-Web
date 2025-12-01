@@ -1,17 +1,39 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Recipe } from "../../types/data";
+import { RecipeWithIngredients, InventoryItemWithDetails } from "../../types/data";
 import AddMealModal from "@/components/ui/AddMealModal";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 
-export default function RecipeCard({ recipe }: { recipe: Recipe }) {
+interface RecipeCardProps {
+  recipe: RecipeWithIngredients;
+  inventoryItems?: InventoryItemWithDetails[];
+}
+
+export default function RecipeCard({ recipe, inventoryItems = [] }: RecipeCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // TODO: Replace with actual inventory-based calculation (Issue #88)
-  // For now, show mock match percentages for demonstration
-  const matchPercentage = Math.floor(Math.random() * 100);
-  const missingCount = Math.floor((100 - matchPercentage) / 10);
+  const calculateMatchPercentage = () => {
+    const recipeIngredients = recipe["Recipe-Ingredient_Map"] || [];
+    if (recipeIngredients.length === 0) return 0;
+
+    const totalIngredients = recipeIngredients.length;
+    let matchedIngredients = 0;
+
+    recipeIngredients.forEach((ri) => {
+      const hasItem = inventoryItems.some((item) => item.ingredient_id === ri.ingredient_id);
+      if (hasItem) {
+        matchedIngredients++;
+      }
+    });
+
+    return Math.round((matchedIngredients / totalIngredients) * 100);
+  };
+
+  const matchPercentage = calculateMatchPercentage();
+  const missingCount =
+    (recipe["Recipe-Ingredient_Map"]?.length || 0) -
+    Math.floor((matchPercentage / 100) * (recipe["Recipe-Ingredient_Map"]?.length || 0));
 
   // Color coding based on match percentage
   const getMatchColor = (percentage: number) => {

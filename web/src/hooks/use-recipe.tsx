@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Recipe } from "../types/data";
+import { RecipeWithIngredients } from "../types/data";
 
 export type RecipeFilter = {
   query?: string;
@@ -11,7 +11,7 @@ export type RecipeFilter = {
 };
 
 export function useRecipes(filters: RecipeFilter) {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [recipes, setRecipes] = useState<RecipeWithIngredients[]>([]);
   const [pagination, setPagination] = useState({
     page: filters.page || 1,
     totalPages: 1,

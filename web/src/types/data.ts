@@ -6,6 +6,10 @@ export type RecipeIngredientMap = Database["public"]["Tables"]["Recipe-Ingredien
 export type Tag = Database["public"]["Tables"]["RecipeTag"]["Row"];
 export type RecipeTagMap = Database["public"]["Tables"]["Recipe-Tag_Map"]["Row"];
 
+export type RecipeWithIngredients = Recipe & {
+  "Recipe-Ingredient_Map": Pick<RecipeIngredientMap, "ingredient_id" | "relative_unit_100">[];
+};
+
 export type RecipeDetail = {
   recipe: Recipe;
   ingredients: (Pick<RecipeIngredientMap, "id" | "relative_unit_100"> & {
