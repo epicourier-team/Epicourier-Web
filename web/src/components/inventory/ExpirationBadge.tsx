@@ -30,36 +30,36 @@ export default function ExpirationBadge({
     switch (status) {
       case "expired":
         return {
-          bg: "bg-red-100 border-red-300",
+          bg: "bg-red-100 border-red-500",
           text: "text-red-700",
           label: "Expired",
           emoji: "🚨",
         };
       case "critical":
         return {
-          bg: "bg-orange-100 border-orange-300",
-          text: "text-orange-700",
+          bg: "bg-orange-100 border-orange-500",
+          text: "text-orange-800",
           label: daysUntil === 0 ? "Today" : daysUntil === 1 ? "Tomorrow" : `${daysUntil} days`,
           emoji: "⚠️",
         };
       case "warning":
         return {
-          bg: "bg-yellow-100 border-yellow-300",
-          text: "text-yellow-700",
+          bg: "bg-yellow-100 border-yellow-500",
+          text: "text-yellow-800",
           label: `${daysUntil} days`,
           emoji: "⏰",
         };
       case "good":
         return {
-          bg: "bg-green-100 border-green-300",
-          text: "text-green-700",
+          bg: "bg-emerald-100 border-emerald-500",
+          text: "text-emerald-800",
           label: daysUntil !== null ? `${daysUntil} days` : "Good",
           emoji: "✓",
         };
       default:
         return {
-          bg: "bg-gray-100 border-gray-300",
-          text: "text-gray-600",
+          bg: "bg-gray-100 border-black",
+          text: "text-gray-800",
           label: "No date",
           emoji: "–",
         };
@@ -71,13 +71,13 @@ export default function ExpirationBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold",
+        "inline-flex items-center gap-1.5 rounded-none border-2 px-2 py-1 text-xs font-bold uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
         config.bg,
         config.text,
         className
       )}
     >
-      <span>{config.emoji}</span>
+      <span className="text-sm">{config.emoji}</span>
       {showText && <span>{config.label}</span>}
     </span>
   );
