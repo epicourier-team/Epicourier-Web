@@ -59,6 +59,8 @@ export async function POST(request: Request) {
       .select("*")
       .eq("user_id", authUserId)
       .eq("challenge_id", challenge_id)
+      .order("joined_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     if (existingError) {
@@ -67,10 +69,34 @@ export async function POST(request: Request) {
     }
 
     if (existingJoin) {
-      return NextResponse.json(
-        { error: "You have already joined this challenge" },
-        { status: 409 }
-      );
+      // Check if the existing join is stale
+      const joinedAt = new Date(existingJoin.joined_at);
+      const now = new Date();
+      let isStale = false;
+
+      if (challenge.type === "weekly") {
+        const startOfWeek = getStartOfWeek(now);
+        if (joinedAt < startOfWeek) {
+          isStale = true;
+        }
+      } else if (challenge.type === "monthly") {
+        const startOfMonth = getStartOfMonth(now);
+        if (joinedAt < startOfMonth) {
+          isStale = true;
+        }
+      }
+
+      if (isStale) {
+        // Stale record exists (history), but we allow joining again for the new period.
+        // We do NOT delete the old record.
+        // Proceed to insert new record below.
+      } else {
+        // User has already joined in the current period
+        return NextResponse.json(
+          { error: "You have already joined this challenge" },
+          { status: 409 }
+        );
+      }
     }
 
     // Insert user_challenges record
@@ -102,4 +128,18 @@ export async function POST(request: Request) {
     console.error("POST /api/challenges/join error:", errorMessage);
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
+}
+
+// Date utility functions (duplicated from challenges/route.ts for independence)
+function getStartOfWeek(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as start
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function getStartOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
 }

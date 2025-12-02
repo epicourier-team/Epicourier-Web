@@ -103,6 +103,12 @@ const singleUserChallengeChain = (data: UserChallenge | null, error: Error | nul
   select: jest.fn().mockReturnValue({
     eq: jest.fn().mockReturnValue({
       eq: jest.fn().mockReturnValue({
+        order: jest.fn().mockReturnValue({
+          limit: jest.fn().mockReturnValue({
+            maybeSingle: jest.fn().mockResolvedValue({ data, error }),
+          }),
+        }),
+        // Keep maybeSingle here just in case, though usually not needed if code always uses order/limit
         maybeSingle: jest.fn().mockResolvedValue({ data, error }),
       }),
     }),
@@ -144,7 +150,7 @@ describe("Challenges API", () => {
     id: 1,
     user_id: "uuid-1",
     challenge_id: 1,
-    joined_at: "2024-01-01T00:00:00.000Z",
+    joined_at: "2024-01-15T10:00:00.000Z", // Joined this week (Monday morning)
     progress: { current: 2, target: 5 },
     completed_at: null,
   };
@@ -319,7 +325,10 @@ describe("Challenges API", () => {
     });
 
     it("shows completed challenges separately", async () => {
-      const completedUserChallenge = { ...mockUserChallenge, completed_at: "2024-01-10T00:00:00Z" };
+      const completedUserChallenge = {
+        ...mockUserChallenge,
+        completed_at: "2024-01-15T11:00:00Z", // Completed this week
+      };
 
       const supabase = await createClient();
       (supabase.from as jest.Mock)
@@ -641,7 +650,7 @@ describe("Challenges API", () => {
       (supabase.from as jest.Mock)
         .mockImplementationOnce(() => challengesChain([monthlyChallenge]))
         .mockImplementationOnce(() =>
-          userChallengesChain([{ ...mockUserChallenge, challenge_id: 2 }])
+          userChallengesChain([{ ...mockUserChallenge, challenge_id: 2, progress: null }])
         )
         .mockImplementationOnce(() => achievementDefinitionsChain([]))
         .mockImplementationOnce(() => ({
@@ -677,7 +686,7 @@ describe("Challenges API", () => {
       (supabase.from as jest.Mock)
         .mockImplementationOnce(() => challengesChain([streakChallenge]))
         .mockImplementationOnce(() =>
-          userChallengesChain([{ ...mockUserChallenge, challenge_id: 3 }])
+          userChallengesChain([{ ...mockUserChallenge, challenge_id: 3, progress: null }])
         )
         .mockImplementationOnce(() => achievementDefinitionsChain([]))
         .mockImplementationOnce(() => ({
@@ -743,7 +752,7 @@ describe("Challenges API", () => {
           case "challenges":
             return challengesChain([nutrientChallenge]);
           case "user_challenges":
-            return userChallengesChain([{ ...mockUserChallenge, challenge_id: 4 }]);
+            return userChallengesChain([{ ...mockUserChallenge, challenge_id: 4, progress: null }]);
           case "achievement_definitions":
             return achievementDefinitionsChain([]);
           case "Calendar":
@@ -791,7 +800,9 @@ describe("Challenges API", () => {
 
       (supabase.from as jest.Mock)
         .mockImplementationOnce(() => challengesChain([mockChallenge]))
-        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() =>
+          userChallengesChain([{ ...mockUserChallenge, progress: { current: 0, target: 5 } }])
+        )
         .mockImplementationOnce(() => achievementDefinitionsChain([]))
         .mockImplementationOnce(() => ({
           select: jest.fn().mockReturnValue({
@@ -817,7 +828,9 @@ describe("Challenges API", () => {
 
       (supabase.from as jest.Mock)
         .mockImplementationOnce(() => challengesChain([mockChallenge]))
-        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() =>
+          userChallengesChain([{ ...mockUserChallenge, progress: null }])
+        )
         .mockImplementationOnce(() => achievementDefinitionsChain([]))
         .mockImplementationOnce(() => ({
           select: jest.fn().mockReturnValue({
@@ -846,7 +859,9 @@ describe("Challenges API", () => {
 
       (supabase.from as jest.Mock)
         .mockImplementationOnce(() => challengesChain([mockChallenge]))
-        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() =>
+          userChallengesChain([{ ...mockUserChallenge, progress: null }])
+        )
         .mockImplementationOnce(() => achievementDefinitionsChain([]))
         .mockImplementationOnce(() => ({
           select: jest.fn().mockReturnValue({
@@ -875,7 +890,9 @@ describe("Challenges API", () => {
 
       (supabase.from as jest.Mock)
         .mockImplementationOnce(() => challengesChain([mockChallenge]))
-        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() =>
+          userChallengesChain([{ ...mockUserChallenge, progress: null }])
+        )
         .mockImplementationOnce(() => achievementDefinitionsChain([]))
         .mockImplementationOnce(() => ({
           select: jest.fn().mockReturnValue({
@@ -1007,7 +1024,9 @@ describe("Challenges API", () => {
 
       (supabase.from as jest.Mock)
         .mockImplementationOnce(() => challengesChain([unknownMetricChallenge]))
-        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() =>
+          userChallengesChain([{ ...mockUserChallenge, progress: null }])
+        )
         .mockImplementationOnce(() => achievementDefinitionsChain([]))
         .mockImplementationOnce(() => ({
           select: jest.fn().mockReturnValue({
@@ -1038,7 +1057,9 @@ describe("Challenges API", () => {
 
       (supabase.from as jest.Mock)
         .mockImplementationOnce(() => challengesChain([unknownMetricChallenge]))
-        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() =>
+          userChallengesChain([{ ...mockUserChallenge, progress: null }])
+        )
         .mockImplementationOnce(() => achievementDefinitionsChain([]))
         .mockImplementationOnce(() => ({
           select: jest.fn().mockReturnValue({
@@ -1065,7 +1086,9 @@ describe("Challenges API", () => {
 
       (supabase.from as jest.Mock)
         .mockImplementationOnce(() => challengesChain([mockChallenge]))
-        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() =>
+          userChallengesChain([{ ...mockUserChallenge, progress: null }])
+        )
         .mockImplementationOnce(() => achievementDefinitionsChain([]))
         // Calendar count fails
         .mockImplementationOnce(() => ({
@@ -1093,6 +1116,7 @@ describe("Challenges API", () => {
     it("handles nutrient_tracking error gracefully", async () => {
       const nutrientChallenge: Challenge = {
         ...mockChallenge,
+        id: 4,
         type: "monthly",
         criteria: { metric: "nutrient_goal_days", target: 20, period: "month" },
       };
@@ -1101,7 +1125,9 @@ describe("Challenges API", () => {
 
       (supabase.from as jest.Mock)
         .mockImplementationOnce(() => challengesChain([nutrientChallenge]))
-        .mockImplementationOnce(() => userChallengesChain([mockUserChallenge]))
+        .mockImplementationOnce(() =>
+          userChallengesChain([{ ...mockUserChallenge, challenge_id: 4, progress: null }])
+        )
         .mockImplementationOnce(() => achievementDefinitionsChain([]))
         .mockImplementationOnce(() => ({
           select: jest.fn().mockReturnValue({
@@ -1126,7 +1152,10 @@ describe("Challenges API", () => {
 
   describe("Progress Sync to Database", () => {
     it("does not sync progress for completed challenges", async () => {
-      const completedUserChallenge = { ...mockUserChallenge, completed_at: "2024-01-10T00:00:00Z" };
+      const completedUserChallenge = {
+        ...mockUserChallenge,
+        completed_at: "2024-01-15T11:00:00Z", // Completed this week
+      };
       const supabase = await createClient();
 
       (supabase.from as jest.Mock)

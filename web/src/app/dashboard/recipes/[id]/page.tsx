@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { NUTRIENT_NAME } from "../../../../lib/constants";
 import { getRecipeDetail } from "../../../../lib/utils";
 import AddToCartButton from "@/components/shopping/AddToCartButton";
+import BackButton from "@/components/ui/backbutton";
 
 export async function generateStaticParams() {
   const { data: recipes } = await supabase.from("Recipe").select("id");
@@ -23,6 +24,7 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
+      <BackButton />
       <div className="relative mx-auto mb-6 h-64 w-64">
         {recipe.image_url && (
           <Image

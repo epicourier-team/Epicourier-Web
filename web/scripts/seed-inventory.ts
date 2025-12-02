@@ -232,7 +232,7 @@ async function seedInventory() {
 
   // Insert each item with upsert
   for (const item of inventoryItems) {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("user_inventory")
       .upsert(
         {

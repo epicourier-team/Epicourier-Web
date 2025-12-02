@@ -98,10 +98,15 @@ export async function GET() {
     // Calculate user stats for progress
     const stats = await calculateUserStats(supabase, publicUserId, authUserId);
 
-    // Build challenge maps
+    // Map user challenges by challenge_id, keeping only the LATEST participation
     const userChallengeMap = new Map<number, UserChallengeRow>();
+
+    // Group by challenge_id and find the most recent one
     (userChallenges ?? []).forEach((uc) => {
-      userChallengeMap.set(uc.challenge_id, uc as UserChallengeRow);
+      const existing = userChallengeMap.get(uc.challenge_id);
+      if (!existing || new Date(uc.joined_at) > new Date(existing.joined_at)) {
+        userChallengeMap.set(uc.challenge_id, uc as UserChallengeRow);
+      }
     });
 
     const rewardMap = new Map<number, Achievement>();
@@ -119,24 +124,72 @@ export async function GET() {
       isCompleted: boolean;
     }> = [];
 
+    // startOfWeek and startOfMonth are used in calculateUserStats but not here anymore
+    const now = new Date();
+    const startOfWeek = getStartOfWeek(now);
+    const startOfMonth = getStartOfMonth(now);
+
     for (const challenge of challenges ?? []) {
       const userChallenge = userChallengeMap.get(challenge.id);
-      const isJoined = !!userChallenge;
-      const isCompleted =
-        userChallenge?.completed_at !== null && userChallenge?.completed_at !== undefined;
+      // reward is used inside challengeWithStatus construction
 
-      // Calculate progress
-      const progress = calculateProgress(challenge as Challenge, stats);
+      // Calculate progress and days remaining for the current challenge
+      const currentProgress = calculateProgress(challenge as Challenge, stats);
       const daysRemaining = calculateDaysRemaining(challenge as Challenge);
 
-      // Track progress updates for joined but not completed challenges
-      if (isJoined && !isCompleted && userChallenge) {
-        const newlyCompleted = progress.current >= progress.target;
-        progressUpdates.push({
-          id: userChallenge.id,
-          progress,
-          isCompleted: newlyCompleted,
-        });
+      let isJoined = false;
+      let isCompleted = false;
+      let progress: ChallengeProgress = currentProgress;
+
+      if (userChallenge) {
+        // Check if the LATEST participation is stale
+        const joinedAt = new Date(userChallenge.joined_at);
+        let isStale = false;
+
+        if (challenge.type === "weekly") {
+          if (joinedAt < startOfWeek) {
+            isStale = true;
+          }
+        } else if (challenge.type === "monthly") {
+          if (joinedAt < startOfMonth) {
+            isStale = true;
+          }
+        }
+
+        if (isStale) {
+          // This challenge participation is stale, treat as if not joined
+          // We don't continue, we just let it fall through with isJoined=false
+          isJoined = false;
+          isCompleted = false;
+        } else {
+          isJoined = true;
+          isCompleted = userChallenge.completed_at !== null;
+
+          // If challenge is joined, use its stored progress if available, otherwise calculate
+          if (userChallenge.progress) {
+            progress = userChallenge.progress;
+          }
+
+          // If the challenge is joined and not yet completed, check if it's now completed
+          if (!isCompleted && currentProgress.current >= currentProgress.target) {
+            isCompleted = true;
+            progressUpdates.push({
+              id: userChallenge.id,
+              progress: currentProgress,
+              isCompleted: true,
+            });
+          } else if (
+            !isCompleted &&
+            JSON.stringify(currentProgress) !== JSON.stringify(userChallenge.progress)
+          ) {
+            // Update progress if it has changed and not yet completed
+            progressUpdates.push({
+              id: userChallenge.id,
+              progress: currentProgress,
+              isCompleted: false,
+            });
+          }
+        }
       }
 
       const challengeWithStatus: ChallengeWithStatus = {
@@ -150,7 +203,11 @@ export async function GET() {
       };
 
       if (isCompleted) {
-        completed.push(challengeWithStatus);
+        completed.push({
+          ...challengeWithStatus,
+          // @ts-expect-error - completed_at is not in ChallengeWithStatus but needed for frontend
+          completed_at: userChallenge?.completed_at || new Date().toISOString(),
+        });
       } else if (isJoined) {
         joined.push(challengeWithStatus);
       } else {

@@ -4,6 +4,7 @@ import Pagination from "@/components/ui/pagenation";
 import RecipeCard from "@/components/ui/recipecard";
 import SearchBar from "@/components/ui/searchbar";
 import { useRecipes } from "@/hooks/use-recipe";
+import { useInventory } from "@/hooks/useInventory";
 import { useState } from "react";
 import { Filter } from "lucide-react";
 
@@ -18,12 +19,18 @@ export default function RecipesPage() {
   const [sortBy, setSortBy] = useState<SortOption>("default");
   const [matchFilter, setMatchFilter] = useState<MatchFilter>("all");
 
+  const { items: inventoryItems } = useInventory();
+  const userIngredientIds = inventoryItems.map((item) => item.ingredient_id);
+
   const { recipes, pagination, isLoading } = useRecipes({
     query,
     ingredientIds,
     tagIds,
     page,
     limit: 20,
+    sortBy,
+    matchFilter,
+    userIngredientIds,
   });
 
   return (
@@ -67,7 +74,7 @@ export default function RecipesPage() {
                 setMatchFilter(option.value as MatchFilter);
                 setPage(1);
               }}
-              className={`brutalism-border px-3 py-1 text-xs font-bold transition-all hover:-translate-y-[2px] ${
+              className={`brutalism-border px-3 py-1 text-xs font-bold transition-all hover:-translate-y-0.5 ${
                 matchFilter === option.value
                   ? "brutalism-shadow bg-yellow-300"
                   : "bg-white hover:bg-gray-100"
@@ -106,7 +113,7 @@ export default function RecipesPage() {
         <>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {recipes.map((r) => (
-              <RecipeCard key={r.id} recipe={r} />
+              <RecipeCard key={r.id} recipe={r} inventoryItems={inventoryItems} />
             ))}
           </div>
           <Pagination

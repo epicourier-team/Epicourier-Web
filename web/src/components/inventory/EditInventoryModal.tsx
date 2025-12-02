@@ -164,21 +164,35 @@ export default function EditInventoryModal({
             {/* Location */}
             <div>
               <label className="mb-2 block text-sm font-bold">Storage Location</label>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {LOCATIONS.map(({ value, label, emoji }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setLocation(value)}
-                    className={`flex items-center justify-center gap-1 rounded-lg border-2 border-black px-3 py-2 text-sm font-semibold transition-all ${
-                      location === value ? "bg-black text-white" : "bg-white hover:bg-gray-100"
-                    }`}
-                    disabled={loading}
-                  >
-                    <span>{emoji}</span>
-                    <span>{label}</span>
-                  </button>
-                ))}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {LOCATIONS.map(({ value, label, emoji }) => {
+                  const isActive = location === value;
+                  const activeColor =
+                    value === "pantry"
+                      ? "bg-amber-100"
+                      : value === "fridge"
+                        ? "bg-sky-100"
+                        : value === "freezer"
+                          ? "bg-cyan-100"
+                          : "bg-purple-100";
+
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setLocation(value)}
+                      className={`flex flex-col items-center justify-center gap-1 rounded-none border-2 border-black py-3 text-sm font-bold transition-all ${
+                        isActive
+                          ? `${activeColor} -translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`
+                          : "bg-white hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                      }`}
+                      disabled={loading}
+                    >
+                      <span className="text-xl">{emoji}</span>
+                      <span className="tracking-tight uppercase">{label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

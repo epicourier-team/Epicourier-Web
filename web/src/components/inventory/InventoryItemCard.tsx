@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Edit2, Trash2, MapPin, Check } from "lucide-react";
+import { Trash2, MapPin, Check, Package } from "lucide-react";
 import ExpirationBadge from "./ExpirationBadge";
 import LowStockBadge from "./LowStockBadge";
 import { cn } from "@/lib/utils";
@@ -17,11 +17,11 @@ interface InventoryItemCardProps {
   className?: string;
 }
 
-const LOCATION_EMOJI: Record<string, string> = {
-  pantry: "🥫",
-  fridge: "❄️",
-  freezer: "🧊",
-  other: "📍",
+const LOCATION_COLORS: Record<string, string> = {
+  pantry: "bg-amber-100",
+  fridge: "bg-sky-100",
+  freezer: "bg-cyan-100",
+  other: "bg-purple-100",
 };
 
 /**
@@ -32,7 +32,8 @@ const LOCATION_EMOJI: Record<string, string> = {
  * - Color-coded expiration badge
  * - Low stock indicator
  * - Location icon
- * - Edit/Delete actions
+ * - Click to edit
+ * - Delete action
  */
 export default function InventoryItemCard({
   item,
@@ -45,15 +46,19 @@ export default function InventoryItemCard({
 }: InventoryItemCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
-  const locationEmoji = LOCATION_EMOJI[item.location] || "📍";
-
-  // Format quantity with unit
-  const quantityDisplay = item.unit ? `${item.quantity} ${item.unit}` : `${item.quantity}`;
+  const locationColor = LOCATION_COLORS[item.location] || "bg-gray-100";
 
   const handleCardClick = () => {
     if (isSelectMode && onToggleSelect) {
       onToggleSelect(item);
+    } else {
+      onEdit(item);
     }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete(item);
   };
 
   return (
@@ -62,14 +67,12 @@ export default function InventoryItemCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "brutalism-card group relative flex flex-col overflow-hidden transition-all",
-        isHovered ? "-translate-x-0.5 -translate-y-0.5" : "",
-        // Border color based on expiration status
+        "brutalism-card group relative flex cursor-pointer flex-col overflow-hidden transition-all duration-200",
+        isHovered ? "brutalism-shadow-lg -translate-y-1" : "brutalism-shadow",
+        // Border color based on expiration status (override black border if critical)
         item.expiration_status === "expired" && "border-red-500",
-        item.expiration_status === "critical" && "border-orange-500",
         // Selection styling
-        isSelectMode && "cursor-pointer",
-        isSelected && "border-blue-500 ring-2 ring-blue-500 ring-offset-2",
+        isSelected && "ring-4 ring-black ring-offset-2",
         className
       )}
     >
@@ -77,32 +80,61 @@ export default function InventoryItemCard({
       {isSelectMode && (
         <div
           className={cn(
-            "absolute top-3 left-3 z-10 flex size-6 items-center justify-center rounded-md border-2 transition-colors",
-            isSelected
-              ? "border-blue-500 bg-blue-500 text-white"
-              : "border-gray-400 bg-white hover:border-blue-400"
+            "absolute top-3 left-3 z-20 flex size-6 items-center justify-center border-2 border-black transition-colors",
+            isSelected ? "bg-black text-white" : "bg-white hover:bg-gray-100"
           )}
         >
           {isSelected && <Check className="size-4" />}
         </div>
       )}
 
-      <div className={cn("flex flex-1 flex-col p-4", isSelectMode && "pt-10")}>
-        {/* Header: Name + Location */}
-        <div className="mb-2 flex items-start justify-between">
-          <h3 className="brutalism-text-bold line-clamp-2 flex-1 text-base leading-tight">
-            {item.ingredient?.name || `Ingredient #${item.ingredient_id}`}
+      {/* Header with Location Color */}
+      <div
+        className={cn(
+          "flex items-start justify-between border-b-2 border-black p-3",
+          locationColor
+        )}
+      >
+        <div className={cn("flex items-center gap-2", isSelectMode && "pl-8")}>
+          <Package className="size-5 text-black" />
+          <h3 className="brutalism-text-bold line-clamp-1 text-sm tracking-tight text-black uppercase">
+            {item.ingredient?.name || `Item #${item.ingredient_id}`}
           </h3>
-          <span className="ml-2 text-lg" title={item.location}>
-            {locationEmoji}
-          </span>
         </div>
 
-        {/* Quantity */}
-        <p className="mb-2 text-lg font-bold text-gray-900">{quantityDisplay}</p>
+        {/* Delete Button (visible on hover or always visible on mobile?) - Let's keep it always visible but subtle */}
+        {!isSelectMode && (
+          <button
+            onClick={handleDeleteClick}
+            className="brutalism-border -mt-1 -mr-1 flex size-8 items-center justify-center bg-white text-red-600 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-50"
+            title="Delete Item"
+          >
+            <Trash2 className="size-4" />
+          </button>
+        )}
+      </div>
+
+      <div className="flex flex-1 flex-col p-4">
+        {/* Quantity & Location */}
+        <div className="mb-4 flex items-end justify-between">
+          <div className="flex items-baseline gap-1">
+            <div>
+              <p className="text-xs font-bold text-gray-500 uppercase">Quantity</p>
+              <p className="text-3xl font-black tracking-tight">{item.quantity}</p>
+            </div>
+            {item.unit && (
+              <span className="text-sm font-bold text-gray-500 uppercase">{item.unit}</span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1 rounded-full border-2 border-black bg-white px-2 py-0.5 text-xs font-bold uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <MapPin className="size-3" />
+            <span>{item.location}</span>
+          </div>
+        </div>
 
         {/* Badges */}
-        <div className="mb-3 flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           <ExpirationBadge status={item.expiration_status} daysUntil={item.days_until_expiration} />
           <LowStockBadge
             isLowStock={item.is_low_stock}
@@ -113,40 +145,10 @@ export default function InventoryItemCard({
 
         {/* Notes (if any) */}
         {item.notes && (
-          <p className="mb-2 line-clamp-2 text-xs text-gray-500 italic">{item.notes}</p>
-        )}
-
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Location info (text) */}
-        <div className="mb-3 flex items-center gap-1 text-xs text-gray-500">
-          <MapPin className="size-3" />
-          <span className="capitalize">{item.location}</span>
-        </div>
-
-        {/* Actions - hidden in select mode */}
-        {!isSelectMode && (
-          <div className="flex gap-2">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(item);
-              }}
-              className="brutalism-button-neutral flex flex-1 items-center justify-center gap-1 px-3 py-2 text-sm"
-            >
-              <Edit2 className="size-4" />
-              <span>Edit</span>
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(item);
-              }}
-              className="brutalism-button-danger flex items-center justify-center gap-1 px-3 py-2 text-sm"
-            >
-              <Trash2 className="size-4" />
-            </button>
+          <div className="mt-3 border-t-2 border-dashed border-gray-300 pt-2">
+            <p className="line-clamp-2 text-xs font-medium text-gray-600 italic">
+              &quot;{item.notes}&quot;
+            </p>
           </div>
         )}
       </div>
