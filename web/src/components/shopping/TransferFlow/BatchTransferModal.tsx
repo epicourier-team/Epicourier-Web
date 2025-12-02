@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { ShoppingBag, Loader2, CheckCircle, Package } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -124,70 +123,71 @@ export default function BatchTransferModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ShoppingBag className="size-5" />
+      <DialogContent className="brutalism-panel max-h-[80vh] overflow-y-auto border-2 border-black p-0 sm:max-w-lg">
+        <DialogHeader className="border-b-2 border-black bg-amber-100 p-6">
+          <DialogTitle className="brutalism-title flex items-center gap-2 text-xl">
+            <ShoppingBag className="size-6" />
             Complete Shopping
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="font-medium text-black">
             Transfer checked items to your inventory with expiration dates
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 p-6">
           {/* Select All */}
           {transferItems.length > 1 && (
-            <div className="flex items-center justify-between border-b pb-2">
-              <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
+            <div className="flex items-center justify-between border-b-2 border-black pb-4">
+              <label className="flex cursor-pointer items-center gap-3 text-sm font-bold">
                 <Checkbox
                   checked={selectedCount === transferItems.length}
                   onCheckedChange={(checked) => toggleAll(checked === true)}
+                  className="size-5 border-2 border-black data-[state=checked]:bg-black data-[state=checked]:text-white"
                 />
-                Select All ({selectedCount}/{transferItems.length})
+                SELECT ALL ({selectedCount}/{transferItems.length})
               </label>
             </div>
           )}
 
           {/* Items List */}
-          <div className="max-h-[40vh] space-y-2 overflow-y-auto">
+          <div className="max-h-[40vh] space-y-3 overflow-y-auto pr-2">
             {transferItems.map((item) => (
               <div
                 key={item.id}
-                className={`rounded-lg border p-3 transition-colors ${
-                  item.selected ? "border-emerald-500 bg-emerald-50" : "bg-muted/50"
-                }`}
+                className={`brutalism-border transition-all ${
+                  item.selected
+                    ? "bg-emerald-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                    : "bg-white opacity-60 hover:opacity-100"
+                } p-4`}
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-4">
                   <Checkbox
                     checked={item.selected}
                     onCheckedChange={() => toggleItem(item.id)}
-                    className="mt-1"
+                    className="mt-1 size-5 border-2 border-black data-[state=checked]:bg-black data-[state=checked]:text-white"
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="truncate font-medium">{item.item_name}</p>
-                      <Button
+                      <p className="truncate font-bold">{item.item_name}</p>
+                      <button
                         type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-xs"
+                        className="text-xs font-bold underline decoration-2 underline-offset-2 hover:text-emerald-600"
                         onClick={() =>
                           setExpandedItemId(expandedItemId === item.id ? null : item.id)
                         }
                         disabled={!item.selected}
                       >
-                        {expandedItemId === item.id ? "Hide" : "Edit"}
-                      </Button>
+                        {expandedItemId === item.id ? "HIDE DETAILS" : "EDIT DETAILS"}
+                      </button>
                     </div>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-sm font-medium text-gray-600">
                       {item.quantity} {item.unit || "unit"}
                       {item.quantity > 1 ? "s" : ""} • {item.category}
                     </p>
 
                     {/* Expanded settings */}
                     {item.selected && expandedItemId === item.id && (
-                      <div className="mt-3 space-y-3 border-t pt-3">
+                      <div className="mt-4 space-y-4 border-t-2 border-black pt-4">
                         <LocationSelector
                           value={item.location}
                           onChange={(loc) => updateItemLocation(item.id, loc)}
@@ -207,15 +207,15 @@ export default function BatchTransferModal({
 
           {/* Warning for items without ingredient_id */}
           {itemsWithoutIngredient.length > 0 && (
-            <div className="text-muted-foreground rounded-lg bg-yellow-50 p-3 text-sm">
-              <p className="font-medium text-yellow-800">
-                {itemsWithoutIngredient.length} item(s) cannot be transferred
+            <div className="brutalism-border bg-yellow-100 p-4 text-sm font-medium">
+              <p className="mb-2 font-bold text-black">
+                ⚠️ {itemsWithoutIngredient.length} ITEM(S) CANNOT BE TRANSFERRED
               </p>
-              <p className="text-yellow-700">
+              <p className="text-gray-800">
                 Items without linked ingredients will be skipped. Try re-adding these items to match
                 them with known ingredients.
               </p>
-              <ul className="mt-2 list-inside list-disc text-yellow-700">
+              <ul className="mt-2 list-inside list-disc font-bold text-gray-800">
                 {itemsWithoutIngredient.slice(0, 5).map((item) => (
                   <li key={item.id}>{item.item_name}</li>
                 ))}
@@ -228,11 +228,11 @@ export default function BatchTransferModal({
 
           {/* Empty state */}
           {transferItems.length === 0 && (
-            <div className="flex flex-col items-center justify-center p-6 text-center">
-              <Package className="text-muted-foreground mb-2 size-8" />
-              <p className="text-muted-foreground text-sm">No items available for transfer</p>
+            <div className="brutalism-border flex flex-col items-center justify-center bg-gray-100 p-8 text-center">
+              <Package className="mb-4 size-12 text-gray-400" />
+              <p className="font-bold text-gray-600">NO ITEMS AVAILABLE FOR TRANSFER</p>
               {items.length > 0 && (
-                <p className="text-muted-foreground mt-1 text-xs">
+                <p className="mt-2 text-xs font-medium text-gray-500">
                   {items.length} checked item(s) don&apos;t have linked ingredients.
                   <br />
                   Items need to match known ingredients to be added to inventory.
@@ -242,27 +242,33 @@ export default function BatchTransferModal({
           )}
         </div>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose} disabled={isTransferring}>
+        <DialogFooter className="border-t-2 border-black bg-gray-50 p-6 sm:justify-between">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isTransferring}
+            className="brutalism-button-neutral px-6 py-3 text-sm uppercase"
+          >
             Cancel
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
             onClick={handleTransfer}
             disabled={isTransferring || selectedCount === 0}
+            className="brutalism-button-primary flex items-center gap-2 px-6 py-3 text-sm uppercase disabled:opacity-50"
           >
             {isTransferring ? (
               <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
+                <Loader2 className="size-4 animate-spin" />
                 Transferring...
               </>
             ) : (
               <>
-                <CheckCircle className="mr-2 size-4" />
+                <CheckCircle className="size-4" />
                 Add {selectedCount} to Inventory
               </>
             )}
-          </Button>
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
