@@ -131,7 +131,7 @@ describe("Inventory API", () => {
         },
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnValue({
-            eq: jest.fn().mockImplementation((field, value) => {
+            eq: jest.fn().mockImplementation((field) => {
               if (field === "user_id") {
                 return {
                   order: jest.fn().mockReturnValue({

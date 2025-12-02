@@ -49,15 +49,6 @@ const challengesChain = (data: Challenge[], error: Error | null = null) => ({
   }),
 });
 
-const userChallengesChain = (data: UserChallenge[], error: Error | null = null) => ({
-  select: jest.fn().mockReturnValue({
-    eq: jest.fn().mockResolvedValue({ data, error }),
-  }),
-  delete: jest.fn().mockReturnValue({
-    in: jest.fn().mockResolvedValue({ error: null }),
-  }),
-});
-
 const achievementDefinitionsChain = (data: unknown[], error: Error | null = null) => ({
   select: jest.fn().mockReturnValue({
     in: jest.fn().mockResolvedValue({ data, error }),
@@ -68,17 +59,6 @@ const calendarMealsChain = (data: unknown[], error: Error | null = null) => ({
   select: jest.fn().mockReturnValue({
     eq: jest.fn().mockReturnValue({
       eq: jest.fn().mockResolvedValue({ data, error }),
-    }),
-  }),
-});
-
-const calendarDatesChain = (dates: string[], error: Error | null = null) => ({
-  select: jest.fn().mockReturnValue({
-    eq: jest.fn().mockReturnValue({
-      eq: jest.fn().mockResolvedValue({
-        data: dates.map((d) => ({ date: d })),
-        error,
-      }),
     }),
   }),
 });
@@ -121,13 +101,14 @@ describe("Challenge Reset Logic", () => {
     // Mock Date to return a fixed time (Jan 15, 2024)
     const fixedDate = new originalDate("2024-01-15T12:00:00.000Z");
     global.Date = class extends originalDate {
-      constructor(...args: any[]) {
+      constructor(...args: (string | number | Date)[]) {
+        super(...(args as [string | number | Date]));
         if (args.length > 0) {
           return new originalDate(...(args as [string | number | Date]));
         }
         return fixedDate;
       }
-    } as any;
+    } as unknown as DateConstructor;
 
     jest.clearAllMocks();
 

@@ -124,7 +124,9 @@ describe("EditInventoryModal", () => {
 
     // Check location is selected (fridge button should be active)
     const fridgeButton = screen.getByRole("button", { name: /fridge/i });
-    expect(fridgeButton).toHaveClass("bg-black");
+    expect(fridgeButton).toHaveClass("bg-sky-100");
+    expect(fridgeButton).toHaveClass("shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]");
+    expect(fridgeButton).toHaveClass("-translate-y-1");
 
     // Check notes
     const notesInput = screen.getByPlaceholderText(/optional notes/i);
@@ -342,15 +344,18 @@ describe("EditInventoryModal", () => {
 
     // Initially fridge is selected
     const fridgeButton = screen.getByRole("button", { name: /fridge/i });
-    expect(fridgeButton).toHaveClass("bg-black");
+    expect(fridgeButton).toHaveClass("bg-sky-100");
+    expect(fridgeButton).toHaveClass("shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]");
 
     // Click freezer
     const freezerButton = screen.getByRole("button", { name: /freezer/i });
     fireEvent.click(freezerButton);
 
     // Now freezer should be selected
-    expect(freezerButton).toHaveClass("bg-black");
-    expect(fridgeButton).not.toHaveClass("bg-black");
+    expect(freezerButton).toHaveClass("bg-cyan-100");
+    expect(freezerButton).toHaveClass("shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]");
+    expect(fridgeButton).not.toHaveClass("bg-sky-100");
+    expect(fridgeButton).not.toHaveClass("shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]");
   });
 
   it("handles item without ingredient name gracefully", () => {

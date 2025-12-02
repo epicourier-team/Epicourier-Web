@@ -68,7 +68,7 @@ describe("ExpirationBadge", () => {
       const { container } = render(<ExpirationBadge status="expired" daysUntil={-1} />);
       const badge = container.firstChild as HTMLElement;
       expect(badge.className).toContain("bg-red-100");
-      expect(badge.className).toContain("border-red-300");
+      expect(badge.className).toContain("border-red-500");
       expect(badge.className).toContain("text-red-700");
     });
 
@@ -76,32 +76,32 @@ describe("ExpirationBadge", () => {
       const { container } = render(<ExpirationBadge status="critical" daysUntil={1} />);
       const badge = container.firstChild as HTMLElement;
       expect(badge.className).toContain("bg-orange-100");
-      expect(badge.className).toContain("border-orange-300");
-      expect(badge.className).toContain("text-orange-700");
+      expect(badge.className).toContain("border-orange-500");
+      expect(badge.className).toContain("text-orange-800");
     });
 
     it("applies warning styling (yellow)", () => {
       const { container } = render(<ExpirationBadge status="warning" daysUntil={5} />);
       const badge = container.firstChild as HTMLElement;
       expect(badge.className).toContain("bg-yellow-100");
-      expect(badge.className).toContain("border-yellow-300");
-      expect(badge.className).toContain("text-yellow-700");
+      expect(badge.className).toContain("border-yellow-500");
+      expect(badge.className).toContain("text-yellow-800");
     });
 
     it("applies good styling (green)", () => {
       const { container } = render(<ExpirationBadge status="good" daysUntil={14} />);
       const badge = container.firstChild as HTMLElement;
-      expect(badge.className).toContain("bg-green-100");
-      expect(badge.className).toContain("border-green-300");
-      expect(badge.className).toContain("text-green-700");
+      expect(badge.className).toContain("bg-emerald-100");
+      expect(badge.className).toContain("border-emerald-500");
+      expect(badge.className).toContain("text-emerald-800");
     });
 
     it("applies unknown styling (gray)", () => {
       const { container } = render(<ExpirationBadge status="unknown" daysUntil={null} />);
       const badge = container.firstChild as HTMLElement;
       expect(badge.className).toContain("bg-gray-100");
-      expect(badge.className).toContain("border-gray-300");
-      expect(badge.className).toContain("text-gray-600");
+      expect(badge.className).toContain("border-black");
+      expect(badge.className).toContain("text-gray-800");
     });
 
     it("applies custom className", () => {
@@ -117,10 +117,12 @@ describe("ExpirationBadge", () => {
       const badge = container.firstChild as HTMLElement;
       expect(badge.className).toContain("inline-flex");
       expect(badge.className).toContain("items-center");
-      expect(badge.className).toContain("rounded-md");
-      expect(badge.className).toContain("border");
+      expect(badge.className).toContain("rounded-none");
+      expect(badge.className).toContain("border-2");
       expect(badge.className).toContain("text-xs");
-      expect(badge.className).toContain("font-semibold");
+      expect(badge.className).toContain("font-bold");
+      expect(badge.className).toContain("uppercase");
+      expect(badge.className).toContain("shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]");
     });
   });
 });
