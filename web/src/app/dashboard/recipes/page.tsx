@@ -19,15 +19,19 @@ export default function RecipesPage() {
   const [sortBy, setSortBy] = useState<SortOption>("default");
   const [matchFilter, setMatchFilter] = useState<MatchFilter>("all");
 
+  const { items: inventoryItems } = useInventory();
+  const userIngredientIds = inventoryItems.map((item) => item.ingredient_id);
+
   const { recipes, pagination, isLoading } = useRecipes({
     query,
     ingredientIds,
     tagIds,
     page,
     limit: 20,
+    sortBy,
+    matchFilter,
+    userIngredientIds,
   });
-
-  const { items: inventoryItems } = useInventory();
 
   return (
     <div className="mx-auto max-w-7xl p-6">
