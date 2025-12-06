@@ -124,20 +124,25 @@ export default function ProfilePage() {
                 variant: "destructive",
             });
         } else {
-            // Also log to history if weight/height changed
-            try {
-                await fetch("/api/insights/metrics", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        user_id: user.id,
-                        weight_kg: updates.weight_kg,
-                        height_cm: updates.height_cm,
-                        recorded_at: new Date().toISOString()
-                    }),
-                });
-            } catch (err) {
-                console.error("Failed to log metrics history", err);
+            // Only log to history if weight/height actually changed
+            const weightChanged = updates.weight_kg !== null && parseFloat(weight) !== (data[0]?.weight_kg || 0);
+            const heightChanged = updates.height_cm !== null && parseFloat(height) !== (data[0]?.height_cm || 0);
+
+            if (weightChanged || heightChanged) {
+                try {
+                    await fetch("/api/insights/metrics", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            user_id: user.id,
+                            weight_kg: weightChanged ? updates.weight_kg : null,
+                            height_cm: heightChanged ? updates.height_cm : null,
+                            recorded_at: new Date().toISOString()
+                        }),
+                    });
+                } catch (err) {
+                    console.error("Failed to log metrics history", err);
+                }
             }
 
             console.log("Profile saved successfully:", data);

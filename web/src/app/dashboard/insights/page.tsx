@@ -36,6 +36,8 @@ export default function InsightsPage() {
     const supabase = useMemo(() => createClient(), []);
 
     useEffect(() => {
+        const abortController = new AbortController();
+
         const fetchStats = async () => {
             setLoading(true);
             try {
@@ -43,7 +45,10 @@ export default function InsightsPage() {
 
                 if (user) {
                     // Fetch stats (fast - loads immediately)
-                    const statsRes = await fetch(`/api/insights/stats?user_id=${user.id}&period=${period}`);
+                    const statsRes = await fetch(
+                        `/api/insights/stats?user_id=${user.id}&period=${period}`,
+                        { signal: abortController.signal }
+                    );
                     if (statsRes.ok) {
                         const data = await statsRes.json();
                         setStats(data);
@@ -57,7 +62,10 @@ export default function InsightsPage() {
                     // Fetch AI insights in background (slow - can take 3-5 seconds)
                     setAiLoading(true);
                     try {
-                        const aiRes = await fetch(`/api/insights/ai-analysis?user_id=${user.id}&period=${period}`);
+                        const aiRes = await fetch(
+                            `/api/insights/ai-analysis?user_id=${user.id}&period=${period}`,
+                            { signal: abortController.signal }
+                        );
                         if (aiRes.ok) {
                             const aiData = await aiRes.json();
                             setAiInsights(aiData);
@@ -65,18 +73,27 @@ export default function InsightsPage() {
                             console.error("Failed to fetch AI insights");
                         }
                     } catch (aiError) {
-                        console.error("Error loading AI insights:", aiError);
+                        if (aiError instanceof Error && aiError.name !== 'AbortError') {
+                            console.error("Error loading AI insights:", aiError);
+                        }
                     } finally {
                         setAiLoading(false);
                     }
                 }
             } catch (error) {
-                console.error("Error loading insights:", error);
+                if (error instanceof Error && error.name !== 'AbortError') {
+                    console.error("Error loading insights:", error);
+                }
                 setLoading(false);
             }
         };
 
         fetchStats();
+
+        // Cleanup function to abort pending requests when dependencies change
+        return () => {
+            abortController.abort();
+        };
     }, [supabase, period]);
 
     if (loading) {

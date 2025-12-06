@@ -19,9 +19,15 @@ export async function GET(request: Request) {
             );
         }
 
+        // Properly encode query parameters to prevent injection
+        const params = new URLSearchParams({
+            user_id: userId,
+            period: period
+        });
+
         // Proxy to FastAPI backend
         const response = await fetch(
-            `${BACKEND_URL}/insights/ai-analysis?user_id=${userId}&period=${period}`,
+            `${BACKEND_URL}/insights/ai-analysis?${params.toString()}`,
             {
                 method: "GET",
                 headers: {

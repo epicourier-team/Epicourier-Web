@@ -301,7 +301,6 @@ Return your response in this exact JSON format:
         # 6. Parse Response
         import json
         ai_insights = json.loads(response.text)
-        print(ai_insights)
         
         return AIInsightsResponse(
             summary=ai_insights.get('summary', 'Keep up the great work!'),
