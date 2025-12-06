@@ -25,7 +25,7 @@ describe("signup server action", () => {
   beforeEach(() => jest.clearAllMocks());
 
   it("returns error when user already exists", async () => {
-    const maybeSingle = jest.fn().mockResolvedValue({ data: { id: 'existing' } });
+    const maybeSingle = jest.fn().mockResolvedValue({ data: { id: "existing" } });
     const eq = jest.fn().mockReturnValue({ maybeSingle });
     const select = jest.fn().mockReturnValue({ eq });
 
@@ -79,11 +79,14 @@ describe("signup server action", () => {
     const eqCheck = jest.fn().mockReturnValue({ maybeSingle: maybeSingleCheck });
     const selectCheck = jest.fn().mockReturnValue({ eq: eqCheck });
 
-    const maybeSingleGet = jest.fn().mockResolvedValue({ data: null, error: { message: "db fail" } });
+    const maybeSingleGet = jest
+      .fn()
+      .mockResolvedValue({ data: null, error: { message: "db fail" } });
     const eqGet = jest.fn().mockReturnValue({ maybeSingle: maybeSingleGet });
     const selectGet = jest.fn().mockReturnValue({ eq: eqGet });
 
-    const from = jest.fn()
+    const from = jest
+      .fn()
       .mockReturnValueOnce({ select: selectCheck })
       .mockReturnValueOnce({ select: selectGet });
 
@@ -94,10 +97,11 @@ describe("signup server action", () => {
 
     const result = await signup({ email: "a@test.com", password: "pw", username: "user" });
 
-    expect(result).toEqual({ 
-      error: { 
-        message: "Account created but failed to set username. Please try signing in and updating your profile." 
-      } 
+    expect(result).toEqual({
+      error: {
+        message:
+          "Account created but failed to set username. Please try signing in and updating your profile.",
+      },
     });
     expect(revalidatePath).not.toHaveBeenCalled();
     expect(redirect).not.toHaveBeenCalled();
@@ -108,14 +112,15 @@ describe("signup server action", () => {
     const eqCheck = jest.fn().mockReturnValue({ maybeSingle: maybeSingleCheck });
     const selectCheck = jest.fn().mockReturnValue({ eq: eqCheck });
 
-    const maybeSingleGet = jest.fn().mockResolvedValue({ data: { id: 'user-1' }, error: null });
+    const maybeSingleGet = jest.fn().mockResolvedValue({ data: { id: "user-1" }, error: null });
     const eqGet = jest.fn().mockReturnValue({ maybeSingle: maybeSingleGet });
     const selectGet = jest.fn().mockReturnValue({ eq: eqGet });
 
     const eqUpdate = jest.fn().mockResolvedValue({ error: { message: "update fail" } });
     const update = jest.fn().mockReturnValue({ eq: eqUpdate });
 
-    const from = jest.fn()
+    const from = jest
+      .fn()
       .mockReturnValueOnce({ select: selectCheck })
       .mockReturnValueOnce({ select: selectGet })
       .mockReturnValueOnce({ update });
@@ -127,10 +132,11 @@ describe("signup server action", () => {
 
     const result = await signup({ email: "a@test.com", password: "pw", username: "user" });
 
-    expect(result).toEqual({ 
-      error: { 
-        message: "Account created but failed to set username. Please try signing in and updating your profile." 
-      } 
+    expect(result).toEqual({
+      error: {
+        message:
+          "Account created but failed to set username. Please try signing in and updating your profile.",
+      },
     });
     expect(revalidatePath).not.toHaveBeenCalled();
     expect(redirect).not.toHaveBeenCalled();
@@ -141,14 +147,15 @@ describe("signup server action", () => {
     const eqCheck = jest.fn().mockReturnValue({ maybeSingle: maybeSingleCheck });
     const selectCheck = jest.fn().mockReturnValue({ eq: eqCheck });
 
-    const maybeSingleGet = jest.fn().mockResolvedValue({ data: { id: 'user-1' }, error: null });
+    const maybeSingleGet = jest.fn().mockResolvedValue({ data: { id: "user-1" }, error: null });
     const eqGet = jest.fn().mockReturnValue({ maybeSingle: maybeSingleGet });
     const selectGet = jest.fn().mockReturnValue({ eq: eqGet });
 
     const eqUpdate = jest.fn().mockResolvedValue({ error: null });
     const update = jest.fn().mockReturnValue({ eq: eqUpdate });
 
-    const from = jest.fn()
+    const from = jest
+      .fn()
       .mockReturnValueOnce({ select: selectCheck })
       .mockReturnValueOnce({ select: selectGet })
       .mockReturnValueOnce({ update });
@@ -161,7 +168,7 @@ describe("signup server action", () => {
     const result = await signup({ email: "a@test.com", password: "pw", username: "user" });
 
     expect(result).toEqual({ success: true });
-    expect(revalidatePath).toHaveBeenCalledWith('/', 'layout');
+    expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
     expect(redirect).not.toHaveBeenCalled();
   });
 });

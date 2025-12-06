@@ -12,14 +12,14 @@ describe("MealDetailModal – full coverage", () => {
   const baseEntries = [
     {
       id: 1,
-      date: "2025-11-07",
+      date: "2030-01-01",
       meal_type: "lunch",
       status: false,
       Recipe: { id: 11, name: "Pasta", description: "Creamy pasta" },
     },
     {
       id: 2,
-      date: "2025-11-07",
+      date: "2030-01-01",
       meal_type: "dinner",
       status: false,
       Recipe: { id: 12, name: "Salad", description: "Fresh veggies" },
@@ -143,6 +143,34 @@ describe("MealDetailModal – full coverage", () => {
     expect(mockReload).toHaveBeenCalled();
   });
 
+  // ✅ handleSingleUpdate - Mark as Incomplete (Line 179)
+  test("calls onUpdateStatus with false when Mark as Incomplete clicked", async () => {
+    const completedEntry = [
+      {
+        id: 5,
+        date: "2030-01-01",
+        meal_type: "lunch",
+        status: true, // Already completed
+        Recipe: { id: 15, name: "Pizza", description: "Italian dish" },
+      },
+    ];
+    render(
+      <MealDetailModal
+        isOpen={true}
+        onClose={mockClose}
+        entries={completedEntry}
+        onUpdateStatus={mockUpdate}
+        reloadEvents={mockReload}
+      />
+    );
+    const btn = screen.getByRole("button", { name: /mark as incomplete/i });
+    await act(async () => {
+      fireEvent.click(btn);
+    });
+    expect(mockUpdate).toHaveBeenCalledWith(5, false);
+    expect(mockReload).toHaveBeenCalled();
+  });
+
   // ✅ allCompleted = true branch (Mark All as Incomplete)
   test("renders Mark All as Incomplete when all meals completed", () => {
     const completedEntries = baseEntries.map((e) => ({ ...e, status: true }));
@@ -179,8 +207,8 @@ describe("MealDetailModal – full coverage", () => {
     expect(mockClose).toHaveBeenCalled();
   });
 
-  // ✅ isPast branch (expired meal)
-  test("shows expired button when meal is past date", () => {
+  // ✅ isPast branch (past meal notice)
+  test("shows past meal note when entry date is before today", () => {
     const pastEntry = [
       {
         id: 9,
@@ -199,7 +227,7 @@ describe("MealDetailModal – full coverage", () => {
         reloadEvents={mockReload}
       />
     );
-    expect(screen.getByText(/expired meal/i)).toBeInTheDocument();
+    expect(screen.getByText(/past meal — status can still be updated/i)).toBeInTheDocument();
   });
 
   // ✅ Close button disabled branch

@@ -14,11 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievement_definitions: {
+        Row: {
+          created_at: string | null
+          criteria: Json
+          description: string | null
+          icon: string | null
+          id: number
+          name: string
+          tier: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          criteria: Json
+          description?: string | null
+          icon?: string | null
+          id?: number
+          name: string
+          tier?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          criteria?: Json
+          description?: string | null
+          icon?: string | null
+          id?: number
+          name?: string
+          tier?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       Calendar: {
         Row: {
           created_at: string
           date: string | null
           id: number
+          meal_type: string
           notes: string | null
           recipe_id: number | null
           status: boolean | null
@@ -29,6 +63,7 @@ export type Database = {
           created_at?: string
           date?: string | null
           id?: number
+          meal_type?: string
           notes?: string | null
           recipe_id?: number | null
           status?: boolean | null
@@ -39,6 +74,7 @@ export type Database = {
           created_at?: string
           date?: string | null
           id?: number
+          meal_type?: string
           notes?: string | null
           recipe_id?: number | null
           status?: boolean | null
@@ -58,6 +94,59 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      challenges: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          criteria: Json
+          description: string | null
+          end_date: string | null
+          id: number
+          is_active: boolean | null
+          name: string
+          reward_achievement_id: number | null
+          start_date: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          criteria: Json
+          description?: string | null
+          end_date?: string | null
+          id?: number
+          is_active?: boolean | null
+          name: string
+          reward_achievement_id?: number | null
+          start_date?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          criteria?: Json
+          description?: string | null
+          end_date?: string | null
+          id?: number
+          is_active?: boolean | null
+          name?: string
+          reward_achievement_id?: number | null
+          start_date?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenges_reward_achievement_id_fkey"
+            columns: ["reward_achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_definitions"
             referencedColumns: ["id"]
           },
         ]
@@ -122,6 +211,93 @@ export type Database = {
         }
         Relationships: []
       }
+      nutrient_goals: {
+        Row: {
+          calories_kcal: number | null
+          carbs_g: number | null
+          created_at: string | null
+          fats_g: number | null
+          fiber_g: number | null
+          protein_g: number | null
+          sodium_mg: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          calories_kcal?: number | null
+          carbs_g?: number | null
+          created_at?: string | null
+          fats_g?: number | null
+          fiber_g?: number | null
+          protein_g?: number | null
+          sodium_mg?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          calories_kcal?: number | null
+          carbs_g?: number | null
+          created_at?: string | null
+          fats_g?: number | null
+          fiber_g?: number | null
+          protein_g?: number | null
+          sodium_mg?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nutrient_tracking: {
+        Row: {
+          calories_kcal: number | null
+          carbs_g: number | null
+          created_at: string | null
+          date: string
+          fats_g: number | null
+          fiber_g: number | null
+          id: number
+          meal_count: number | null
+          month_start: string | null
+          protein_g: number | null
+          sodium_mg: number | null
+          sugar_g: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          calories_kcal?: number | null
+          carbs_g?: number | null
+          created_at?: string | null
+          date: string
+          fats_g?: number | null
+          fiber_g?: number | null
+          id?: number
+          meal_count?: number | null
+          month_start?: string | null
+          protein_g?: number | null
+          sodium_mg?: number | null
+          sugar_g?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          calories_kcal?: number | null
+          carbs_g?: number | null
+          created_at?: string | null
+          date?: string
+          fats_g?: number | null
+          fiber_g?: number | null
+          id?: number
+          meal_count?: number | null
+          month_start?: string | null
+          protein_g?: number | null
+          sodium_mg?: number | null
+          sugar_g?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       Recipe: {
         Row: {
           created_at: string
@@ -131,6 +307,7 @@ export type Database = {
           image_url: string | null
           min_prep_time: number | null
           name: string | null
+          owner_id: number | null
           updated_at: string | null
         }
         Insert: {
@@ -141,6 +318,7 @@ export type Database = {
           image_url?: string | null
           min_prep_time?: number | null
           name?: string | null
+          owner_id?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -151,9 +329,18 @@ export type Database = {
           image_url?: string | null
           min_prep_time?: number | null
           name?: string | null
+          owner_id?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "Recipe_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       "Recipe-Calendar_Map": {
         Row: {
@@ -163,7 +350,7 @@ export type Database = {
         }
         Insert: {
           calendar_id?: number | null
-          id: number
+          id?: number
           recipe_id?: number | null
         }
         Update: {
@@ -278,42 +465,168 @@ export type Database = {
         }
         Relationships: []
       }
+      streak_history: {
+        Row: {
+          created_at: string
+          current_streak: number | null
+          id: number
+          last_activity_date: string | null
+          longest_streak: number | null
+          streak_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number | null
+          id?: number
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          streak_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number | null
+          id?: number
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          streak_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       User: {
         Row: {
+          auth_id: string | null
           created_at: string
           email: string | null
           fullname: string | null
           id: number
-          password_hash: string
+          password_hash: string | null
           updated_at: string | null
           username: string | null
         }
         Insert: {
+          auth_id?: string | null
           created_at?: string
           email?: string | null
           fullname?: string | null
           id?: number
-          password_hash: string
+          password_hash?: string | null
           updated_at?: string | null
           username?: string | null
         }
         Update: {
+          auth_id?: string | null
           created_at?: string
           email?: string | null
           fullname?: string | null
           id?: number
-          password_hash?: string
+          password_hash?: string | null
           updated_at?: string | null
           username?: string | null
         }
         Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: number
+          earned_at: string | null
+          id: number
+          progress: Json | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id: number
+          earned_at?: string | null
+          id?: number
+          progress?: Json | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: number
+          earned_at?: string | null
+          id?: number
+          progress?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_challenges: {
+        Row: {
+          challenge_id: number
+          completed_at: string | null
+          id: number
+          joined_at: string | null
+          progress: Json | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id: number
+          completed_at?: string | null
+          id?: number
+          joined_at?: string | null
+          progress?: Json | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: number
+          completed_at?: string | null
+          id?: number
+          joined_at?: string | null
+          progress?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_challenges_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      immutable_month_start: { Args: { d: string }; Returns: string }
+      update_streak: {
+        Args: {
+          p_activity_date?: string
+          p_streak_type: string
+          p_user_id: string
+        }
+        Returns: {
+          created_at: string
+          current_streak: number | null
+          id: number
+          last_activity_date: string | null
+          longest_streak: number | null
+          streak_type: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "streak_history"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       [_ in never]: never

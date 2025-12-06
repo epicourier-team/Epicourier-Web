@@ -14,7 +14,7 @@ describe("Skeleton component", () => {
     const { container } = render(<Skeleton />);
     const div = container.querySelector("div");
     expect(div).toBeInTheDocument();
-    expect(div).toHaveClass("bg-muted", "animate-pulse", "rounded-md");
+    expect(div).toHaveClass("bg-accent", "animate-pulse", "rounded-md");
   });
 
   it("applies additional className properly", () => {

@@ -1,15 +1,17 @@
 import os
+
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from api.recommender import create_meal_plan
 from supabase import Client, create_client
-from dotenv import load_dotenv
+
+from api.recommender import create_meal_plan
 
 load_dotenv()
 
-url: str = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+url: str = os.getenv("NEXT_PUBLIC_SUPABASE_URL") or ""
+key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY") or ""
 
 supabase: Client = create_client(url, key)
 
@@ -47,7 +49,9 @@ def recommend_meals(req: RecommendRequest):
 
     # Validate number of meals
     if req.num_meals not in [3, 5, 7]:
-        raise HTTPException(status_code=400, detail="numMeals must be one of 3, 5, or 7")
+        raise HTTPException(
+            status_code=400, detail="numMeals must be one of 3, 5, or 7"
+        )
 
     plan, expanded_goal = create_meal_plan(req.goal, n_meals=req.num_meals)
     return {"recipes": plan, "goal_expanded": expanded_goal}

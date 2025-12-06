@@ -1,46 +1,163 @@
 name: "Feature Request"
-description: "Suggest a new feature or improvement."
-labels: ["enhancement"]
+description: "Propose a new feature for Epicourier meal planning platform"
+labels: ["backend", "frontend", "database", "documentation", "enhancement"]
+title: "feat(scope): "
 
 body:
-  - type: input
-    id: summary
+  - type: markdown
     attributes:
-      label: "Short summary"
-      description: "Briefly describe the proposed feature."
-      placeholder: "Example: Add dark mode to settings page"
-    validations:
-      required: true
+      value: |
+        ## 📝 Feature Proposal
+        Use this template to propose new features for Epicourier. Please provide as much detail as possible.
 
-  - type: textarea
-    id: motivation
+  - type: dropdown
+    id: component
     attributes:
-      label: "Motivation"
-      description: "Explain the problem this feature solves or the value it adds."
-      placeholder: "Users struggle with bright screens in dark environments."
-    validations:
-      required: true
-
-  - type: textarea
-    id: proposal
-    attributes:
-      label: "Proposed solution"
-      description: "Describe how you think this should be implemented."
-      placeholder: "Add a theme toggle and store preference in user settings."
-
-  - type: checkboxes
-    id: goal
-    attributes:
-      label: "Goal of this issue"
+      label: "Component"
+      description: "Which part of the application does this feature affect?"
       options:
-        - label: "Add a new feature"
-        - label: "Improve existing functionality"
-        - label: "Enhance usability or design"
+        - Frontend
+        - Backend
+        - Database
+        - AI/ML
+        - Full-Stack
+        - DevOps
+        - Documentation
+    validations:
+      required: true
+
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: "Target Milestone"
+      description: "Which version should this feature be included in?"
+      options:
+        - v1.1.0 - Nutrient Tracking
+        - v1.2.0 - Gamification
+        - v1.3.0 - Smart Cart
+        - v2.0.0+ - Future
+        - Undecided
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      description: "How urgent is this feature?"
+      options:
+        - P0 - Critical
+        - P1 - High
+        - P2 - Medium
+        - P3 - Low
+    validations:
+      required: true
+
+  - type: input
+    id: title
+    attributes:
+      label: "Feature Title"
+      description: "Concise feature name (will be prepended with 'feat(component):')"
+      placeholder: "Example: Nutrient Dashboard Page with Chart Components"
     validations:
       required: true
 
   - type: textarea
-    id: context
+    id: description
     attributes:
-      label: "Additional context"
-      description: "Add references, mockups, or related discussions if any."
+      label: "Description"
+      description: "Detailed description of the proposed feature"
+      placeholder: "Create a comprehensive nutrient tracking dashboard that displays daily, weekly, and monthly nutrition intake with interactive charts and graphs."
+    validations:
+      required: true
+
+  - type: textarea
+    id: user_story
+    attributes:
+      label: "User Story"
+      description: "Describe from the user's perspective"
+      placeholder: "As a health-conscious user, I want to visualize my nutrient intake over time so that I can track my progress toward nutrition goals."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: "Acceptance Criteria"
+      description: "List specific criteria that must be met for this feature to be complete"
+      placeholder: |
+        - [ ] Dashboard displays daily nutrient breakdown
+        - [ ] Charts show weekly and monthly trends
+        - [ ] Date range picker allows historical data viewing
+        - [ ] Responsive design works on mobile and desktop
+        - [ ] Loading states and error handling implemented
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_requirements
+    attributes:
+      label: "Technical Requirements"
+      description: "Outline the technical implementation details"
+      placeholder: |
+        **Frontend**:
+        - [ ] Create `/dashboard/nutrients` page
+        - [ ] Integrate Chart.js or Recharts for visualization
+        - [ ] Implement date range picker component
+        - [ ] Connect to nutrient aggregation API
+        - [ ] Add responsive layout with Tailwind CSS
+
+        **Backend**:
+        - [ ] Create `GET /api/nutrients/summary` endpoint
+        - [ ] Create `GET /api/nutrients/history` endpoint
+        - [ ] Add nutrient calculation logic
+
+        **Database**:
+        - [ ] Create nutrient_tracking table
+        - [ ] Add indexes for query optimization
+    validations:
+      required: false
+
+  - type: textarea
+    id: testing_requirements
+    attributes:
+      label: "Testing Requirements"
+      description: "What tests need to be written?"
+      placeholder: |
+        - [ ] Component unit tests with Jest
+        - [ ] Chart rendering tests
+        - [ ] API integration tests
+        - [ ] Responsive layout tests
+    validations:
+      required: false
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: "Dependencies"
+      description: "List related issues or features that must be completed first"
+      placeholder: |
+        - Backend nutrient aggregation API (Issue #TBD)
+        - Meal calendar data must be available (v1.0.0)
+    validations:
+      required: false
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: "Estimated Complexity"
+      description: "How complex is this feature?"
+      options:
+        - Small (1-2 days)
+        - Medium (3-5 days)
+        - Large (1-2 weeks)
+        - Extra Large (2+ weeks)
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context"
+      description: "Add screenshots, mockups, references, or any other relevant information"
+      placeholder: "Links to design mockups, related documentation, or similar features in other applications"

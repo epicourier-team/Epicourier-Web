@@ -1,8 +1,6 @@
 import { middleware } from "@/middleware";
 import { createServerClient } from "@supabase/ssr";
-import { createServer } from "http";
 import { NextRequest } from "next/server";
-import request from "supertest";
 import { updateSession } from "../../src/utils/supabase/middleware";
 
 jest.mock("@supabase/ssr", () => ({
@@ -10,26 +8,7 @@ jest.mock("@supabase/ssr", () => ({
 }));
 
 describe("Next.js middleware integration tests", () => {
-  const makeServer = async (path: string) =>
-    createServer(async (req, res) => {
-      const headers = Object.fromEntries(
-        Object.entries(req.headers)
-          .filter(([_, v]) => typeof v === "string")
-          .map(([k, v]) => [k, v as string])
-      );
-
-      const requestObj = new Request(`http://localhost${path}`, {
-        method: req.method,
-        headers,
-      });
-
-      const nextReq = new NextRequest(requestObj);
-      const response = await middleware(nextReq);
-      const body = await response.text();
-
-      res.writeHead(response.status, Object.fromEntries(response.headers));
-      res.end(body);
-    });
+  const buildRequest = (path: string) => new NextRequest(`http://localhost${path}`);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -40,10 +19,9 @@ describe("Next.js middleware integration tests", () => {
       auth: { getUser: jest.fn().mockResolvedValue({ data: { user: null } }) },
     }));
 
-    const server = await makeServer("/dashboard");
-    const res = await request(server).get("/dashboard");
+    const res = await middleware(buildRequest("/dashboard"));
 
-    const redirectUrl = new URL(res.headers.location);
+    const redirectUrl = new URL(res.headers.get("location") || "");
     expect(redirectUrl.pathname).toBe("/signin");
     expect(res.status).toBe(307);
   });
@@ -53,11 +31,10 @@ describe("Next.js middleware integration tests", () => {
       auth: { getUser: jest.fn().mockResolvedValue({ data: { user: { id: "abc" } } }) },
     }));
 
-    const server = await makeServer("/dashboard");
-    const res = await request(server).get("/dashboard");
+    const res = await middleware(buildRequest("/dashboard"));
 
     expect(res.status).toBe(200);
-    expect(res.headers.location).toBeUndefined();
+    expect(res.headers.get("location")).toBeNull();
   });
 
   it("does not redirect on /signin", async () => {
@@ -65,11 +42,10 @@ describe("Next.js middleware integration tests", () => {
       auth: { getUser: jest.fn().mockResolvedValue({ data: { user: null } }) },
     }));
 
-    const server = await makeServer("/signin");
-    const res = await request(server).get("/signin");
+    const res = await middleware(buildRequest("/signin"));
 
     expect(res.status).toBe(200);
-    expect(res.headers.location).toBeUndefined();
+    expect(res.headers.get("location")).toBeNull();
   });
 });
 

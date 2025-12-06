@@ -2,7 +2,9 @@
 
 import { createClient } from "@/utils/supabase/client";
 import { EventClickArg } from "@fullcalendar/core";
+import Image from "next/image";
 import dayGridPlugin from "@fullcalendar/daygrid";
+import { useToast } from "@/hooks/use-toast";
 import interactionPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -11,7 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import AddMealModal from "@/components/ui/AddMealModal";
 import MealDetailModal from "@/components/ui/MealDetailModal";
-import { SidebarInset } from "@/components/ui/sidebar";
+import "@/styles/fullcalendar-brutalism.css";
 
 // ------------------------------
 // Type Definitions
@@ -56,12 +58,15 @@ interface CalendarApiResponse {
 export default function CalendarPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { toast } = useToast();
 
   // ------------------------------
   // State management
   // ------------------------------
   const [userName, setUserName] = useState<string>("");
-  const [recommendations, setRecommendations] = useState<Recipe[]>([]);
+
+  // const [recommendations, setRecommendations] = useState<Recipe[]>([]);
+  const [recommendations] = useState<Recipe[]>([]); // Kept empty for now as logic is commented out
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -103,14 +108,15 @@ export default function CalendarPage() {
 
       const recipeNames = items.map((x) => x.Recipe?.name ?? "Meal").join(", ");
 
+      // Past entries should look muted even when completed so they don't compete with current items.
       let bgColor = "#3b82f6";
       let borderColor = "#2563eb";
-      if (isCompleted) {
+      if (isPast) {
+        bgColor = "#e5e7eb";
+        borderColor = "#9ca3af";
+      } else if (isCompleted) {
         bgColor = "#22c55e";
         borderColor = "#16a34a";
-      } else if (isPast) {
-        bgColor = "#9ca3af";
-        borderColor = "#6b7280";
       }
 
       return {
@@ -149,18 +155,12 @@ export default function CalendarPage() {
   // click handle
   // ------------------------------
   const handleEventClick = (clickInfo: EventClickArg) => {
-    const { calendarData, isPast } = clickInfo.event.extendedProps as {
+    const { calendarData } = clickInfo.event.extendedProps as {
       calendarData: CalendarApiResponse | CalendarApiResponse[];
-      isPast: boolean;
     };
     const entries: CalendarApiResponse[] = Array.isArray(calendarData)
       ? calendarData
       : [calendarData];
-
-    if (isPast && entries.every((x) => x.status === false)) {
-      alert("This meal is expired and cannot be modified.");
-      return;
-    }
 
     setSelectedCalendarEntry(entries);
     setIsDetailModalOpen(true);
@@ -177,12 +177,19 @@ export default function CalendarPage() {
     });
 
     if (res.ok) {
-      alert(newStatus ? "✅ Meal marked as completed!" : "👌 Meal status updated!");
+      toast({
+        title: newStatus ? "✅ Meal Completed" : "👌 Status Updated",
+        description: newStatus ? "Meal marked as completed!" : "Meal status updated!",
+      });
       await loadEvents();
     } else {
       const err: { error?: string } = await res.json();
       console.error("❌ Error updating status:", err);
-      alert(`❌ Error: ${err.error ?? "Unknown error"}`);
+      toast({
+        title: "❌ Error",
+        description: err.error ?? "Unknown error occurred",
+        variant: "destructive",
+      });
     }
   };
 
@@ -214,20 +221,21 @@ export default function CalendarPage() {
 
     fetchUserName();
     loadEvents();
-  }, [supabase, loadEvents]);
+  }, [supabase, loadEvents, setUserName]);
 
   // ------------------------------
   // Render
   // ------------------------------
   return (
-    <SidebarInset className="bg-gray-50 p-6 pl-12">
+    <div className="p-6 pl-12">
       {/* Header */}
 
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-800">
+      <div className="brutalism-banner mb-6 bg-indigo-300! p-5">
+        <h1 className="text-3xl font-bold tracking-tight">
           {userName ? `${userName}'s Calendar` : "Loading Calendar..."}
         </h1>
-        {/*
+      </div>
+      {/*
         <button
           onClick={loadRecommendations}
           className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
@@ -235,20 +243,18 @@ export default function CalendarPage() {
           🍽️ Get Recommendations
         </button>
         */}
-      </div>
 
       {/* Recommendations */}
       {recommendations.length > 0 && (
-        <div className="mb-6 rounded-xl bg-white p-4 shadow">
-          <h2 className="mb-3 text-lg font-semibold">Recommended Recipes</h2>
+        <div className="brutalism-panel mb-6 rounded-none p-6">
+          <h2 className="brutalism-heading mb-4">Recommended Recipes</h2>
           <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {recommendations.map((r) => (
-              <li
-                key={r.id}
-                className="overflow-hidden rounded-lg border shadow transition hover:shadow-md"
-              >
+              <li key={r.id} className="brutalism-card overflow-hidden rounded-none">
                 {r.image_url && (
-                  <img src={r.image_url} alt={r.name} className="h-40 w-full object-cover" />
+                  <div className="relative h-40 w-full">
+                    <Image src={r.image_url} alt={r.name} fill className="object-cover" />
+                  </div>
                 )}
                 <div className="p-3">
                   <h3 className="font-semibold">{r.name}</h3>
@@ -261,7 +267,7 @@ export default function CalendarPage() {
                       setSelectedRecipe(r);
                       setShowDateModal(true);
                     }}
-                    className="mt-2 w-full rounded bg-blue-600 py-1 text-white hover:bg-blue-700"
+                    className="brutalism-button-secondary mt-2 w-full rounded-none py-2"
                   >
                     + Add to Calendar
                   </button>
@@ -292,7 +298,7 @@ export default function CalendarPage() {
       />
 
       {/* Calendar */}
-      <div className="rounded-xl bg-white p-4 shadow">
+      <div className="brutalism-panel rounded-none p-6">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
@@ -308,6 +314,6 @@ export default function CalendarPage() {
           eventClick={handleEventClick}
         />
       </div>
-    </SidebarInset>
+    </div>
   );
 }

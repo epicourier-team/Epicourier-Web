@@ -37,6 +37,34 @@ describe("SignIn Page", () => {
     });
   });
 
+  it("shows only email error when only email is empty", async () => {
+    // Line 48: validationErrors.email || "" - only email error
+    render(<SignIn />);
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: "somepassword" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/password is required/i)).not.toBeInTheDocument();
+  });
+
+  it("shows only password error when only password is empty", async () => {
+    // Line 48: validationErrors.password || "" - only password error
+    render(<SignIn />);
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/email is required/i)).not.toBeInTheDocument();
+  });
+
   it("shows validation error for invalid email format", async () => {
     render(<SignIn />);
 
@@ -102,5 +130,30 @@ describe("SignIn Page", () => {
       )
     );
     expect(screen.getByText(/Incorrect email or password/i)).toBeInTheDocument();
+  });
+
+  it("shows error toast when login throws unexpected error", async () => {
+    // Lines 79-81: catch block for unexpected errors
+    (login as jest.Mock).mockRejectedValueOnce(new Error("Network error"));
+
+    render(<SignIn />);
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await waitFor(() =>
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Error",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        })
+      )
+    );
+    expect(screen.getByText(/An unexpected error occurred/i)).toBeInTheDocument();
   });
 });
