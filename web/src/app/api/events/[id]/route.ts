@@ -1,13 +1,16 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 
+import { syncDailyNutrientTracking } from "@/app/api/nutrients/tracking";
 import type { Database } from "@/types/supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * 輔助函數：(與 route.ts 中的版本相同)
  */
-async function getPublicUserId(supabase: SupabaseClient<Database>): Promise<number> {
+async function getUserContext(
+  supabase: SupabaseClient<Database>
+): Promise<{ publicUserId: number; authUserId: string }> {
   const {
     data: { user: authUser },
     error: authError,
@@ -38,7 +41,7 @@ async function getPublicUserId(supabase: SupabaseClient<Database>): Promise<numb
   }
 
   const publicUser = publicUsers[0];
-  return publicUser.id;
+  return { publicUserId: publicUser.id, authUserId: authUser.id };
 }
 
 /**
@@ -48,10 +51,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const supabase = await createClient();
   const _params = await params;
   const entryId = _params.id;
-  let publicUserId: number;
+  let userContext: { publicUserId: number; authUserId: string };
 
   try {
-    publicUserId = await getPublicUserId(supabase);
+    userContext = await getUserContext(supabase);
   } catch (err: unknown) {
     let errorMessage = "Unauthorized";
     if (err instanceof Error) {
@@ -73,7 +76,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     .from("Calendar")
     .update({ status: status })
     .eq("id", entryId)
-    .eq("user_id", publicUserId)
+    .eq("user_id", userContext.publicUserId)
     .select();
 
   if (error) {
@@ -83,6 +86,24 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   if (!data || data.length === 0) {
     return NextResponse.json({ error: "Entry not found or user unauthorized" }, { status: 404 });
+  }
+
+  const updatedEntry = data[0];
+
+  if (updatedEntry?.date) {
+    try {
+      await syncDailyNutrientTracking({
+        supabase,
+        publicUserId: userContext.publicUserId,
+        authUserId: userContext.authUserId,
+        date: updatedEntry.date,
+      });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to sync nutrient tracking for the day.";
+      console.error("Error syncing nutrient tracking:", message);
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
   }
 
   return NextResponse.json(data);

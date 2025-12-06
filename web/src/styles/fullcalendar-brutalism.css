@@ -1,0 +1,368 @@
+/* ===========================================================================
+   FULLCALENDAR NEO-BRUTALISM OVERRIDES
+   Custom styling to apply Neo-Brutalism design to FullCalendar components
+   =========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   1. CALENDAR CONTAINER & GENERAL STRUCTURE
+   --------------------------------------------------------------------------- */
+.fc {
+  /* Remove default border radius */
+  border-radius: 0 !important;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.fc .fc-view-harness {
+  border-radius: 0 !important;
+}
+
+/* ---------------------------------------------------------------------------
+   2. TOOLBAR (Header with buttons and title)
+   --------------------------------------------------------------------------- */
+.fc .fc-toolbar {
+  padding: 1rem;
+  background-color: #fff;
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1);
+  margin-bottom: 1.5rem;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #000;
+}
+
+/* Toolbar Button Groups */
+.fc .fc-button-group {
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+}
+
+/* Individual Buttons */
+.fc .fc-button {
+  border: 2px solid #000 !important;
+  border-radius: 0 !important;
+  background-color: #fff !important;
+  color: #000 !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.fc .fc-button:hover {
+  background-color: rgb(254 243 199) !important; /* amber-100 */
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1) !important;
+}
+
+.fc .fc-button:active,
+.fc .fc-button:focus {
+  box-shadow: none !important;
+  transform: translate(0, 0);
+  outline: none !important;
+}
+
+/* Active/Selected Button */
+.fc .fc-button-active {
+  background-color: rgb(52 211 153) !important; /* emerald-400 */
+  color: #000 !important;
+  font-weight: 900 !important;
+}
+
+.fc .fc-button-active:hover {
+  background-color: rgb(110 231 183) !important; /* emerald-300 */
+}
+
+/* Disabled Button */
+.fc .fc-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background-color: #e5e5e5 !important;
+}
+
+/* ---------------------------------------------------------------------------
+   3. CALENDAR TABLE & GRID
+   --------------------------------------------------------------------------- */
+.fc .fc-scrollgrid {
+  border: 2px solid #000 !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+}
+
+/* Table Cells */
+.fc .fc-scrollgrid td,
+.fc .fc-scrollgrid th {
+  border: 1px solid #000 !important;
+}
+
+/* Day Headers (Mon, Tue, Wed, etc.) */
+.fc .fc-col-header-cell {
+  background-color: #fff !important;
+  border: 2px solid #000 !important;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  padding: 0.75rem 0.5rem;
+}
+
+.fc .fc-col-header-cell-cushion {
+  color: #000;
+  text-decoration: none;
+  padding: 0.25rem;
+}
+
+/* Day Cells */
+.fc .fc-daygrid-day {
+  background-color: #fff !important;
+  transition: all 0.15s ease-in-out;
+}
+
+.fc .fc-daygrid-day:hover {
+  background-color: rgb(254 252 232) !important; /* yellow-50 */
+}
+
+/* Day Numbers */
+.fc .fc-daygrid-day-number {
+  font-weight: 700;
+  color: #000;
+  padding: 0.5rem;
+  text-decoration: none !important;
+}
+
+/* Today's Date */
+.fc .fc-day-today {
+  background-color: rgb(254 249 195) !important; /* yellow-100 */
+  border: 2px solid #000 !important;
+}
+
+.fc .fc-day-today .fc-daygrid-day-number {
+  background-color: rgb(253 224 71); /* yellow-300 */
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+  padding: 0.25rem 0.5rem;
+  font-weight: 900;
+}
+
+/* Dates outside current month */
+.fc .fc-day-other .fc-daygrid-day-number {
+  opacity: 0.3;
+}
+
+/* ---------------------------------------------------------------------------
+   4. EVENTS
+   --------------------------------------------------------------------------- */
+/* Event Container */
+.fc .fc-daygrid-event {
+  border: 2px solid #000 !important;
+  border-radius: 0 !important;
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1) !important;
+  padding: 0.25rem 0.5rem;
+  margin: 2px 2px 4px 2px !important;
+  font-weight: 700;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+}
+
+.fc .fc-daygrid-event:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1) !important;
+  z-index: 10;
+}
+
+/* Event Content */
+.fc .fc-event-main {
+  color: #000 !important;
+}
+
+.fc .fc-event-title {
+  font-weight: 700;
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Event Time */
+.fc .fc-event-time {
+  font-weight: 700;
+  font-size: 0.7rem;
+}
+
+/* Dot for events */
+.fc .fc-daygrid-event-dot {
+  border: 2px solid #000 !important;
+  border-radius: 0 !important;
+  width: 8px;
+  height: 8px;
+}
+
+/* More Events Link (+2 more) */
+.fc .fc-daygrid-more-link {
+  border: 2px solid #000;
+  background-color: #fff;
+  color: #000;
+  font-weight: 700;
+  font-size: 0.7rem;
+  padding: 0.125rem 0.375rem;
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+  margin: 2px;
+  transition: all 0.15s ease-in-out;
+}
+
+.fc .fc-daygrid-more-link:hover {
+  background-color: rgb(254 243 199); /* amber-100 */
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   5. POPOVER (More Events Popup)
+   --------------------------------------------------------------------------- */
+.fc .fc-popover {
+  border: 2px solid #000 !important;
+  border-radius: 0 !important;
+  box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1) !important;
+  background-color: #fff;
+}
+
+.fc .fc-popover-header {
+  background-color: rgb(254 243 199) !important; /* amber-100 */
+  border-bottom: 2px solid #000 !important;
+  padding: 0.5rem 0.75rem;
+}
+
+.fc .fc-popover-title {
+  font-weight: 900;
+  color: #000;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+}
+
+.fc .fc-popover-close {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #000;
+  opacity: 1;
+}
+
+.fc .fc-popover-close:hover {
+  color: rgb(239 68 68); /* red-500 */
+}
+
+.fc .fc-popover-body {
+  padding: 0.5rem;
+}
+
+/* ---------------------------------------------------------------------------
+   6. TIME GRID VIEW (Week/Day View)
+   --------------------------------------------------------------------------- */
+.fc .fc-timegrid-slot {
+  border: 1px solid #000 !important;
+}
+
+.fc .fc-timegrid-slot-label {
+  border: 1px solid #000 !important;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.fc .fc-timegrid-event {
+  border: 2px solid #000 !important;
+  border-radius: 0 !important;
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1) !important;
+}
+
+.fc .fc-timegrid-event:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1) !important;
+}
+
+/* Current Time Indicator */
+.fc .fc-timegrid-now-indicator-line {
+  border-color: rgb(239 68 68) !important; /* red-500 */
+  border-width: 2px !important;
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+  border-color: rgb(239 68 68) !important; /* red-500 */
+  border-width: 8px !important;
+}
+
+/* ---------------------------------------------------------------------------
+   7. LIST VIEW
+   --------------------------------------------------------------------------- */
+.fc .fc-list-event {
+  border: 2px solid #000 !important;
+  margin-bottom: 0.5rem;
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+  transition: all 0.15s ease-in-out;
+}
+
+.fc .fc-list-event:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1);
+  background-color: rgb(254 252 232) !important; /* yellow-50 */
+}
+
+.fc .fc-list-event-dot {
+  border: 2px solid #000 !important;
+  border-radius: 0 !important;
+  width: 10px;
+  height: 10px;
+}
+
+.fc .fc-list-event-title {
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------------------
+   8. SCROLLBARS
+   --------------------------------------------------------------------------- */
+.fc .fc-scroller {
+  scrollbar-width: thin;
+  scrollbar-color: #000 #e5e5e5;
+}
+
+.fc .fc-scroller::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.fc .fc-scroller::-webkit-scrollbar-track {
+  background-color: #e5e5e5;
+  border: 1px solid #000;
+}
+
+.fc .fc-scroller::-webkit-scrollbar-thumb {
+  background-color: #000;
+  border: 1px solid #000;
+}
+
+.fc .fc-scroller::-webkit-scrollbar-thumb:hover {
+  background-color: #333;
+}
+
+/* ---------------------------------------------------------------------------
+   9. LOADING INDICATOR
+   --------------------------------------------------------------------------- */
+.fc .fc-loading-indicator {
+  border: 2px solid #000;
+  background-color: rgb(253 224 71); /* yellow-300 */
+  color: #000;
+  font-weight: 900;
+  padding: 0.5rem 1rem;
+  box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1);
+}
+
+/* ===========================================================================
+   END OF FULLCALENDAR BRUTALISM OVERRIDES
+   =========================================================================== */

@@ -1,7 +1,11 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-
 
 test("renders Accordion with trigger and content", () => {
   render(

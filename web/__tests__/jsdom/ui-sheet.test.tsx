@@ -7,7 +7,6 @@ import {
   SheetDescription,
   SheetFooter,
   SheetHeader,
-  SheetOverlay,
   SheetTitle,
 } from "@/components/ui/sheet";
 import { fireEvent, render, screen } from "@testing-library/react";
@@ -19,6 +18,7 @@ jest.mock("@/lib/utils", () => ({
 }));
 jest.mock("lucide-react", () => ({
   X: () => <svg data-testid="lucide-x" />,
+  XIcon: () => <svg data-testid="lucide-x-icon" />,
 }));
 
 describe("Sheet components (Radix Dialog wrapper)", () => {
@@ -37,7 +37,6 @@ describe("Sheet components (Radix Dialog wrapper)", () => {
   it("renders overlay, header, footer, title, and description", () => {
     renderOpenSheet(
       <>
-        <SheetOverlay data-testid="overlay" />
         <SheetHeader data-testid="header" />
         <SheetFooter data-testid="footer" />
         <SheetTitle>My Title</SheetTitle>
@@ -46,8 +45,8 @@ describe("Sheet components (Radix Dialog wrapper)", () => {
       </>
     );
 
-    // Core elements are present
-    expect(screen.getByTestId("overlay")).toBeInTheDocument();
+    // Core elements are present (overlay is auto-rendered by SheetContent)
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByTestId("header")).toBeInTheDocument();
     expect(screen.getByTestId("footer")).toBeInTheDocument();
     expect(screen.getByText("My Title")).toBeInTheDocument();
@@ -75,8 +74,10 @@ describe("Sheet components (Radix Dialog wrapper)", () => {
   });
 
   it("renders overlay with custom class", () => {
-    renderOpenSheet(<SheetOverlay className="custom-overlay" />);
-    expect(document.querySelector(".custom-overlay")).toBeInTheDocument();
+    // SheetContent now automatically includes overlay, so we just check it exists
+    renderOpenSheet(<div>Content</div>);
+    const overlay = document.querySelector('[data-slot="sheet-overlay"]');
+    expect(overlay).toBeInTheDocument();
   });
 
   it("closes when clicking close button", () => {
@@ -124,6 +125,6 @@ describe("Sheet components (Radix Dialog wrapper)", () => {
 
     // the sr-only span text should also be present
     expect(screen.getByText("Close")).toBeInTheDocument();
-    expect(screen.getByTestId("lucide-x")).toBeInTheDocument();
+    expect(screen.getByTestId("lucide-x-icon")).toBeInTheDocument();
   });
 });

@@ -1,3 +1,105 @@
+# ========================================
+# Data Directory Specific
+# ========================================
 /cache
 *.csv
 __pycache__/
+.env
+recipes.csv
+
+# ========================================
+# Python
+# ========================================
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+.hypothesis/
+*.log
+
+# UV lock file
+uv.lock
+
+# ========================================
+# macOS
+# ========================================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# ========================================
+# Windows
+# ========================================
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# ========================================
+# Linux
+# ========================================
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ========================================
+# IDEs and Editors
+# ========================================
+# VSCode
+.vscode/
+*.code-workspace
+.history/
+
+# JetBrains
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+Session.vim
+.netrwhist
+tags
+
+# Emacs
+*~
+\#*\#
+*.elc
+auto-save-list
+tramp
+
+# ========================================
+# Backup and Temporary Files
+# ========================================
+*.bak
+*.backup
+*.tmp
+*.temp
+*.swp
+*.swo

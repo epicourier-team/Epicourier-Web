@@ -19,7 +19,6 @@ jest.mock("next/cache", () => ({
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 describe("logout server action", () => {
   beforeEach(() => jest.clearAllMocks());

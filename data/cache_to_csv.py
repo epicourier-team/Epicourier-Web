@@ -44,6 +44,9 @@ def process_json_files(cache_dir='cache', recipes_csv_path='recipes.csv'):
     for json_file in sorted(json_files)[:50]:
         print(f"Processing {json_file.name}...")
         
+        # Extract original recipe ID from filename (e.g., "52768.json" -> "52768")
+        original_recipe_id = int(json_file.stem)
+        
         with open(json_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
@@ -70,17 +73,17 @@ def process_json_files(cache_dir='cache', recipes_csv_path='recipes.csv'):
                     'vit_k_microg': ingredient['vit_k_microg']
                 }
                 
-                ingredient_id_map[(data['recipe']['id'], ingredient['id'])] = next_ingredient_id
+                ingredient_id_map[(original_recipe_id, ingredient['id'])] = next_ingredient_id
                 next_ingredient_id += 1
             else:
-                ingredient_id_map[(data['recipe']['id'], ingredient['id'])] = ingredients_dict[key]['id']
+                ingredient_id_map[(original_recipe_id, ingredient['id'])] = ingredients_dict[key]['id']
         
         recipe = data['recipe']
-        recipe_id_str = str(recipe['id'])
+        recipe_id_str = str(original_recipe_id)
         recipe_data = recipes_data.get(recipe_id_str, {'description': '', 'tags': ''})
         
         recipes_list.append({
-            'id': recipe['id'],
+            'id': original_recipe_id,  # Use original ID from filename
             'name': recipe['name'],
             'description': recipe_data['description'],
             'min_prep_time': recipe['min_prep_time'],
@@ -104,21 +107,22 @@ def process_json_files(cache_dir='cache', recipes_csv_path='recipes.csv'):
                 tag_id = tags_dict[tag_name]['id']
                 recipe_tag_maps_list.append({
                     'id': next_recipe_tag_map_id,
-                    'recipe_id': recipe['id'],
+                    'recipe_id': original_recipe_id,  # Use original ID
                     'tag_id': tag_id
                 })
                 next_recipe_tag_map_id += 1
         
         for map_item in data['map']:
-            new_ingredient_id = ingredient_id_map[(recipe['id'], map_item['ingredient_id'])]
+            new_ingredient_id = ingredient_id_map[(original_recipe_id, map_item['ingredient_id'])]
             
             maps_list.append({
                 'id': next_map_id,
-                'recipe_id': map_item['recipe_id'],
+                'recipe_id': original_recipe_id,  # Use original ID
                 'ingredient_id': new_ingredient_id,
                 'relative_unit_100': int(map_item['relative_unit_100'])
             })
             next_map_id += 1
+
     
     print("\nWriting CSV files...")
     

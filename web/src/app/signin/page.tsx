@@ -27,7 +27,7 @@ const SignIn = () => {
 
     // Client-side validation
     const validationErrors: { email?: string; password?: string } = {};
-    
+
     if (!formData.email.trim()) {
       validationErrors.email = "Email is required";
     } else {
@@ -54,7 +54,7 @@ const SignIn = () => {
 
     try {
       const result = await login(formData);
-      
+
       if (result?.error) {
         // Handle specific Supabase error messages
         let errorMessage = result.error;
@@ -75,7 +75,14 @@ const SignIn = () => {
         title: "Success",
         description: "Welcome back!",
       });
-    } catch (err: unknown) {
+    } catch (err) {
+      // Next.js redirect() throws a special error - this is expected behavior
+      // Check if it's a redirect error (NEXT_REDIRECT)
+      if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) {
+        // This is expected - redirect is working, don't show error
+        return;
+      }
+
       const errorMessage = "An unexpected error occurred. Please try again.";
       setError(errorMessage);
       toast({

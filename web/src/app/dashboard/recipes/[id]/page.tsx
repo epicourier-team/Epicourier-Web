@@ -3,6 +3,8 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { NUTRIENT_NAME } from "../../../../lib/constants";
 import { getRecipeDetail } from "../../../../lib/utils";
+import AddToCartButton from "@/components/shopping/AddToCartButton";
+import BackButton from "@/components/ui/backbutton";
 
 export async function generateStaticParams() {
   const { data: recipes } = await supabase.from("Recipe").select("id");
@@ -22,6 +24,7 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
+      <BackButton />
       <div className="relative mx-auto mb-6 h-64 w-64">
         {recipe.image_url && (
           <Image
@@ -34,6 +37,18 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
       </div>
 
       <h1 className="mb-2 text-3xl font-bold">{recipe.name}</h1>
+      <div className="mb-4 flex gap-2">
+        <AddToCartButton
+          recipeName={recipe.name ?? "Recipe"}
+          ingredients={ingredients.map((i) => ({
+            id: i.id,
+            ingredientId: i.ingredient.id,
+            name: i.ingredient.name ?? "Unknown",
+            quantity: i.relative_unit_100 ?? 100,
+            unit: i.ingredient.unit ?? "unit",
+          }))}
+        />
+      </div>
       <div className="mb-6 text-sm text-gray-600">
         <p>🕒 Prep Time: {recipe.min_prep_time} mins</p>
         <p>🌿 Green Score: {recipe.green_score}</p>
@@ -57,11 +72,8 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
         <h2 className="mb-3 text-xl font-semibold">Ingredients</h2>
         <ul className="space-y-2">
           {ingredients.map((i) => (
-            <li
-              key={i.ingredient.id}
-              className="grid grid-cols-[180px_180px_auto] border-b pt-2 pb-2"
-            >
-              <span className="font-bold font-medium">{i.ingredient.name}</span>
+            <li key={i.id} className="grid grid-cols-[180px_180px_auto] border-b pt-2 pb-2">
+              <span className="font-bold">{i.ingredient.name}</span>
               <span className="test-gray-600">
                 {i.ingredient.unit} {i.relative_unit_100 === 100 ? "" : `X ${i.relative_unit_100}%`}
               </span>

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Recipe } from "../types/data";
+import { RecipeWithIngredients } from "../types/data";
 
 export type RecipeFilter = {
   query?: string;
@@ -8,10 +8,13 @@ export type RecipeFilter = {
   tagIds?: number[];
   page?: number;
   limit?: number;
+  sortBy?: string;
+  matchFilter?: string;
+  userIngredientIds?: number[];
 };
 
 export function useRecipes(filters: RecipeFilter) {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [recipes, setRecipes] = useState<RecipeWithIngredients[]>([]);
   const [pagination, setPagination] = useState({
     page: filters.page || 1,
     totalPages: 1,
@@ -19,6 +22,10 @@ export function useRecipes(filters: RecipeFilter) {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const ingredientIdsStr = JSON.stringify(filters.ingredientIds ?? []);
+  const tagIdsStr = JSON.stringify(filters.tagIds ?? []);
+  const userIngredientIdsStr = JSON.stringify(filters.userIngredientIds ?? []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -31,8 +38,22 @@ export function useRecipes(filters: RecipeFilter) {
         if (filters.query) params.set("query", filters.query);
         if (filters.page) params.set("page", String(filters.page));
         if (filters.limit) params.set("limit", String(filters.limit));
-        filters.ingredientIds?.forEach((id) => params.append("ingredientIds", String(id)));
-        filters.tagIds?.forEach((id) => params.append("tagIds", String(id)));
+        if (filters.sortBy) params.set("sortBy", filters.sortBy);
+        if (filters.matchFilter) params.set("matchFilter", filters.matchFilter);
+
+        const ingredientIds = JSON.parse(ingredientIdsStr);
+        const tagIds = JSON.parse(tagIdsStr);
+        const userIngredientIds = JSON.parse(userIngredientIdsStr);
+
+        if (Array.isArray(ingredientIds)) {
+          ingredientIds.forEach((id: number) => params.append("ingredientIds", String(id)));
+        }
+        if (Array.isArray(tagIds)) {
+          tagIds.forEach((id: number) => params.append("tagIds", String(id)));
+        }
+        if (Array.isArray(userIngredientIds)) {
+          userIngredientIds.forEach((id: number) => params.append("userIngredientIds", String(id)));
+        }
 
         const res = await fetch(`/api/recipes?${params.toString()}`, {
           signal: controller.signal,
@@ -56,8 +77,11 @@ export function useRecipes(filters: RecipeFilter) {
     filters.query,
     filters.page,
     filters.limit,
-    JSON.stringify(filters.ingredientIds),
-    JSON.stringify(filters.tagIds),
+    filters.sortBy,
+    filters.matchFilter,
+    ingredientIdsStr,
+    tagIdsStr,
+    userIngredientIdsStr,
   ]);
 
   return { recipes, pagination, isLoading, error };
