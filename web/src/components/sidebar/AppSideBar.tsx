@@ -6,7 +6,7 @@ import {
   SidebarLink,
 } from "@/components/ui/animated-sidebar";
 import { createClient } from "@/utils/supabase/client";
-import { Calendar, ChefHat, Lightbulb, ShoppingBasket, UserCircle } from "lucide-react";
+import { Calendar, ChefHat, Lightbulb, Boxes, ShoppingBasket, UserCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const menuItems = [
@@ -18,6 +18,11 @@ const menuItems = [
   {
     label: "Pantry",
     href: "/dashboard/pantry",
+    icon: <Boxes className="text-neutral-300 h-5 w-5 flex-shrink-0" />
+  },
+  {
+    label: "Shopping List",
+    href: "/dashboard/shopping-list",
     icon: <ShoppingBasket className="text-neutral-300 h-5 w-5 flex-shrink-0" />
   },
   {
