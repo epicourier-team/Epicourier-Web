@@ -6,11 +6,17 @@ import pandas as pd
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from supabase import create_client, Client
+from google import genai
+from google.genai.types import GenerateContentConfig
 
 # Initialize Supabase client
 url: str = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
 key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
 supabase: Client = create_client(url, key)
+
+# Initialize Gemini client
+GEMINI_KEY = os.getenv("GEMINI_KEY")
+gemini_client = genai.Client(api_key=GEMINI_KEY)
 
 router = APIRouter(prefix="/insights", tags=["insights"])
 
@@ -29,6 +35,12 @@ class StatsResponse(BaseModel):
     weight_trend: List[dict]
     meal_type_distribution: List[dict]
     weekly_adherence: List[dict]
+
+class AIInsightsResponse(BaseModel):
+    summary: str
+    recommendations: List[str]
+    achievements: List[str]
+    areas_for_improvement: List[str]
 
 def get_public_user_id(auth_id: str):
     """Helper to resolve auth.users.id (UUID) to public.User.id (Int)."""
@@ -206,3 +218,108 @@ def get_user_stats(user_id: str, period: str = "30d"):
     except Exception as e:
         print(f"Error calculating stats: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/ai-analysis", response_model=AIInsightsResponse)
+def get_ai_analysis(user_id: str, period: str = "30d"):
+    """
+    Generate AI-powered insights using Gemini based on user's progress.
+    user_id: Auth UUID
+    period: Time period for analysis
+    """
+    
+    # Resolve UUID to Public Int ID
+    public_id = get_public_user_id(user_id)
+    if not public_id:
+        raise HTTPException(status_code=404, detail="User profile not found")
+    
+    try:
+        # 1. Fetch User Profile
+        profile_res = supabase.table("User")\
+            .select("goals, age, weight_kg, height_cm, dietary_preferences, allergies")\
+            .eq("id", public_id)\
+            .single()\
+            .execute()
+        
+        profile = profile_res.data if profile_res.data else {}
+        
+        # 2. Fetch Stats (reuse logic)
+        stats = get_user_stats(user_id, period)
+        
+        # 3. Calculate weight change if available
+        weight_change = 0
+        if len(stats.weight_trend) >= 2:
+            weight_change = stats.weight_trend[-1]['weight'] - stats.weight_trend[0]['weight']
+        
+        # 4. Build AI Prompt
+        prompt = f"""You are an empathetic and motivating nutrition and wellness coach. Analyze the following user data and provide personalized insights.
+
+**User Profile:**
+- Goals: {profile.get('goals', 'Not specified')}
+- Age: {profile.get('age', 'N/A')}
+- Current Weight: {profile.get('weight_kg', 'N/A')} kg
+- Height: {profile.get('height_cm', 'N/A')} cm
+- Dietary Preferences: {', '.join(profile.get('dietary_preferences', [])) if profile.get('dietary_preferences') else 'None'}
+- Allergies: {', '.join(profile.get('allergies', [])) if profile.get('allergies') else 'None'}
+
+**Progress (Last {period}):**
+- Meal Completion Rate: {stats.completion_rate}%
+- Total Meals: {stats.total_meals}
+- Completed Meals: {stats.completed_meals}
+- Average Sustainability Score: {stats.avg_green_score}/10
+- Weight Change: {weight_change:+.1f} kg
+
+**Weekly Adherence:**
+{stats.weekly_adherence if stats.weekly_adherence else 'No data yet'}
+
+**Task:**
+Provide a structured analysis with:
+1. A motivating 2-3 sentence summary of their progress
+2. 3 specific, actionable recommendations
+3. 2-3 achievements to celebrate (even small wins!)
+4. 1-2 areas for improvement (be constructive)
+
+Return your response in this exact JSON format:
+{{
+  "summary": "...",
+  "recommendations": ["...", "...", "..."],
+  "achievements": ["...", "..."],
+  "areas_for_improvement": ["...", "..."]
+}}
+"""
+
+        # 5. Call Gemini
+        response = gemini_client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=GenerateContentConfig(
+                temperature=0.7,
+                response_mime_type="application/json"
+            )
+        )
+        
+        # 6. Parse Response
+        import json
+        ai_insights = json.loads(response.text)
+        print(ai_insights)
+        
+        return AIInsightsResponse(
+            summary=ai_insights.get('summary', 'Keep up the great work!'),
+            recommendations=ai_insights.get('recommendations', []),
+            achievements=ai_insights.get('achievements', []),
+            areas_for_improvement=ai_insights.get('areas_for_improvement', [])
+        )
+        
+    except Exception as e:
+        print(f"Error generating AI insights: {e}")
+        # Return fallback insights instead of failing
+        return AIInsightsResponse(
+            summary="Keep making progress on your wellness journey!",
+            recommendations=[
+                "Continue tracking your meals consistently",
+                "Focus on completing at least 80% of planned meals",
+                "Maintain your sustainable eating habits"
+            ],
+            achievements=["You're using the app!"],
+            areas_for_improvement=["Consider setting specific goals in your profile"]
+        )

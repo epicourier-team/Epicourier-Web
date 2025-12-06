@@ -5,6 +5,7 @@ import { Loader2, TrendingUp } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { StatsCards } from "@/components/dashboard/StatsCards";
 import { ProgressCharts } from "@/components/dashboard/ProgressCharts";
+import { AIInsightsCard } from "@/components/dashboard/AIInsightsCard";
 
 // Types
 interface InsightStats {
@@ -17,9 +18,18 @@ interface InsightStats {
     weekly_adherence: any[];
 }
 
+interface AIInsights {
+    summary: string;
+    recommendations: string[];
+    achievements: string[];
+    areas_for_improvement: string[];
+}
+
 export default function InsightsPage() {
     const [loading, setLoading] = useState(true);
+    const [aiLoading, setAiLoading] = useState(false);
     const [stats, setStats] = useState<InsightStats | null>(null);
+    const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
     const [period, setPeriod] = useState("30d");
 
     // Memoize supabase client
@@ -32,23 +42,36 @@ export default function InsightsPage() {
                 const { data: { user } } = await supabase.auth.getUser();
 
                 if (user) {
-                    // We need the public user ID for the backend API, but the API handles UUID now too?
-                    // Wait, the API receives user_id as string. Let's check how we implemented it.
-                    // insights.py: get_user_stats(user_id: str) -> uses that for UserMetricsHistory eq("user_id", user_id)
-                    // AND it calls get_public_user_id(user_id) for Calendar table.
-                    // So passing auth.uid() (UUID) is correct!
-
-                    const res = await fetch(`/api/insights/stats?user_id=${user.id}&period=${period}`);
-                    if (res.ok) {
-                        const data = await res.json();
+                    // Fetch stats (fast - loads immediately)
+                    const statsRes = await fetch(`/api/insights/stats?user_id=${user.id}&period=${period}`);
+                    if (statsRes.ok) {
+                        const data = await statsRes.json();
                         setStats(data);
                     } else {
                         console.error("Failed to fetch stats");
                     }
+
+                    // Page is ready - stop main loading
+                    setLoading(false);
+
+                    // Fetch AI insights in background (slow - can take 3-5 seconds)
+                    setAiLoading(true);
+                    try {
+                        const aiRes = await fetch(`/api/insights/ai-analysis?user_id=${user.id}&period=${period}`);
+                        if (aiRes.ok) {
+                            const aiData = await aiRes.json();
+                            setAiInsights(aiData);
+                        } else {
+                            console.error("Failed to fetch AI insights");
+                        }
+                    } catch (aiError) {
+                        console.error("Error loading AI insights:", aiError);
+                    } finally {
+                        setAiLoading(false);
+                    }
                 }
             } catch (error) {
                 console.error("Error loading insights:", error);
-            } finally {
                 setLoading(false);
             }
         };
@@ -100,6 +123,7 @@ export default function InsightsPage() {
 
             {stats && (
                 <>
+                    <AIInsightsCard insights={aiInsights} loading={aiLoading} />
                     <StatsCards stats={stats} />
                     <ProgressCharts stats={stats} />
                 </>
