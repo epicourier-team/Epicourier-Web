@@ -124,6 +124,22 @@ export default function ProfilePage() {
                 variant: "destructive",
             });
         } else {
+            // Also log to history if weight/height changed
+            try {
+                await fetch("/api/insights/metrics", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_id: user.id,
+                        weight_kg: updates.weight_kg,
+                        height_cm: updates.height_cm,
+                        recorded_at: new Date().toISOString()
+                    }),
+                });
+            } catch (err) {
+                console.error("Failed to log metrics history", err);
+            }
+
             console.log("Profile saved successfully:", data);
             toast({
                 title: "Success",
