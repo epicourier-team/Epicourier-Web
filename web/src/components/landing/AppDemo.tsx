@@ -42,7 +42,7 @@ const AppDemo = () => {
               <Image
                 src={appMockup}
                 alt="EpiCourier App Interface"
-                className="hover-lift relative h-120 w-full max-w-md rounded-2xl shadow-2xl"
+                className="hover-lift relative h-auto w-full max-w-md rounded-2xl shadow-2xl"
               />
             </div>
           </div>

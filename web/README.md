@@ -1,17 +1,21 @@
 ## Requirements
 
 node.js >= 20.x.x
+
 - [Install Node.js](https://nodejs.org/en/download)
 
 TypeScript
+
 - [Install TypeScript](https://www.typescriptlang.org/download/)
 
 ## Getting Started
 
-
 ```bash
 npm install
-npm run dev
+npm run dev:full     # Start both frontend + backend
+# Or start separately:
+npm run dev          # Start only frontend (http://localhost:3000)
+npm run dev:backend  # Start only backend (http://localhost:8000)
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
@@ -21,7 +25,6 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ```bash
 npm test
 ```
-
 
 ## Deploy on Vercel
 

@@ -1,55 +1,166 @@
 name: "Bug Report"
-description: "Report unexpected behavior or a problem in the project."
+description: "Report a bug or unexpected behavior in Epicourier"
 labels: ["bug"]
+title: "fix(scope): "
 
 body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 Bug Report
+        Thank you for helping improve Epicourier! Please provide detailed information about the bug.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: "Component"
+      description: "Which part of the application is affected?"
+      options:
+        - Frontend
+        - Backend
+        - Database
+        - AI/ML (Recommender)
+        - Authentication
+        - API
+        - Full-Stack
+        - DevOps
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      description: "How critical is this bug?"
+      options:
+        - P0 - Critical (blocking, security issue, data loss)
+        - P1 - High (major feature broken)
+        - P2 - Medium (feature partially broken)
+        - P3 - Low (minor issue, cosmetic)
+    validations:
+      required: true
+
   - type: input
     id: summary
     attributes:
-      label: "Short summary"
-      description: "Briefly describe the bug."
-      placeholder: "Example: Login API throws null reference error"
+      label: "Bug Summary"
+      description: "Brief description of the bug (will be prepended with 'fix(component):')"
+      placeholder: "Example: Calendar events not saving for new users"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Detailed Description"
+      description: "Provide a clear description of what the bug is"
+      placeholder: "When new users try to add meals to their calendar, the save operation fails silently and no events appear on the calendar."
     validations:
       required: true
 
   - type: textarea
     id: steps
     attributes:
-      label: "Steps to reproduce"
-      description: "List the steps needed to reproduce the issue."
+      label: "Steps to Reproduce"
+      description: "List the exact steps needed to reproduce the issue"
       placeholder: |
-        1. Go to ...
-        2. Click ...
-        3. Observe ...
+        1. Sign up as a new user
+        2. Navigate to `/dashboard/calendar`
+        3. Click on a date to add a meal
+        4. Select a recipe and click "Add to Calendar"
+        5. Observe that the event doesn't appear
     validations:
       required: true
 
   - type: textarea
     id: expected
     attributes:
-      label: "Expected behavior"
-      description: "Describe what should happen."
-      placeholder: "The login API should return a valid token."
-
-  - type: textarea
-    id: actual
-    attributes:
-      label: "Actual behavior"
-      description: "Describe what actually happens."
-      placeholder: "The API returns 500 Internal Server Error."
-
-  - type: checkboxes
-    id: goal
-    attributes:
-      label: "Goal of this issue"
-      options:
-        - label: "Fix the identified bug"
-        - label: "Add regression test after fix"
+      label: "Expected Behavior"
+      description: "What should happen instead?"
+      placeholder: "The meal should be saved to the calendar and appear as an event on the selected date."
     validations:
       required: true
 
   - type: textarea
-    id: context
+    id: actual
     attributes:
-      label: "Additional context"
-      description: "Add logs, screenshots, or any related information."
+      label: "Actual Behavior"
+      description: "What actually happens?"
+      placeholder: "The meal is not saved and no event appears. No error message is shown to the user."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: "Environment"
+      description: "Where does this bug occur?"
+      options:
+        - Production (Vercel)
+        - Development (Local)
+        - Staging
+        - All environments
+    validations:
+      required: true
+
+  - type: textarea
+    id: browser_info
+    attributes:
+      label: "Browser/Device Information"
+      description: "If frontend bug, provide browser and device details"
+      placeholder: |
+        - Browser: Chrome 120.0
+        - OS: macOS 14.2
+        - Device: Desktop
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Error Logs/Console Output"
+      description: "Paste any relevant error messages, stack traces, or console output"
+      placeholder: |
+        ```
+        Error: Failed to save calendar event
+        at POST /api/calendar:45
+        TypeError: Cannot read property 'user_id' of undefined
+        ```
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "Screenshots"
+      description: "Add screenshots if applicable (drag and drop images here)"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: regression
+    attributes:
+      label: "Regression"
+      description: "Is this a new bug or was it working before?"
+      options:
+        - label: "This worked in a previous version"
+        - label: "This is a new bug in latest release"
+    validations:
+      required: false
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: "Workaround"
+      description: "Is there a temporary workaround for this issue?"
+      placeholder: "Users can manually refresh the page after adding meals as a workaround."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context"
+      description: "Any other relevant information, related issues, or context"
+      placeholder: "This might be related to issue #123 about authentication middleware."

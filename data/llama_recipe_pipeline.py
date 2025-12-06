@@ -4,44 +4,38 @@ import os
 import time
 from pathlib import Path
 
-import requests  # for Ollama REST API
+from dotenv import load_dotenv
+from google import genai
+
+# Load environment variables from .env file
+load_dotenv()
 
 # === Settings ===
-MODEL_NAME = "llama3:instruct"   
+MODEL_NAME = "gemini-2.0-flash-exp"
 CACHE_DIR = Path("cache")
 CACHE_DIR.mkdir(exist_ok=True)
 SYSTEM_PROMPT = Path("prompts/system_prompt.txt").read_text()
 USER_PROMPT_TEMPLATE = Path("prompts/user_prompt.txt").read_text()
 CSV_FILE = "recipes.csv"
 
-# === Helper: call local LLaMA model ===
-def query_llama(prompt: str, system_prompt: str, model: str = MODEL_NAME, max_retries=3):
-    url = "http://localhost:11434/api/chat"  
-    headers = {"Content-Type": "application/json"}
-
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": prompt}
-    ]
-
-    payload = {
-        "model": model,
-        "messages": messages,
-        "stream": False
-    }
+# === Helper: call Gemini API ===
+def query_gemini(prompt: str, system_prompt: str, model_name: str = MODEL_NAME, max_retries=3):
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
     for attempt in range(max_retries):
         try:
-            response = requests.post(url, headers=headers, json=payload)
-            print(f"[DEBUG] Request URL: {url}, Status: {response.status_code}")
-            response.raise_for_status()
-            data = response.json()
-            content = data["message"]["content"]
-            return content
-        except requests.exceptions.RequestException as e:
-            print(f"[Retry {attempt+1}] LLaMA request failed: {e}")
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config={
+                    "system_instruction": system_prompt,
+                }
+            )
+            return response.text
+        except Exception as e:
+            print(f"[Retry {attempt+1}] Gemini request failed: {e}")
             time.sleep(3)
-    raise RuntimeError("LLaMA query failed after retries")
+    raise RuntimeError("Gemini query failed after retries")
 
 
 
@@ -89,7 +83,7 @@ def process_recipe_row(row):
         ingredient_list=ingredient_list
     )
 
-    response_text = query_llama(user_prompt, SYSTEM_PROMPT)
+    response_text = query_gemini(user_prompt, SYSTEM_PROMPT)
     try:
         data = safe_json_loads(response_text)
     except Exception as e:
@@ -107,3 +101,6 @@ def main():
         for row in reader:
             process_recipe_row(row)
 
+
+if __name__ == "__main__":
+    main()

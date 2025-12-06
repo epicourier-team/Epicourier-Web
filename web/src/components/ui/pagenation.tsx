@@ -10,23 +10,25 @@ export default function Pagination({
   onPageChange: (page: number) => void;
 }) {
   return (
-    <div className="mt-6 flex justify-center gap-2">
+    <div className="mt-6 flex justify-center gap-3">
       <button
         disabled={page <= 1}
         onClick={() => onPageChange(page - 1)}
-        className="rounded border px-3 py-1 disabled:opacity-50"
+        className="brutalism-button-secondary px-5 py-2 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        Prev
+        ← Prev
       </button>
-      <span className="mt-1 text-sm">
-        Page {page} of {totalPages}
-      </span>
+      <div className="brutalism-border brutalism-shadow flex items-center bg-white px-5 py-2">
+        <span className="brutalism-text-bold">
+          Page {page} of {totalPages}
+        </span>
+      </div>
       <button
         disabled={page >= totalPages}
         onClick={() => onPageChange(page + 1)}
-        className="rounded border px-3 py-1 disabled:opacity-50"
+        className="brutalism-button-secondary px-5 py-2 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        Next
+        Next →
       </button>
     </div>
   );

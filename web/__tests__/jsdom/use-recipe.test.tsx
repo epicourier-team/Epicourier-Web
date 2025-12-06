@@ -65,9 +65,7 @@ describe("useRecipes", () => {
   });
 
   it("passes ingredientIds parameter to fetch", async () => {
-    renderHook(() =>
-      useRecipes({ ingredientIds: [1, 2, 3], page: 1, limit: 20 })
-    );
+    renderHook(() => useRecipes({ ingredientIds: [1, 2, 3], page: 1, limit: 20 }));
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
@@ -125,12 +123,9 @@ describe("useRecipes", () => {
   });
 
   it("aborts previous request when filters change", async () => {
-    const { rerender } = renderHook(
-      ({ filters }) => useRecipes(filters),
-      {
-        initialProps: { filters: { page: 1, limit: 20 } },
-      }
-    );
+    const { rerender } = renderHook(({ filters }) => useRecipes(filters), {
+      initialProps: { filters: { page: 1, limit: 20 } },
+    });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -192,12 +187,9 @@ describe("useRecipes", () => {
   });
 
   it("refetches when ingredientIds change", async () => {
-    const { rerender } = renderHook(
-      ({ filters }) => useRecipes(filters),
-      {
-        initialProps: { filters: { ingredientIds: [1], page: 1, limit: 20 } },
-      }
-    );
+    const { rerender } = renderHook(({ filters }) => useRecipes(filters), {
+      initialProps: { filters: { ingredientIds: [1], page: 1, limit: 20 } },
+    });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -211,12 +203,9 @@ describe("useRecipes", () => {
   });
 
   it("refetches when tagIds change", async () => {
-    const { rerender } = renderHook(
-      ({ filters }) => useRecipes(filters),
-      {
-        initialProps: { filters: { tagIds: [5], page: 1, limit: 20 } },
-      }
-    );
+    const { rerender } = renderHook(({ filters }) => useRecipes(filters), {
+      initialProps: { filters: { tagIds: [5], page: 1, limit: 20 } },
+    });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -226,6 +215,60 @@ describe("useRecipes", () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it("uses default page 1 when page is not provided", async () => {
+    // Line 16: filters.page || 1
+    const { result } = renderHook(() => useRecipes({ limit: 20 }));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.pagination.page).toBe(1);
+  });
+
+  it("does not append ingredientIds when array is empty", async () => {
+    // Line 35-44: empty arrays branch
+    renderHook(() => useRecipes({ ingredientIds: [], page: 1, limit: 20 }));
+
+    await waitFor(() => {
+      const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+      expect(fetchCall).not.toContain("ingredientIds");
+    });
+  });
+
+  it("does not append tagIds when array is empty", async () => {
+    renderHook(() => useRecipes({ tagIds: [], page: 1, limit: 20 }));
+
+    await waitFor(() => {
+      const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+      expect(fetchCall).not.toContain("tagIds");
+    });
+  });
+
+  it("handles error without message property", async () => {
+    // Line 57-58: err.message || "Fetch failed"
+    const errorWithoutMessage = { name: "CustomError" };
+    (global.fetch as jest.Mock).mockRejectedValue(errorWithoutMessage);
+
+    const { result } = renderHook(() => useRecipes({ page: 1, limit: 20 }));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    // Error should be null since it's not instanceof Error
+    expect(result.current.error).toBeNull();
+  });
+
+  it("does not include query param when query is empty string", async () => {
+    renderHook(() => useRecipes({ query: "", page: 1, limit: 20 }));
+
+    await waitFor(() => {
+      const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+      expect(fetchCall).not.toContain("query=");
     });
   });
 });

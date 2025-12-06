@@ -43,6 +43,7 @@ export async function getRecipeDetail(
     .from("Recipe-Ingredient_Map")
     .select(
       `
+        id,
         relative_unit_100,
         ingredient:ingredient_id (id, name, created_at, unit, agg_fats_g, agg_minerals_mg, agg_vit_b_mg, calories_kcal, carbs_g, cholesterol_mg, protein_g, sugars_g, vit_a_microg, vit_c_mg, vit_d_microg, vit_e_mg, vit_k_microg)
       `
@@ -51,6 +52,7 @@ export async function getRecipeDetail(
 
   const ingredients = rawIngredients?.map((row) => {
     return {
+      id: row.id,
       relative_unit_100: row.relative_unit_100,
       ingredient: Array.isArray(row.ingredient) ? row.ingredient[0] : row.ingredient,
     };
