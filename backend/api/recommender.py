@@ -24,6 +24,7 @@ load_dotenv()
 SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
 SUPABASE_KEY = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
 GEMINI_KEY = os.getenv("GEMINI_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 
 # --------------------------------------------------
@@ -73,6 +74,12 @@ def load_gemini_client():
     print("Initializing Gemini client ...")
     return genai.Client(api_key=GEMINI_KEY)
 
+@lru_cache()
+def load_groq_client():
+    print("Initializing Groq client ...")
+    from groq import Groq
+    return Groq(api_key=GROQ_API_KEY)
+
 
 # --------------------------------------------------
 # 3. Utility functions
@@ -85,21 +92,14 @@ def make_recipe_text(row):
     )
 
 
-def get_recipe_embeddings(recipe_data):
-    """Compute embeddings for all recipes (cached)."""
-    embedder = load_embedder()
-    if "recipe_text" not in recipe_data.columns:
-        recipe_data["recipe_text"] = recipe_data.apply(make_recipe_text, axis=1)
-    print("Computing recipe embeddings ...")
-    embeddings = embedder.encode(recipe_data["recipe_text"].tolist(), convert_to_tensor=True)
-    return embeddings
+# get_recipe_embeddings removed - now using pgvector RPC for direct similarity search
 
 client = load_gemini_client()
 # --------------------------------------------------
 # 4. Gemini-based goal expansion
 # --------------------------------------------------
 def nutrition_goal(goal_text):
-    """Translate a user's goal into target nutritional values using Gemini."""
+    """Translate a user's goal into target nutritional values using Gemini (with Groq fallback)."""
     prompt = f"""
     Your task is to translate a user's specific diet goal into precise, target nutritional values for a daily meal plan.
     Just provide the nutritional values without any additional explanation or context.
@@ -110,11 +110,20 @@ def nutrition_goal(goal_text):
     cholesterol_mg, total_minerals_mg, vit_a_microg, total_vit_b_mg,
     vit_c_mg, vit_d_microg, vit_e_mg, vit_k_microg
     """
-    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-    return response.text.strip()
+    try:
+        response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+        return response.text.strip()
+    except Exception as e:
+        print(f"Gemini failed ({e}), using Groq fallback...")
+        groq_client = load_groq_client()
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.choices[0].message.content.strip()
 
 def expand_goal(goal_text):
-    """Translate a user's goal into nutrition information using Gemini."""
+    """Translate a user's goal into nutrition information using Gemini (with Groq fallback)."""
 
     prompt = f"""
     Your task is to translate a user's specific diet goal into precise, target nutritional values for a daily meal plan.
@@ -124,42 +133,72 @@ def expand_goal(goal_text):
     You may include: calories_kcal, protein_g, carbs_g, sugars_g, total_fats_g, cholesterol_mg, total_minerals_mg, vit_a_microg, total_vit_b_mg, vit_c_mg, vit_d_microg, vit_e_mg, vit_k_microg
     """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
-    return response.text.strip()
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+        return response.text.strip()
+    except Exception as e:
+        print(f"Gemini failed ({e}), using Groq fallback...")
+        groq_client = load_groq_client()
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.choices[0].message.content.strip()
 
 # --------------------------------------------------
 # 5. Recommendation pipeline
 # --------------------------------------------------
 def rank_recipes_by_goal(goal_text, user_profile=None, pantry_items=None, top_k=20):
-    """Rank recipes by goal with optional personalization (Step 3: filtering added)."""
-    recipe_data = load_recipe_data()
-    
-    # Step 3: Apply filters if user_profile is provided
-    if user_profile:
-        # Filter allergens FIRST (critical safety filter)
-        if user_profile.get('allergies'):
-            recipe_data = filter_allergens(recipe_data, user_profile['allergies'])
-            print(f"After allergen filter: {len(recipe_data)} recipes")
-        
-        # Filter by dietary preferences (optional)
-        if user_profile.get('dietary_preferences'):
-            recipe_data = filter_dietary_preferences(recipe_data, user_profile['dietary_preferences'])
-            print(f"After dietary filter: {len(recipe_data)} recipes")
-    
-    # Continue with existing logic
-    recipe_embeddings = get_recipe_embeddings(recipe_data)
+    """Rank recipes using pgvector similarity search in database."""
+    supabase = load_supabase()
     embedder = load_embedder()
-
+    
+    # Get goal embedding
     nutri_goal = nutrition_goal(goal_text)
-    goal_embedding = embedder.encode(nutri_goal, convert_to_tensor=True)
-    scores = util.cos_sim(goal_embedding, recipe_embeddings)[0].cpu().numpy()
-
-    recipe_data = recipe_data.copy()
-    recipe_data["similarity"] = scores
-    ranked = recipe_data.sort_values(by="similarity", ascending=False).head(top_k)
+    goal_embedding = embedder.encode(nutri_goal).tolist()
+    
+    # Use pgvector RPC function to get top similar recipes directly from DB
+    print(f"Fetching top {top_k} similar recipes from database...")
+    result = supabase.rpc('match_recipes', {
+        'query_embedding': goal_embedding,
+        'match_count': top_k * 3  # Fetch more for filtering
+    }).execute()
+    
+    # Convert to DataFrame
+    ranked = pd.DataFrame(result.data)
+    
+    if len(ranked) == 0:
+        print("No recipes found with embeddings")
+        return pd.DataFrame(), nutri_goal
+    
+    # Load full recipe data for the matched recipes
+    recipe_ids = ranked['id'].tolist()
+    full_recipe_data = load_recipe_data()
+    ranked = full_recipe_data[full_recipe_data['id'].isin(recipe_ids)].copy()
+    
+    # Merge similarity scores
+    similarity_map = {r['id']: r['similarity'] for r in result.data}
+    ranked['similarity'] = ranked['id'].map(lambda x: similarity_map.get(x, 0))
+    
+    # Apply filters AFTER getting top matches
+    if user_profile:
+        if user_profile.get('allergies'):
+            ranked = filter_allergens(ranked, user_profile['allergies'])
+            print(f"After allergen filter: {len(ranked)} recipes")
+        
+        if user_profile.get('dietary_preferences'):
+            ranked = filter_dietary_preferences(ranked, user_profile['dietary_preferences'])
+            print(f"After dietary filter: {len(ranked)} recipes")
+    
+    # Return top_k after filtering
+    ranked = ranked.sort_values(by="similarity", ascending=False).head(top_k)
+    
+    # Add recipe_text for diversity selection
+    ranked["recipe_text"] = ranked.apply(make_recipe_text, axis=1)
+    
     return ranked, nutri_goal
 
 
@@ -190,13 +229,19 @@ def create_meal_plan(goal_text, n_meals=3, user_profile=None, pantry_items=None)
 
     meal_plan = []
     for i, row in enumerate(diverse.itertuples(), 1):
+        # Generate specific reason based on recipe attributes
+        tags_text = ', '.join(row.tags[:3]) if row.tags else 'balanced nutrition'
+        key_ings = ', '.join(row.ingredients[:3]) if len(row.ingredients) >= 3 else ', '.join(row.ingredients)
+        
+        reason = f"High match ({round(float(row.similarity), 2)}) for '{goal_text}'. Features {tags_text} with key ingredients: {key_ings}."
+        
         meal_plan.append({
             "meal_number": i,
             "id": int(row.id),
             "name": row.name,
             "tags": row.tags,
-            "key_ingredients": row.ingredients[:10],  # limit to first few
-            "reason": f"Selected because it aligns with goal '{goal_text}' and differs from other meals.",
+            "key_ingredients": row.ingredients[:10],
+            "reason": reason,
             "similarity_score": round(float(row.similarity), 3),
             "recipe": row.recipe_text
         })
@@ -227,15 +272,37 @@ def filter_allergens(recipe_data, allergies):
 
 
 def filter_dietary_preferences(recipe_data, preferences):
-    """Filter recipes by dietary tags (Vegetarian, Vegan, etc.)."""
+    """Filter recipes by dietary preferences (Vegetarian, Vegan, etc.)."""
     if not preferences or len(preferences) == 0:
         return recipe_data
     
-    # Match recipes that have at least one of the preferred tags
-    mask = recipe_data['tags'].apply(
-        lambda tags: any(pref.lower() in [t.lower() for t in tags] for pref in preferences)
-    )
-    return recipe_data[mask].reset_index(drop=True)
+    filtered = recipe_data.copy()
+    
+    for pref in preferences:
+        pref_lower = pref.lower()
+        
+        if 'vegetarian' in pref_lower or 'vegan' in pref_lower:
+            # Exclude recipes with meat/fish/poultry
+            non_veg_keywords = ['chicken', 'beef', 'pork', 'lamb', 'fish', 'salmon', 'tuna', 
+                               'shrimp', 'prawn', 'meat', 'bacon', 'ham', 'turkey', 'duck']
+            
+            mask = filtered['ingredients'].apply(
+                lambda ing_list: not any(
+                    any(keyword in str(ing).lower() for keyword in non_veg_keywords)
+                    for ing in ing_list
+                )
+            )
+            filtered = filtered[mask]
+        
+        # Also check tags if available
+        tag_mask = filtered['tags'].apply(
+            lambda tags: pref_lower in [t.lower() for t in tags]
+        )
+        # If some recipes have the tag, prefer those
+        if tag_mask.any():
+            filtered = filtered[tag_mask]
+    
+    return filtered.reset_index(drop=True)
 
 
 def calculate_pantry_score(ingredients, pantry_items):
