@@ -6,7 +6,7 @@ import {
   SidebarLink,
 } from "@/components/ui/animated-sidebar";
 import { createClient } from "@/utils/supabase/client";
-import { Calendar, ChefHat, Lightbulb, ShoppingBasket, UserCircle, TrendingUp, Boxes } from "lucide-react";
+import { Calendar, ChefHat, Lightbulb, ShoppingBasket, UserCircle, TrendingUp, Boxes, Bot } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const menuItems = [
@@ -44,6 +44,11 @@ const menuItems = [
     label: "Insights",
     href: "/dashboard/insights",
     icon: <TrendingUp className="text-neutral-300 h-5 w-5 flex-shrink-0" />
+  },
+  {
+    label: "AI Agent",
+    href: "/dashboard/agent",
+    icon: <Bot className="text-neutral-300 h-5 w-5 flex-shrink-0" />
   },
 ];
 

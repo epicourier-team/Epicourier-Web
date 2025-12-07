@@ -9,7 +9,7 @@ from functools import lru_cache
 import pandas as pd
 import torch
 from dotenv import load_dotenv
-from google import genai
+from groq import Groq
 from sentence_transformers import SentenceTransformer, util
 from sklearn.cluster import KMeans
 from supabase import create_client
@@ -23,7 +23,7 @@ print(f"Using device: {DEVICE}")
 load_dotenv()
 SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
 SUPABASE_KEY = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
-GEMINI_KEY = os.getenv("GEMINI_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 
 # --------------------------------------------------
@@ -69,9 +69,9 @@ def load_embedder():
 
 
 @lru_cache()
-def load_gemini_client():
-    print("Initializing Gemini client ...")
-    return genai.Client(api_key=GEMINI_KEY)
+def load_groq_client():
+    print("Initializing Groq client ...")
+    return Groq(api_key=GROQ_API_KEY)
 
 
 # --------------------------------------------------
@@ -94,12 +94,13 @@ def get_recipe_embeddings(recipe_data):
     embeddings = embedder.encode(recipe_data["recipe_text"].tolist(), convert_to_tensor=True)
     return embeddings
 
-client = load_gemini_client()
+
 # --------------------------------------------------
-# 4. Gemini-based goal expansion
+# 4. Groq-based goal expansion
 # --------------------------------------------------
 def nutrition_goal(goal_text):
-    """Translate a user's goal into target nutritional values using Gemini."""
+    """Translate a user's goal into target nutritional values using Groq."""
+    client = load_groq_client()
     prompt = f"""
     Your task is to translate a user's specific diet goal into precise, target nutritional values for a daily meal plan.
     Just provide the nutritional values without any additional explanation or context.
@@ -110,12 +111,24 @@ def nutrition_goal(goal_text):
     cholesterol_mg, total_minerals_mg, vit_a_microg, total_vit_b_mg,
     vit_c_mg, vit_d_microg, vit_e_mg, vit_k_microg
     """
-    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-    return response.text.strip()
+    
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "You are a specialized nutritionist API. Output only the requested data."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Error in nutrition_goal: {e}")
+        return ""
 
 def expand_goal(goal_text):
-    """Translate a user's goal into nutrition information using Gemini."""
-
+    """Translate a user's goal into nutrition information using Groq."""
+    client = load_groq_client()
     prompt = f"""
     Your task is to translate a user's specific diet goal into precise, target nutritional values for a daily meal plan.
 
@@ -124,11 +137,18 @@ def expand_goal(goal_text):
     You may include: calories_kcal, protein_g, carbs_g, sugars_g, total_fats_g, cholesterol_mg, total_minerals_mg, vit_a_microg, total_vit_b_mg, vit_c_mg, vit_d_microg, vit_e_mg, vit_k_microg
     """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
-    return response.text.strip()
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "You are a helpful nutritionist."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Error in expand_goal: {e}")
+        return f"Nutritional info for: {goal_text}"
 
 # --------------------------------------------------
 # 5. Recommendation pipeline
@@ -150,6 +170,9 @@ def rank_recipes_by_goal(goal_text, user_profile=None, pantry_items=None, top_k=
             print(f"After dietary filter: {len(recipe_data)} recipes")
     
     # Continue with existing logic
+    if len(recipe_data) == 0:
+        return recipe_data, "No matching recipes found."
+
     recipe_embeddings = get_recipe_embeddings(recipe_data)
     embedder = load_embedder()
 
@@ -175,10 +198,15 @@ def select_diverse_recipes(ranked_df, n_meals=3):
     cluster_labels = kmeans.fit_predict(sub_embeds)
 
     selected_indices = []
+    # If len(ranked_df) < n_clusters, loop range might fail if logic isn't careful.
+    # But n_clusters is min(n_meals, len), so safe.
+    
     for c in range(n_clusters):
         cluster_recipes = ranked_df[cluster_labels == c]
-        top_one = cluster_recipes.sort_values("similarity", ascending=False).head(1)
-        selected_indices.append(top_one.index[0])
+        if not cluster_recipes.empty:
+            top_one = cluster_recipes.sort_values("similarity", ascending=False).head(1)
+            selected_indices.append(top_one.index[0])
+    
     return ranked_df.loc[selected_indices].sort_values("similarity", ascending=False)
 
 
