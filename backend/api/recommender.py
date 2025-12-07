@@ -3,8 +3,8 @@ recommender.py - Lazy-load + Render-safe version
 """
 
 import os
+import logging
 from functools import lru_cache
-
 
 import pandas as pd
 import torch
@@ -13,6 +13,8 @@ from google import genai
 from sentence_transformers import SentenceTransformer, util
 from sklearn.cluster import KMeans
 from supabase import create_client
+
+logger = logging.getLogger(__name__)
 
 # --------------------------------------------------
 # 1. Global setup
@@ -98,29 +100,53 @@ client = load_gemini_client()
 # --------------------------------------------------
 # 4. Gemini-based goal expansion
 # --------------------------------------------------
-def nutrition_goal(goal_text):
+def nutrition_goal(goal_text, user_profile=None):
     """Translate a user's goal into target nutritional values using Gemini (with Groq fallback)."""
+    
+    # Build context from user profile
+    profile_context = ""
+    if user_profile:
+        if user_profile.get('dietary_preferences'):
+            prefs = user_profile['dietary_preferences']
+            profile_context += f"\n- STRICT Dietary Requirements: {', '.join(prefs)}"
+            if any('vegetarian' in p.lower() for p in prefs):
+                profile_context += " (NO meat, fish, or poultry allowed)"
+            if any('vegan' in p.lower() for p in prefs):
+                profile_context += " (NO animal products including dairy, eggs, honey)"
+        if user_profile.get('allergies'):
+            profile_context += f"\n- Allergies to AVOID: {', '.join(user_profile['allergies'])}"
+        if user_profile.get('kitchen_equipment'):
+            profile_context += f"\n- Available equipment: {', '.join(user_profile['kitchen_equipment'])}"
+    
     prompt = f"""
     Your task is to translate a user's specific diet goal into precise, target nutritional values for a daily meal plan.
     Just provide the nutritional values without any additional explanation or context.
 
     **GOAL:** {goal_text}
+    {profile_context}
+
+    IMPORTANT: The dietary preferences and allergies listed above are STRICT requirements that must be respected.
 
     You may include: calories_kcal, protein_g, carbs_g, sugars_g, total_fats_g,
     cholesterol_mg, total_minerals_mg, vit_a_microg, total_vit_b_mg,
     vit_c_mg, vit_d_microg, vit_e_mg, vit_k_microg
     """
+
     try:
         response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
         return response.text.strip()
     except Exception as e:
-        print(f"Gemini failed ({e}), using Groq fallback...")
-        groq_client = load_groq_client()
-        response = groq_client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        return response.choices[0].message.content.strip()
+        logger.warning(f"Gemini API failed: {e}. Using Groq fallback")
+        try:
+            groq_client = load_groq_client()
+            response = groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as groq_error:
+            logger.error(f"Both Gemini and Groq failed: {groq_error}")
+            raise RuntimeError("LLM services unavailable")
 
 def expand_goal(goal_text):
     """Translate a user's goal into nutrition information using Gemini (with Groq fallback)."""
@@ -140,28 +166,94 @@ def expand_goal(goal_text):
         )
         return response.text.strip()
     except Exception as e:
-        print(f"Gemini failed ({e}), using Groq fallback...")
-        groq_client = load_groq_client()
-        response = groq_client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        return response.choices[0].message.content.strip()
+        logger.warning(f"Gemini API failed: {e}. Using Groq fallback")
+        try:
+            groq_client = load_groq_client()
+            response = groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as groq_error:
+            logger.error(f"Both Gemini and Groq failed: {groq_error}")
+            raise RuntimeError("LLM services unavailable")
 
 # --------------------------------------------------
 # 5. Recommendation pipeline
 # --------------------------------------------------
+def llm_filter_recipes(recipes_df, user_profile):
+    """Use LLM to filter recipes based on dietary preferences."""
+    if not user_profile or (not user_profile.get('dietary_preferences') and not user_profile.get('allergies')):
+        return recipes_df
+    
+    recipe_list = []
+    for idx, row in recipes_df.iterrows():
+        recipe_list.append({
+            "id": int(row['id']),
+            "name": row['name'],
+            "ingredients": row['ingredients'][:10]
+        })
+    
+    dietary_prefs = user_profile.get('dietary_preferences', [])
+    allergies = user_profile.get('allergies', [])
+    
+    prompt = f"""You are a dietary validator. Return ONLY the IDs of suitable recipes as a JSON array.
+
+User Requirements:
+- Dietary: {', '.join(dietary_prefs) if dietary_prefs else 'None'}
+- Allergies: {', '.join(allergies) if allergies else 'None'}
+
+Recipes: {recipe_list}
+
+Rules:
+- VEGETARIAN: Exclude meat, fish, poultry, seafood
+- VEGAN: Exclude all animal products
+- Exclude allergens
+
+Respond ONLY with JSON array of IDs: [1, 5, 12]"""
+    
+    try:
+        client = load_gemini_client()
+        response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+        result_text = response.text.strip()
+    except Exception as e:
+        logger.warning(f"Gemini filtering failed: {e}. Using Groq")
+        try:
+            groq_client = load_groq_client()
+            response = groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            result_text = response.choices[0].message.content.strip()
+        except Exception as groq_error:
+            logger.error(f"LLM filtering failed: {groq_error}")
+            return recipes_df  # Return unfiltered on failure
+    
+    try:
+        import json, re
+        match = re.search(r'\[([\d,\s]+)\]', result_text)
+        if match:
+            suitable_ids = json.loads(match.group(0))
+            filtered = recipes_df[recipes_df['id'].isin(suitable_ids)]
+            return filtered
+        else:
+            logger.warning(f"Failed to parse LLM response: {result_text}")
+            return recipes_df
+    except Exception as e:
+        logger.error(f"Error parsing LLM filter results: {e}")
+        return recipes_df
+
+
 def rank_recipes_by_goal(goal_text, user_profile=None, pantry_items=None, top_k=20):
     """Rank recipes using pgvector similarity search in database."""
     supabase = load_supabase()
     embedder = load_embedder()
     
-    # Get goal embedding
-    nutri_goal = nutrition_goal(goal_text)
+    # Get goal embedding with user profile context
+    nutri_goal = nutrition_goal(goal_text, user_profile)
     goal_embedding = embedder.encode(nutri_goal).tolist()
     
     # Use pgvector RPC function to get top similar recipes directly from DB
-    print(f"Fetching top {top_k} similar recipes from database...")
     result = supabase.rpc('match_recipes', {
         'query_embedding': goal_embedding,
         'match_count': top_k * 3  # Fetch more for filtering
@@ -171,7 +263,6 @@ def rank_recipes_by_goal(goal_text, user_profile=None, pantry_items=None, top_k=
     ranked = pd.DataFrame(result.data)
     
     if len(ranked) == 0:
-        print("No recipes found with embeddings")
         return pd.DataFrame(), nutri_goal
     
     # Load full recipe data for the matched recipes
@@ -183,18 +274,12 @@ def rank_recipes_by_goal(goal_text, user_profile=None, pantry_items=None, top_k=
     similarity_map = {r['id']: r['similarity'] for r in result.data}
     ranked['similarity'] = ranked['id'].map(lambda x: similarity_map.get(x, 0))
     
-    # Apply filters AFTER getting top matches
-    if user_profile:
-        if user_profile.get('allergies'):
-            ranked = filter_allergens(ranked, user_profile['allergies'])
-            print(f"After allergen filter: {len(ranked)} recipes")
-        
-        if user_profile.get('dietary_preferences'):
-            ranked = filter_dietary_preferences(ranked, user_profile['dietary_preferences'])
-            print(f"After dietary filter: {len(ranked)} recipes")
+    # LLM-based filtering
+    ranked = ranked.sort_values(by="similarity", ascending=False)
+    if user_profile and (user_profile.get('dietary_preferences') or user_profile.get('allergies')):
+        ranked = llm_filter_recipes(ranked, user_profile)
     
-    # Return top_k after filtering
-    ranked = ranked.sort_values(by="similarity", ascending=False).head(top_k)
+    ranked = ranked.head(top_k)
     
     # Add recipe_text for diversity selection
     ranked["recipe_text"] = ranked.apply(make_recipe_text, axis=1)
@@ -224,6 +309,10 @@ def select_diverse_recipes(ranked_df, n_meals=3):
 # CREATE MEAL PLAN
 def create_meal_plan(goal_text, n_meals=3, user_profile=None, pantry_items=None):
     ranked, nutri_goal = rank_recipes_by_goal(goal_text, user_profile, pantry_items)
+    
+    if len(ranked) == 0:
+        return [], nutri_goal
+    
     diverse = select_diverse_recipes(ranked, n_meals)
     exp_goal = expand_goal(goal_text)
 
@@ -246,7 +335,6 @@ def create_meal_plan(goal_text, n_meals=3, user_profile=None, pantry_items=None)
             "recipe": row.recipe_text
         })
 
-    # print(f"Expanded goal: {exp_goal}\n")
     return meal_plan, exp_goal
 # --------------------------------------------------
 # 6. Personalization helpers (Step 1)
@@ -274,34 +362,76 @@ def filter_allergens(recipe_data, allergies):
 def filter_dietary_preferences(recipe_data, preferences):
     """Filter recipes by dietary preferences (Vegetarian, Vegan, etc.)."""
     if not preferences or len(preferences) == 0:
+        print("No dietary preferences to filter")
         return recipe_data
+    
+    print(f"\n=== Applying Dietary Filters ===")
+    print(f"Preferences: {preferences}")
+    print(f"Starting recipes: {len(recipe_data)}")
     
     filtered = recipe_data.copy()
     
     for pref in preferences:
         pref_lower = pref.lower()
         
-        if 'vegetarian' in pref_lower or 'vegan' in pref_lower:
-            # Exclude recipes with meat/fish/poultry
-            non_veg_keywords = ['chicken', 'beef', 'pork', 'lamb', 'fish', 'salmon', 'tuna', 
-                               'shrimp', 'prawn', 'meat', 'bacon', 'ham', 'turkey', 'duck']
+        if 'vegetarian' in pref_lower:
+            print(f"\nApplying VEGETARIAN filter...")
+            # Exclude ALL meat, fish, and poultry
+            non_veg_keywords = [
+                'chicken', 'beef', 'pork', 'lamb', 'mutton', 'goat',
+                'fish', 'salmon', 'tuna', 'cod', 'tilapia', 'trout',
+                'shrimp', 'prawn', 'crab', 'lobster', 'shellfish', 'seafood',
+                'meat', 'bacon', 'ham', 'sausage', 'pepperoni', 'salami',
+                'turkey', 'duck', 'goose', 'venison', 'rabbit',
+                'anchovy', 'sardine', 'mackerel', 'herring'
+            ]
             
-            mask = filtered['ingredients'].apply(
-                lambda ing_list: not any(
-                    any(keyword in str(ing).lower() for keyword in non_veg_keywords)
-                    for ing in ing_list
-                )
-            )
+            before_count = len(filtered)
+            
+            def is_vegetarian(ing_list):
+                if not ing_list:
+                    return True
+                for ing in ing_list:
+                    ing_lower = str(ing).lower()
+                    for keyword in non_veg_keywords:
+                        if keyword in ing_lower:
+                            print(f"  REJECTED: Found '{keyword}' in '{ing}'")
+                            return False
+                return True
+            
+            mask = filtered['ingredients'].apply(is_vegetarian)
             filtered = filtered[mask]
+            print(f"Vegetarian filter: {before_count} -> {len(filtered)} recipes")
         
-        # Also check tags if available
-        tag_mask = filtered['tags'].apply(
-            lambda tags: pref_lower in [t.lower() for t in tags]
-        )
-        # If some recipes have the tag, prefer those
-        if tag_mask.any():
-            filtered = filtered[tag_mask]
+        if 'vegan' in pref_lower:
+            print(f"\nApplying VEGAN filter...")
+            # Exclude meat AND all animal products
+            animal_keywords = [
+                'chicken', 'beef', 'pork', 'lamb', 'fish', 'salmon', 'tuna',
+                'shrimp', 'prawn', 'meat', 'bacon', 'ham', 'turkey', 'duck',
+                'milk', 'cream', 'butter', 'cheese', 'yogurt', 'ghee',
+                'egg', 'honey', 'gelatin', 'whey', 'casein'
+            ]
+            
+            before_count = len(filtered)
+            
+            def is_vegan(ing_list):
+                if not ing_list:
+                    return True
+                for ing in ing_list:
+                    ing_lower = str(ing).lower()
+                    for keyword in animal_keywords:
+                        if keyword in ing_lower:
+                            print(f"  REJECTED: Found '{keyword}' in '{ing}'")
+                            return False
+                return True
+            
+            mask = filtered['ingredients'].apply(is_vegan)
+            filtered = filtered[mask]
+            print(f"Vegan filter: {before_count} -> {len(filtered)} recipes")
     
+    print(f"Final filtered recipes: {len(filtered)}")
+    print(f"================================\n")
     return filtered.reset_index(drop=True)
 
 
