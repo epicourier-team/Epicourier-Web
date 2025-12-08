@@ -31,7 +31,7 @@ describe("Hero Section", () => {
   it("renders call-to-action link to signup page", () => {
     render(<Hero />);
 
-    const textElement = screen.getByText(/start your smart meal journey/i);
+    const textElement = screen.getByText(/start your journey/i);
     const link = textElement.closest("a");
 
     expect(link).toBeInTheDocument();

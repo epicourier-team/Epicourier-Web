@@ -43,7 +43,7 @@ describe("MealDetailModal – full coverage", () => {
 
     expect(screen.getByText("Pasta")).toBeInTheDocument();
     expect(screen.getByText(/lunch on/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /mark as completed/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /mark all as completed/i })).toBeInTheDocument();
   });
 
   test("returns null when closed or no entries", () => {
@@ -135,7 +135,7 @@ describe("MealDetailModal – full coverage", () => {
         reloadEvents={mockReload}
       />
     );
-    const btn = screen.getByRole("button", { name: /mark as completed/i });
+    const btn = screen.getByRole("button", { name: /mark all as completed/i });
     await act(async () => {
       fireEvent.click(btn);
     });

@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type FilterItem = { id: number; name: string };
@@ -61,30 +62,39 @@ export default function FilterPanel({
   };
 
   if (loading) {
-    return <div className="mb-4 h-60 rounded-lg border p-3 text-gray-500">Loading filters...</div>;
+    return (
+      <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-800">
+        <div className="flex items-center justify-center py-8">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-800 dark:border-neutral-600 dark:border-t-neutral-200"></div>
+          <span className="ml-3 text-neutral-500 dark:text-neutral-400">Loading filters...</span>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="mb-4 h-60 rounded-lg border p-3">
-      <h3 className="mb-3 font-semibold">Filters</h3>
+    <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-800">
+      <h3 className="mb-5 text-lg font-semibold text-neutral-800 dark:text-neutral-200">Filters</h3>
 
-      {/* 🧂 Ingredients */}
-      <div className="mb-3">
-        <div className="mb-1 flex items-center justify-between">
-          <p className="text-sm font-medium">Ingredients</p>
-          <div className="flex gap-1 text-xs">
+      {/* Ingredients */}
+      <div className="mb-6">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Ingredients</p>
+          <div className="flex gap-2">
             <button
               disabled={ingredientPage === 1}
               onClick={() => setIngredientPage((p) => Math.max(1, p - 1))}
-              className="rounded border px-2 py-0.5 disabled:opacity-40"
+              className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition-all hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
             >
+              <ChevronLeft className="h-3 w-3" />
               Prev
             </button>
             <button
               onClick={() => setIngredientPage((p) => p + 1)}
-              className="rounded border px-2 py-0.5"
+              className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition-all hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
             >
               Next
+              <ChevronRight className="h-3 w-3" />
             </button>
           </div>
         </div>
@@ -96,9 +106,10 @@ export default function FilterPanel({
               <button
                 key={ing.id}
                 onClick={() => handleIngredientClick(ing.id)}
-                className={`rounded border px-3 py-1 text-sm ${
-                  active ? "border-green-500 bg-green-200 font-medium" : "border-gray-300 bg-white"
-                }`}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${active
+                  ? "bg-emerald-600 text-white shadow-md dark:bg-emerald-600 dark:text-white"
+                  : "border border-emerald-200 bg-white text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-emerald-300 dark:hover:bg-neutral-700"
+                  }`}
               >
                 {ing.name}
               </button>
@@ -107,20 +118,25 @@ export default function FilterPanel({
         </div>
       </div>
 
-      {/* 🏷️ Tags */}
+      {/* Tags */}
       <div>
-        <div className="mb-1 flex items-center justify-between">
-          <p className="text-sm font-medium">Tags</p>
-          <div className="flex gap-1 text-xs">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Tags</p>
+          <div className="flex gap-2">
             <button
               disabled={tagPage === 1}
               onClick={() => setTagPage((p) => Math.max(1, p - 1))}
-              className="rounded border px-2 py-0.5 disabled:opacity-40"
+              className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition-all hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
             >
+              <ChevronLeft className="h-3 w-3" />
               Prev
             </button>
-            <button onClick={() => setTagPage((p) => p + 1)} className="rounded border px-2 py-0.5">
+            <button
+              onClick={() => setTagPage((p) => p + 1)}
+              className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition-all hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+            >
               Next
+              <ChevronRight className="h-3 w-3" />
             </button>
           </div>
         </div>
@@ -132,9 +148,10 @@ export default function FilterPanel({
               <button
                 key={t.id}
                 onClick={() => handleTagClick(t.id)}
-                className={`rounded border px-3 py-1 text-sm ${
-                  active ? "border-blue-500 bg-blue-200 font-medium" : "border-gray-300 bg-white"
-                }`}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${active
+                  ? "bg-emerald-600 text-white shadow-md dark:bg-emerald-600 dark:text-white"
+                  : "border border-emerald-200 bg-white text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-emerald-300 dark:hover:bg-neutral-700"
+                  }`}
               >
                 {t.name}
               </button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Search } from "lucide-react";
 import { useState } from "react";
 
 export default function SearchBar({ onSearch }: { onSearch: (query: string) => void }) {
@@ -8,7 +9,7 @@ export default function SearchBar({ onSearch }: { onSearch: (query: string) => v
   return (
     <div className="mb-4 flex w-full items-center gap-2">
       <input
-        className="w-full rounded-lg border px-3 py-2"
+        className="flex-1 rounded-lg border px-3 py-2"
         type="text"
         placeholder="Search recipes..."
         value={value}
@@ -17,7 +18,7 @@ export default function SearchBar({ onSearch }: { onSearch: (query: string) => v
       />
       <button
         onClick={() => onSearch(value)}
-        className="rounded-lg bg-green-600 px-4 py-2 text-white"
+        className="rounded-xl bg-emerald-600 px-6 py-3.5 font-medium text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-95 dark:bg-emerald-700 dark:hover:bg-emerald-600"
       >
         Search
       </button>

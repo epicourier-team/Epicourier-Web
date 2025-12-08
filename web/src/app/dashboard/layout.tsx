@@ -2,11 +2,11 @@
 
 import { AppSidebar } from "@/components/sidebar/AppSideBar";
 import { Button } from "@/components/ui/button";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { logout } from "./action";
+import { LogOut } from "lucide-react";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -26,27 +26,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <AppSidebar />
-        <div className="flex flex-1 flex-col">
-          <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-white px-4">
-            <SidebarTrigger aria-label="Toggle sidebar" />
-            <Link href="/">
-              <span className="font-bold">EpiCourier</span>
-            </Link>
-            <Button
-              size="sm"
-              variant="outline"
-              className="ml-auto border-2 border-gray-600 bg-green-100 font-bold text-gray-600"
-              onClick={handleLogout}
-            >
-              Log Out
-            </Button>
-          </header>
-          <main className="flex-1 pl-12">{children}</main>
-        </div>
+    <div className="flex min-h-screen w-full bg-neutral-900">
+      <AppSidebar />
+      <div className="flex flex-1 flex-col">
+        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-neutral-800 bg-neutral-900 px-6 shadow-sm">
+          <Link href="/">
+            <span className="font-bold text-neutral-200">🌱 EpiCourier</span>
+          </Link>
+          <Button
+            size="sm"
+            variant="outline"
+            className="ml-auto border-neutral-700 bg-neutral-800 font-medium text-neutral-300 hover:bg-neutral-700"
+            onClick={handleLogout}
+          >
+            Log Out
+          </Button>
+        </header>
+        <main className="flex-1 p-6">{children}</main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }

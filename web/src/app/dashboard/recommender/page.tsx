@@ -1,11 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Loader2, UtensilsCrossed } from "lucide-react";
+import { Calendar, Lightbulb, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import AddMealModal from "../../../components/ui/AddMealModal";
-import { supabase } from "../../../lib/supabaseClient";
+import { createClient } from "@/utils/supabase/client";
 
 interface Recipe {
   id: number;
@@ -38,11 +38,22 @@ export default function RecommendPage() {
 
     setLoading(true);
     setRecipes([]);
+    setExpandedGoal(""); // Clear previous results
+
     try {
+      // Get the current user's ID
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError("You must be logged in to get recommendations.");
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch("/api/recommender", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ goal, numMeals }),
+        body: JSON.stringify({ goal, numMeals, userId: user.id }),
       });
 
       if (!res.ok) {
@@ -57,15 +68,14 @@ export default function RecommendPage() {
         return;
       }
 
-      // backend sends expanded goal once, not per recipe
       setExpandedGoal(data.goal_expanded || "");
-      // attach Supabase Recipe.id to each recipe (if a matching name exists)
       try {
         const recipesFromBackend: Recipe[] = data.recipes || [];
 
         const recipesWithIds = await Promise.all(
           recipesFromBackend.map(async (r) => {
             try {
+              const supabase = createClient();
               const { data: row, error } = await supabase
                 .from("Recipe")
                 .select("id")
@@ -73,15 +83,14 @@ export default function RecommendPage() {
                 .maybeSingle();
 
               if (error) {
-                console.error("Supabase lookup error for", r.name, error);
-                return { ...r }; // return original if lookup fails
+                // Recipe not found in database - this is expected for AI-generated names
+                return { ...r };
               }
 
-              // row may be null if not found; keep id only when present
-              const id = row?.id ?? null;
+              const id = row?.id ?? r.id ?? null;
               return { ...r, id };
             } catch (e) {
-              console.error("Unexpected error looking up recipe id:", e);
+              // Silently handle lookup errors - recipe will work without database ID
               return { ...r };
             }
           })
@@ -90,7 +99,6 @@ export default function RecommendPage() {
         setRecipes(recipesWithIds);
       } catch (e) {
         console.error("Could not import supabase client or fetch ids:", e);
-        // fallback to original data if anything goes wrong
         setRecipes(data.recipes || []);
       }
     } catch (err: unknown) {
@@ -102,136 +110,178 @@ export default function RecommendPage() {
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-24">
-      <div className="container mx-auto max-w-3xl px-4">
-        <h1 className="mb-8 text-center text-4xl font-bold text-gray-900 md:text-5xl">
-          Personalized Meal Recommendations
-        </h1>
-        <p className="mb-4 text-center text-gray-600">
-          Describe your goal (e.g. “Lose 5 kg in 2 months” or “High-protein vegetarian diet”) and
-          choose how many meals you want for your daily plan.
+    <div className="mx-auto max-w-4xl">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <Lightbulb className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+          <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+            AI Meal Recommender
+          </h1>
+        </div>
+        <p className="text-neutral-600 dark:text-neutral-400">
+          Get personalized sustainable meal recommendations powered by AI
         </p>
-        {error && <p className="mb-4 text-center text-red-600">{error}</p>}
-
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-md"
-        >
-          <div>
-            <label className="mb-2 block font-medium text-gray-700">Your Goal</label>
-            <textarea
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-              className="box-border w-full rounded-lg border border-gray-300 p-3 text-gray-800 focus:ring-2 focus:ring-emerald-500"
-              placeholder="e.g., Lose 5 kg while keeping muscle, prefer Asian flavors"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block font-medium text-gray-700">Number of Meals</label>
-            <select
-              value={numMeals}
-              onChange={(e) => setNumMeals(Number(e.target.value))}
-              className="w-full rounded-lg border border-gray-300 p-3 text-gray-800 focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value={3}>3 meals</option>
-              <option value={5}>5 meals</option>
-              <option value={7}>7 meals</option>
-            </select>
-          </div>
-
-          <Button
-            type="submit"
-            variant="default"
-            size="lg"
-            className="flex w-full items-center justify-center gap-2"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Generating Plan...
-              </>
-            ) : (
-              <>
-                <UtensilsCrossed className="h-5 w-5" />
-                Get My Daily Plan
-              </>
-            )}
-          </Button>
-        </form>
-
-        {/* Expanded Goal */}
-        {expandedGoal && (
-          <div className="mt-12 text-center">
-            <h2 className="mb-2 text-2xl font-bold text-gray-900">Expanded Goal</h2>
-            <div className="prose prose-emerald mx-auto max-w-none text-left">
-              <ReactMarkdown>{expandedGoal}</ReactMarkdown>
-            </div>
-          </div>
-        )}
-
-        {/* Recipes */}
-        {recipes.length > 0 && (
-          <div className="mt-16 space-y-8">
-            <h2 className="text-center text-3xl font-bold text-gray-900">Your Recommended Meals</h2>
-            <div className="grid gap-6">
-              {recipes.map((r, i) => {
-                const RecipeCard: React.FC<{ recipe: Recipe }> = ({ recipe }) => {
-                  const [isModalOpen, setIsModalOpen] = useState(false);
-
-                  return (
-                    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:shadow-md">
-                      <h3 className="mb-3 text-2xl font-semibold text-emerald-700">
-                        {recipe.name}
-                      </h3>
-
-                      <p className="mb-2 text-gray-700">
-                        <span className="font-semibold text-gray-900">Key Ingredients:</span>{" "}
-                        {recipe.key_ingredients.join(", ")}
-                      </p>
-
-                      <p className="mb-2 whitespace-pre-line text-gray-700">
-                        <span className="font-semibold text-gray-900">Recipe:</span> {recipe.recipe}
-                      </p>
-
-                      <p className="mb-2 text-gray-700">
-                        <span className="font-semibold text-gray-900">Tags:</span>{" "}
-                        {recipe.tags.join(", ")}
-                      </p>
-
-                      <p className="mb-2 text-gray-700">
-                        <span className="font-semibold text-gray-900">Reason:</span> {recipe.reason}
-                      </p>
-
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setIsModalOpen(true);
-                        }}
-                        className="mt-3 w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
-                      >
-                        + Add to Calendar
-                      </button>
-
-                      {isModalOpen && (
-                        <AddMealModal
-                          recipe={{ id: recipe.id, name: recipe.name ?? "Recipe" }}
-                          isOpen={isModalOpen}
-                          onClose={() => setIsModalOpen(false)}
-                        />
-                      )}
-                    </div>
-                  );
-                };
-
-                return <RecipeCard key={i} recipe={r} />;
-              })}
-            </div>
-          </div>
-        )}
       </div>
-    </section>
+
+      {error && (
+        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+          {error}
+        </div>
+      )}
+
+      {/* Form */}
+      <form
+        onSubmit={handleSubmit}
+        className="mb-8 space-y-6 rounded-xl border border-emerald-100 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+      >
+        <div>
+          <label className="mb-2 block font-medium text-emerald-900 dark:text-emerald-100">
+            Your Goal
+          </label>
+          <textarea
+            value={goal}
+            onChange={(e) => setGoal(e.target.value)}
+            className="w-full rounded-lg border border-emerald-200 bg-white p-3 text-emerald-900 placeholder-emerald-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-emerald-100 dark:placeholder-emerald-600 dark:focus:border-emerald-600"
+            placeholder="e.g., Lose 5 kg while keeping muscle, prefer Asian flavors"
+            rows={4}
+            required
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block font-medium text-emerald-900 dark:text-emerald-100">
+            Number of Meals
+          </label>
+          <select
+            value={numMeals}
+            onChange={(e) => setNumMeals(Number(e.target.value))}
+            className="w-full rounded-lg border border-emerald-200 bg-white p-3 text-emerald-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-emerald-100 dark:focus:border-emerald-600"
+          >
+            <option value={3}>3 meals</option>
+            <option value={5}>5 meals</option>
+            <option value={7}>7 meals</option>
+          </select>
+        </div>
+
+        <Button
+          type="submit"
+          size="lg"
+          className="flex w-full items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Generating Your Plan...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-5 w-5" />
+              Get My Sustainable Meal Plan
+            </>
+          )}
+        </Button>
+      </form>
+
+      {/* Expanded Goal */}
+      {expandedGoal && (
+        <div className="mb-8 rounded-xl border border-emerald-100 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-emerald-900 dark:text-emerald-100">
+            <Sparkles className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            Your Personalized Goal
+          </h2>
+          <div className="prose prose-emerald max-w-none dark:prose-invert">
+            <ReactMarkdown>{expandedGoal}</ReactMarkdown>
+          </div>
+        </div>
+      )}
+
+      {/* Recipes */}
+      {recipes.length > 0 && (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-emerald-900 dark:text-emerald-100">
+            Your Recommended Meals
+          </h2>
+          <div className="grid gap-6">
+            {recipes.map((r, i) => {
+              const RecipeCard: React.FC<{ recipe: Recipe }> = ({ recipe }) => {
+                const [isModalOpen, setIsModalOpen] = useState(false);
+
+                return (
+                  <div className="rounded-xl border border-emerald-100 bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
+                    <h3 className="mb-4 flex items-center gap-2 text-2xl font-semibold text-emerald-700 dark:text-emerald-300">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+                        {i + 1}
+                      </span>
+                      {recipe.name}
+                    </h3>
+
+                    <div className="space-y-3">
+                      <div>
+                        <span className="font-semibold text-emerald-900 dark:text-emerald-100">
+                          🥗 Key Ingredients:
+                        </span>{" "}
+                        <span className="text-emerald-700 dark:text-emerald-300">
+                          {recipe.key_ingredients.join(", ")}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="font-semibold text-emerald-900 dark:text-emerald-100">
+                          📝 Recipe:
+                        </span>
+                        <p className="mt-1 whitespace-pre-line text-emerald-700 dark:text-emerald-300">
+                          {recipe.recipe}
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="font-semibold text-emerald-900 dark:text-emerald-100">
+                          🏷️ Tags:
+                        </span>{" "}
+                        <span className="text-emerald-700 dark:text-emerald-300">
+                          {recipe.tags.join(", ")}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="font-semibold text-emerald-900 dark:text-emerald-100">
+                          💡 Why this meal:
+                        </span>
+                        <p className="mt-1 text-emerald-700 dark:text-emerald-300">
+                          {recipe.reason}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsModalOpen(true);
+                      }}
+                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 font-medium text-white transition-all hover:bg-emerald-700 active:scale-95 dark:bg-emerald-700 dark:hover:bg-emerald-600"
+                    >
+                      <Calendar className="h-4 w-4" />
+                      Add to Calendar
+                    </button>
+
+                    {isModalOpen && (
+                      <AddMealModal
+                        recipe={{ id: recipe.id, name: recipe.name ?? "Recipe" }}
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                      />
+                    )}
+                  </div>
+                );
+              };
+
+              return <RecipeCard key={i} recipe={r} />;
+            })}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

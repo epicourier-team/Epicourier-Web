@@ -118,7 +118,7 @@ export default function MealDetailModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl rounded-xl bg-white p-6 shadow-lg">
+      <div className="relative w-full max-w-2xl rounded-xl bg-neutral-900 border border-neutral-800 p-6 shadow-lg">
         <div className="flex flex-col items-center">
           {!!selected.Recipe?.image_url && (
             <img
@@ -132,32 +132,32 @@ export default function MealDetailModal({
           <div className="mb-2 flex w-full items-center justify-between">
             <button
               onClick={handlePrev}
-              className={`rounded-full p-2 hover:bg-gray-100 ${len <= 1 ? "invisible" : ""}`}
+              className={`rounded-full p-2 hover:bg-neutral-800 text-neutral-200 ${len <= 1 ? "invisible" : ""}`}
               aria-label="Previous meal"
             >
               <ChevronLeft className="h-6 w-6" />
             </button>
 
-            <h3 className="flex-1 truncate px-2 text-center text-2xl font-bold capitalize">
+            <h3 className="flex-1 truncate px-2 text-center text-2xl font-bold capitalize text-neutral-100">
               {selected.Recipe?.name ?? selected.meal_type}
             </h3>
 
             <button
               onClick={handleNext}
-              className={`rounded-full p-2 hover:bg-gray-100 ${len <= 1 ? "invisible" : ""}`}
+              className={`rounded-full p-2 hover:bg-neutral-800 text-neutral-200 ${len <= 1 ? "invisible" : ""}`}
               aria-label="Next meal"
             >
               <ChevronRight className="h-6 w-6" />
             </button>
           </div>
 
-          <p className="mb-4 text-sm text-gray-600">
+          <p className="mb-4 text-sm text-neutral-400">
             {selected.meal_type.charAt(0).toUpperCase() + selected.meal_type.slice(1)} on{" "}
             {selected.date} ({(selectedIndex % len) + 1}/{len})
           </p>
 
           {!!selected.Recipe?.description && (
-            <p className="mb-6 max-h-40 overflow-y-auto whitespace-pre-line text-gray-700">
+            <p className="mb-6 max-h-40 overflow-y-auto whitespace-pre-line text-neutral-300">
               {selected.Recipe.description}
             </p>
           )}
@@ -166,7 +166,7 @@ export default function MealDetailModal({
           {isPast && !selected.status ? (
             <button
               disabled
-              className="mb-3 w-full cursor-not-allowed rounded-lg bg-gray-400 px-4 py-2 text-white"
+              className="mb-3 w-full cursor-not-allowed rounded-lg bg-neutral-700 px-4 py-2 text-neutral-400"
             >
               ❌ Expired Meal
             </button>
@@ -174,7 +174,7 @@ export default function MealDetailModal({
             <button
               onClick={() => handleSingleUpdate(selected.id, false)}
               disabled={busy}
-              className="mb-3 w-full rounded-lg bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600 disabled:opacity-60"
+              className="mb-3 w-full rounded-lg bg-yellow-600 px-4 py-2 text-white hover:bg-yellow-700 disabled:opacity-60"
             >
               Mark as Incomplete
             </button>
@@ -182,7 +182,7 @@ export default function MealDetailModal({
             <button
               onClick={() => handleSingleUpdate(selected.id, true)}
               disabled={busy}
-              className="mb-3 w-full rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-60"
+              className="mb-3 w-full rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-60"
             >
               ✅ Mark as Completed
             </button>
@@ -194,9 +194,8 @@ export default function MealDetailModal({
           <button
             onClick={() => handleBulkUpdate(!allCompleted)}
             disabled={busy}
-            className={`rounded-lg px-4 py-2 text-white ${
-              allCompleted ? "bg-yellow-500 hover:bg-yellow-600" : "bg-green-600 hover:bg-green-700"
-            } disabled:opacity-60`}
+            className={`rounded-lg px-4 py-2 text-white ${allCompleted ? "bg-yellow-600 hover:bg-yellow-700" : "bg-emerald-600 hover:bg-emerald-700"
+              } disabled:opacity-60`}
           >
             {allCompleted ? "Mark All as Incomplete" : "✅ Mark All as Completed"}
           </button>
@@ -204,7 +203,7 @@ export default function MealDetailModal({
           <button
             onClick={onClose}
             disabled={busy}
-            className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300 disabled:opacity-60"
+            className="rounded-lg bg-neutral-800 text-neutral-200 px-4 py-2 hover:bg-neutral-700 disabled:opacity-60"
           >
             Close
           </button>
