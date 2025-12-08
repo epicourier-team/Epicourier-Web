@@ -5,8 +5,7 @@ import { Calendar, Lightbulb, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import AddMealModal from "../../../components/ui/AddMealModal";
-import { supabase } from "../../../lib/supabaseClient";
-import { cn } from "@/lib/utils";
+import { createClient } from "@/utils/supabase/client";
 
 interface Recipe {
   id: number;
@@ -43,6 +42,7 @@ export default function RecommendPage() {
 
     try {
       // Get the current user's ID
+      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setError("You must be logged in to get recommendations.");
@@ -75,6 +75,7 @@ export default function RecommendPage() {
         const recipesWithIds = await Promise.all(
           recipesFromBackend.map(async (r) => {
             try {
+              const supabase = createClient();
               const { data: row, error } = await supabase
                 .from("Recipe")
                 .select("id")

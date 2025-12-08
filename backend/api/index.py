@@ -49,7 +49,7 @@ def test_endpoint():
 class RecommendRequest(BaseModel):
     goal: str
     num_meals: int = Field(..., alias="numMeals")
-    user_id: int | None = Field(None, alias="userId")  # User's UUID from Supabase Auth
+    user_id: str | None = Field(None, alias="userId")  # Supabase Auth UUID (string)
     user_profile: dict | None = Field(None, alias="userProfile")  # Optional: for direct profile passing
     pantry_items: list[str] | None = Field(None, alias="pantryItems")
 
@@ -75,13 +75,14 @@ def recommend_meals(req: RecommendRequest):
                 detail="numMeals must be one of 3, 5, or 7"
             )
 
-        # Fetch user profile from database if user_email is provided
+        # Fetch user profile from database if user_id is provided
         user_profile = req.user_profile
         pantry_items = req.pantry_items
         
         if req.user_id:
             try:
-                user_data = supabase.table("User").select("*").eq("id", req.user_id).execute()
+                # Query by auth_id since frontend sends Supabase Auth UUID
+                user_data = supabase.table("User").select("*").eq("auth_id", req.user_id).execute()
                 
                 if user_data.data and len(user_data.data) > 0:
                     user = user_data.data[0]
