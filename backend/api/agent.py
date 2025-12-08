@@ -50,6 +50,8 @@ def search_recipes_tool(query: str, user_id: str = None, n_results: int = 5) -> 
     try:
         ranked, _ = rank_recipes_by_goal(query, user_profile=user_profile, top_k=n_results)
         
+        print(f"[Agent] rank_recipes_by_goal returned {len(ranked)} recipes")
+        
         results = []
         for i, row in enumerate(ranked.itertuples(), 1):
             results.append({
@@ -61,7 +63,9 @@ def search_recipes_tool(query: str, user_id: str = None, n_results: int = 5) -> 
             })
         return results
     except Exception as e:
+        import traceback
         print(f"Error searching recipes: {e}")
+        traceback.print_exc()
         return []
 
 def add_to_calendar_tool(user_id: str, recipe_id: int, date: str, meal_type: str) -> str:
@@ -447,6 +451,18 @@ async def chat_agent(req: ChatRequest):
                      json_tool_call = { "name": "log_metrics", "parameters": parsed }
                 elif not json_tool_call and parsed and isinstance(parsed, dict) and "query" in parsed and len(parsed) == 1:
                      json_tool_call = { "name": "search_recipes", "parameters": parsed }
+                
+                # 4. Fallback F: Simple space-separated format (e.g. "search_recipes pasta")
+                if not json_tool_call and not match:
+                    simple_match = re.search(r'^(search_recipes)\s+(.+)$', content.strip(), re.IGNORECASE)
+                    if simple_match:
+                        func_name_simple = simple_match.group(1)
+                        query_text = simple_match.group(2).strip()
+                        json_tool_call = {
+                            "name": func_name_simple,
+                            "parameters": {"query": query_text}
+                        }
+                        print(f"[Agent] Fallback F: Simple format detected - query='{query_text}'")
 
             except Exception as e:
                 print(f"[Agent] Parsing check failed: {e}")
@@ -463,7 +479,13 @@ async def chat_agent(req: ChatRequest):
                      try:
                         args = json.loads(args_str)
                      except:
-                        args = {}
+                        # Fallback E: Plain text argument (e.g., "search_recipes pasta")
+                        # If it's not valid JSON, treat the whole string as the query
+                        if func_name == "search_recipes":
+                            args = {"query": args_str.strip()}
+                            print(f"[Agent] Treating '{args_str}' as plain text query")
+                        else:
+                            args = {}
 
                 # Verify it's a known tool
                 known_tools = [t["function"]["name"] for t in tools]
@@ -473,7 +495,9 @@ async def chat_agent(req: ChatRequest):
                         # Execute Tool
                         result = None
                         if func_name == "search_recipes":
+                            print(f"[Agent] Calling search_recipes_tool with query='{args.get('query')}', user_id='{req.user_id}'")
                             result = search_recipes_tool(query=args.get("query"), user_id=req.user_id)
+                            print(f"[Agent] search_recipes_tool returned: {len(result) if result else 0} results")
                         elif func_name == "add_to_calendar":
                             # Same ID resolution logic as above...
                             r_id_val = args.get("recipe_id")
