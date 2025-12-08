@@ -7,8 +7,13 @@ from api.recommender import create_meal_plan
 from supabase import Client, create_client
 from dotenv import load_dotenv
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Suppress verbose library logs
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("google_genai").setLevel(logging.WARNING)
 
 load_dotenv()
 
@@ -38,7 +43,7 @@ def test_endpoint():
 class RecommendRequest(BaseModel):
     goal: str
     num_meals: int = Field(..., alias="numMeals")
-    user_email: str | None = Field(None, alias="userEmail")  # User's email from Supabase Auth
+    user_id: int | None = Field(None, alias="userId")  # User's email from Supabase Auth
     user_profile: dict | None = Field(None, alias="userProfile")  # Optional: for direct profile passing
     pantry_items: list[str] | None = Field(None, alias="pantryItems")
 
@@ -68,9 +73,9 @@ def recommend_meals(req: RecommendRequest):
         user_profile = req.user_profile
         pantry_items = req.pantry_items
         
-        if req.user_email:
+        if req.user_id:
             try:
-                user_data = supabase.table("User").select("*").eq("email", req.user_email).execute()
+                user_data = supabase.table("User").select("*").eq("id", req.user_id).execute()
                 
                 if user_data.data and len(user_data.data) > 0:
                     user = user_data.data[0]
