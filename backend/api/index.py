@@ -1,9 +1,12 @@
 import os
 import logging
-from fastapi import FastAPI, HTTPException, status
+
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from api.recommender import create_meal_plan
+from api.insights import router as insights_router
+from api.agent import router as agent_router
 from supabase import Client, create_client
 from dotenv import load_dotenv
 
@@ -23,6 +26,9 @@ key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
 supabase: Client = create_client(url, key)
 
 app = FastAPI()
+
+app.include_router(insights_router)
+app.include_router(agent_router)
 
 # Allow frontend (Next.js) to call API
 app.add_middleware(

@@ -9,7 +9,7 @@ from functools import lru_cache
 import pandas as pd
 import torch
 from dotenv import load_dotenv
-from google import genai
+from groq import Groq
 from sentence_transformers import SentenceTransformer, util
 from sklearn.cluster import KMeans
 from supabase import create_client
@@ -72,9 +72,9 @@ def load_embedder():
 
 
 @lru_cache()
-def load_gemini_client():
-    print("Initializing Gemini client ...")
-    return genai.Client(api_key=GEMINI_KEY)
+def load_groq_client():
+    print("Initializing Groq client ...")
+    return Groq(api_key=GROQ_API_KEY)
 
 @lru_cache()
 def load_groq_client():
@@ -96,28 +96,13 @@ def make_recipe_text(row):
 
 # get_recipe_embeddings removed - now using pgvector RPC for direct similarity search
 
-client = load_gemini_client()
+
 # --------------------------------------------------
-# 4. Gemini-based goal expansion
+# 4. Groq-based goal expansion
 # --------------------------------------------------
-def nutrition_goal(goal_text, user_profile=None):
-    """Translate a user's goal into target nutritional values using Gemini (with Groq fallback)."""
-    
-    # Build context from user profile
-    profile_context = ""
-    if user_profile:
-        if user_profile.get('dietary_preferences'):
-            prefs = user_profile['dietary_preferences']
-            profile_context += f"\n- STRICT Dietary Requirements: {', '.join(prefs)}"
-            if any('vegetarian' in p.lower() for p in prefs):
-                profile_context += " (NO meat, fish, or poultry allowed)"
-            if any('vegan' in p.lower() for p in prefs):
-                profile_context += " (NO animal products including dairy, eggs, honey)"
-        if user_profile.get('allergies'):
-            profile_context += f"\n- Allergies to AVOID: {', '.join(user_profile['allergies'])}"
-        if user_profile.get('kitchen_equipment'):
-            profile_context += f"\n- Available equipment: {', '.join(user_profile['kitchen_equipment'])}"
-    
+def nutrition_goal(goal_text):
+    """Translate a user's goal into target nutritional values using Groq."""
+    client = load_groq_client()
     prompt = f"""
     Your task is to translate a user's specific diet goal into precise, target nutritional values for a daily meal plan.
     Just provide the nutritional values without any additional explanation or context.
@@ -131,26 +116,24 @@ def nutrition_goal(goal_text, user_profile=None):
     cholesterol_mg, total_minerals_mg, vit_a_microg, total_vit_b_mg,
     vit_c_mg, vit_d_microg, vit_e_mg, vit_k_microg
     """
-
+    
     try:
-        response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-        return response.text.strip()
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "You are a specialized nutritionist API. Output only the requested data."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3
+        )
+        return response.choices[0].message.content.strip()
     except Exception as e:
-        logger.warning(f"Gemini API failed: {e}. Using Groq fallback")
-        try:
-            groq_client = load_groq_client()
-            response = groq_client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[{"role": "user", "content": prompt}]
-            )
-            return response.choices[0].message.content.strip()
-        except Exception as groq_error:
-            logger.error(f"Both Gemini and Groq failed: {groq_error}")
-            raise RuntimeError("LLM services unavailable")
+        print(f"Error in nutrition_goal: {e}")
+        return ""
 
 def expand_goal(goal_text):
-    """Translate a user's goal into nutrition information using Gemini (with Groq fallback)."""
-
+    """Translate a user's goal into nutrition information using Groq."""
+    client = load_groq_client()
     prompt = f"""
     Your task is to translate a user's specific diet goal into precise, target nutritional values for a daily meal plan.
 
@@ -160,23 +143,17 @@ def expand_goal(goal_text):
     """
 
     try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "You are a helpful nutritionist."},
+                {"role": "user", "content": prompt}
+            ]
         )
-        return response.text.strip()
+        return response.choices[0].message.content.strip()
     except Exception as e:
-        logger.warning(f"Gemini API failed: {e}. Using Groq fallback")
-        try:
-            groq_client = load_groq_client()
-            response = groq_client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[{"role": "user", "content": prompt}]
-            )
-            return response.choices[0].message.content.strip()
-        except Exception as groq_error:
-            logger.error(f"Both Gemini and Groq failed: {groq_error}")
-            raise RuntimeError("LLM services unavailable")
+        print(f"Error in expand_goal: {e}")
+        return f"Nutritional info for: {goal_text}"
 
 # --------------------------------------------------
 # 5. Recommendation pipeline
@@ -194,16 +171,12 @@ def llm_filter_recipes(recipes_df, user_profile):
             "ingredients": row['ingredients'][:10]
         })
     
-    dietary_prefs = user_profile.get('dietary_preferences', [])
-    allergies = user_profile.get('allergies', [])
-    
-    prompt = f"""You are a dietary validator. Return ONLY the IDs of suitable recipes as a JSON array.
+    # Continue with existing logic
+    if len(recipe_data) == 0:
+        return recipe_data, "No matching recipes found."
 
-User Requirements:
-- Dietary: {', '.join(dietary_prefs) if dietary_prefs else 'None'}
-- Allergies: {', '.join(allergies) if allergies else 'None'}
-
-Recipes: {recipe_list}
+    recipe_embeddings = get_recipe_embeddings(recipe_data)
+    embedder = load_embedder()
 
 Rules:
 - VEGETARIAN: Exclude meat, fish, poultry, seafood
@@ -299,10 +272,15 @@ def select_diverse_recipes(ranked_df, n_meals=3):
     cluster_labels = kmeans.fit_predict(sub_embeds)
 
     selected_indices = []
+    # If len(ranked_df) < n_clusters, loop range might fail if logic isn't careful.
+    # But n_clusters is min(n_meals, len), so safe.
+    
     for c in range(n_clusters):
         cluster_recipes = ranked_df[cluster_labels == c]
-        top_one = cluster_recipes.sort_values("similarity", ascending=False).head(1)
-        selected_indices.append(top_one.index[0])
+        if not cluster_recipes.empty:
+            top_one = cluster_recipes.sort_values("similarity", ascending=False).head(1)
+            selected_indices.append(top_one.index[0])
+    
     return ranked_df.loc[selected_indices].sort_values("similarity", ascending=False)
 
 
