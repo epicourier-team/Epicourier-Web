@@ -1,7 +1,7 @@
 import os
 import logging
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from api.recommender import create_meal_plan
@@ -49,7 +49,7 @@ def test_endpoint():
 class RecommendRequest(BaseModel):
     goal: str
     num_meals: int = Field(..., alias="numMeals")
-    user_id: int | None = Field(None, alias="userId")  # User's email from Supabase Auth
+    user_id: int | None = Field(None, alias="userId")  # User's UUID from Supabase Auth
     user_profile: dict | None = Field(None, alias="userProfile")  # Optional: for direct profile passing
     pantry_items: list[str] | None = Field(None, alias="pantryItems")
 
@@ -102,7 +102,7 @@ def recommend_meals(req: RecommendRequest):
                         pantry_items = [item["name"] for item in pantry_data.data] if pantry_data.data else []
                         
             except Exception as e:
-                logger.warning(f"Failed to fetch user profile for {req.user_email}: {e}")
+                logger.warning(f"Failed to fetch user profile for user_id {req.user_id}: {e}")
                 # Continue with provided profile or None
 
         # Generate meal plan

@@ -76,12 +76,6 @@ def load_groq_client():
     print("Initializing Groq client ...")
     return Groq(api_key=GROQ_API_KEY)
 
-@lru_cache()
-def load_groq_client():
-    print("Initializing Groq client ...")
-    from groq import Groq
-    return Groq(api_key=GROQ_API_KEY)
-
 
 # --------------------------------------------------
 # 3. Utility functions
@@ -100,9 +94,25 @@ def make_recipe_text(row):
 # --------------------------------------------------
 # 4. Groq-based goal expansion
 # --------------------------------------------------
-def nutrition_goal(goal_text):
+def nutrition_goal(goal_text, user_profile=None):
     """Translate a user's goal into target nutritional values using Groq."""
     client = load_groq_client()
+    
+    # Build context from user profile
+    profile_context = ""
+    if user_profile:
+        if user_profile.get('dietary_preferences'):
+            prefs = user_profile['dietary_preferences']
+            profile_context += f"\n- STRICT Dietary Requirements: {', '.join(prefs)}"
+            if any('vegetarian' in p.lower() for p in prefs):
+                profile_context += " (NO meat, fish, or poultry allowed)"
+            if any('vegan' in p.lower() for p in prefs):
+                profile_context += " (NO animal products including dairy, eggs, honey)"
+        if user_profile.get('allergies'):
+            profile_context += f"\n- Allergies to AVOID: {', '.join(user_profile['allergies'])}"
+        if user_profile.get('kitchen_equipment'):
+            profile_context += f"\n- Available equipment: {', '.join(user_profile['kitchen_equipment'])}"
+    
     prompt = f"""
     Your task is to translate a user's specific diet goal into precise, target nutritional values for a daily meal plan.
     Just provide the nutritional values without any additional explanation or context.
@@ -128,8 +138,8 @@ def nutrition_goal(goal_text):
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
-        print(f"Error in nutrition_goal: {e}")
-        return ""
+        logger.error(f"Error in nutrition_goal: {e}")
+        raise RuntimeError("LLM services unavailable")
 
 def expand_goal(goal_text):
     """Translate a user's goal into nutrition information using Groq."""
@@ -152,8 +162,8 @@ def expand_goal(goal_text):
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
-        print(f"Error in expand_goal: {e}")
-        return f"Nutritional info for: {goal_text}"
+        logger.error(f"Error in expand_goal: {e}")
+        raise RuntimeError("LLM services unavailable")
 
 # --------------------------------------------------
 # 5. Recommendation pipeline
@@ -171,12 +181,16 @@ def llm_filter_recipes(recipes_df, user_profile):
             "ingredients": row['ingredients'][:10]
         })
     
-    # Continue with existing logic
-    if len(recipe_data) == 0:
-        return recipe_data, "No matching recipes found."
+    dietary_prefs = user_profile.get('dietary_preferences', [])
+    allergies = user_profile.get('allergies', [])
+    
+    prompt = f"""You are a dietary validator. Return ONLY the IDs of suitable recipes as a JSON array.
 
-    recipe_embeddings = get_recipe_embeddings(recipe_data)
-    embedder = load_embedder()
+User Requirements:
+- Dietary: {', '.join(dietary_prefs) if dietary_prefs else 'None'}
+- Allergies: {', '.join(allergies) if allergies else 'None'}
+
+Recipes: {recipe_list}
 
 Rules:
 - VEGETARIAN: Exclude meat, fish, poultry, seafood
@@ -186,21 +200,15 @@ Rules:
 Respond ONLY with JSON array of IDs: [1, 5, 12]"""
     
     try:
-        client = load_gemini_client()
-        response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-        result_text = response.text.strip()
+        groq_client = load_groq_client()
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        result_text = response.choices[0].message.content.strip()
     except Exception as e:
-        logger.warning(f"Gemini filtering failed: {e}. Using Groq")
-        try:
-            groq_client = load_groq_client()
-            response = groq_client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[{"role": "user", "content": prompt}]
-            )
-            result_text = response.choices[0].message.content.strip()
-        except Exception as groq_error:
-            logger.error(f"LLM filtering failed: {groq_error}")
-            return recipes_df  # Return unfiltered on failure
+        logger.error(f"LLM filtering failed: {e}")
+        return recipes_df  # Return unfiltered on failure
     
     try:
         import json, re
