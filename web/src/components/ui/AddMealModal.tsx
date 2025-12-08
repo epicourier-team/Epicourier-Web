@@ -48,9 +48,9 @@ export default function AddMealModal({ recipe, isOpen, onClose, onSuccess }: Add
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
-        <h2 className="mb-4 text-lg font-semibold">Select Date for {recipe.name}</h2>
-        <label htmlFor="meal-date" className="mb-2 block text-sm font-medium text-gray-700">
+      <div className="w-full max-w-md rounded-xl bg-neutral-900 border border-neutral-800 p-6 shadow-lg">
+        <h2 className="mb-4 text-lg font-semibold text-neutral-100">Select Date for {recipe.name}</h2>
+        <label htmlFor="meal-date" className="mb-2 block text-sm font-medium text-neutral-300">
           Choose a date:
         </label>
         <input
@@ -58,28 +58,28 @@ export default function AddMealModal({ recipe, isOpen, onClose, onSuccess }: Add
           type="date"
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
-          className="mb-4 block w-106 rounded-lg border px-3 py-2"
+          className="mb-4 block w-106 rounded-lg border border-neutral-700 bg-neutral-800 text-neutral-200 px-3 py-2"
         />
-        <label htmlFor="meal-type" className="mb-2 block text-sm font-medium text-gray-700">
+        <label htmlFor="meal-type" className="mb-2 block text-sm font-medium text-neutral-300">
           Choose meal type:
         </label>
         <select
           id="meal-type"
           value={mealType}
           onChange={(e) => setMealType(e.target.value)}
-          className="mb-4 block w-113 rounded-lg border px-3 py-2"
+          className="mb-4 block w-113 rounded-lg border border-neutral-700 bg-neutral-800 text-neutral-200 px-3 py-2"
         >
           <option value="breakfast">🍳 Breakfast</option>
           <option value="lunch">🍱 Lunch</option>
           <option value="dinner">🍲 Dinner</option>
         </select>
         <div className="flex justify-end gap-3">
-          <button onClick={onClose} className="rounded-lg bg-gray-200 px-4 py-2 hover:bg-gray-300">
+          <button onClick={onClose} className="rounded-lg bg-neutral-800 text-neutral-200 px-4 py-2 hover:bg-neutral-700">
             Cancel
           </button>
           <button
             onClick={handleConfirm}
-            className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+            className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
           >
             Confirm
           </button>

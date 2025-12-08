@@ -1,38 +1,53 @@
+import { Calendar } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Recipe } from "../../types/data";
 import AddMealModal from "@/components/ui/AddMealModal";
+import { CalendarPlus, Clock, Flame } from "lucide-react";
 
 export default function RecipeCard({ recipe }: { recipe: Recipe }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
-    <div className="flex flex-col rounded-lg border p-4 shadow-sm transition hover:shadow-lg">
+    <div className="group relative overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all hover:shadow-lg dark:border-neutral-700 dark:bg-neutral-800">
       <Link
-        className="flex flex-col rounded-lg border p-4 shadow-sm transition hover:shadow-lg"
+        className="flex flex-col"
         href={`/dashboard/recipes/${recipe.id}`}
       >
         {recipe.image_url && (
-          <Image
-            src={recipe.image_url}
-            alt={recipe.name ?? "recipe"}
-            width={120}
-            height={120}
-            className="mb-2 self-center rounded-lg object-cover"
-          />
+          <div className="relative h-48 w-full overflow-hidden bg-neutral-100 dark:bg-neutral-700">
+            <Image
+              src={recipe.image_url}
+              alt={recipe.name ?? "recipe"}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          </div>
         )}
-        <h3 className="text-lg font-semibold">{recipe.name}</h3>
-        <p className="line-clamp-2 text-sm text-gray-600">{recipe.description}</p>
+        <div className="p-5">
+          <h3 className="mb-2 text-lg font-semibold text-neutral-800 dark:text-neutral-200">
+            {recipe.name}
+          </h3>
+          <p className="line-clamp-2 text-sm text-neutral-600 dark:text-neutral-400">
+            {recipe.description}
+          </p>
+        </div>
       </Link>
-      <button
-        onClick={(e) => {
-          e.preventDefault(); // 防止 Link 觸發跳轉
-          setIsModalOpen(true);
-        }}
-        className="mt-3 w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
-      >
-        + Add to Calendar
-      </button>
+
+      <div className="border-t border-neutral-200 p-4 dark:border-neutral-700">
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            setIsModalOpen(true);
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 font-medium text-white transition-all hover:bg-emerald-700 active:scale-95 dark:bg-emerald-700 dark:hover:bg-emerald-600"
+        >
+          <Calendar className="h-4 w-4" />
+          Add to Calendar
+        </button>
+      </div>
 
       {isModalOpen && (
         <AddMealModal

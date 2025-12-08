@@ -1,34 +1,64 @@
+"use client";
+
 import {
   Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar";
+  SidebarBody,
+  SidebarLink,
+} from "@/components/ui/animated-sidebar";
 import { createClient } from "@/utils/supabase/client";
-import { Calendar, ChefHat, Lightbulb } from "lucide-react";
-import Link from "next/link";
+import { Calendar, ChefHat, Lightbulb, ShoppingBasket, UserCircle, TrendingUp, Boxes, Bot } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const menuItems = [
-  { title: "Recipes", url: "/dashboard/recipes", icon: ChefHat },
-  { title: "Calendar", url: "/dashboard/calendar", icon: Calendar },
-  { title: "Recommender", url: "/dashboard/recommender", icon: Lightbulb },
-  // { title: "Nutrient Summary", url: "/nutrient-summary", icon: PieChart },
+  {
+    label: "Profile",
+    href: "/dashboard/profile",
+    icon: <UserCircle className="text-neutral-300 h-5 w-5 flex-shrink-0" />
+  },
+  {
+    label: "Pantry",
+    href: "/dashboard/pantry",
+    icon: <Boxes className="text-neutral-300 h-5 w-5 flex-shrink-0" />
+  },
+  {
+    label: "Shopping List",
+    href: "/dashboard/shopping-list",
+    icon: <ShoppingBasket className="text-neutral-300 h-5 w-5 flex-shrink-0" />
+  },
+  {
+    label: "Recipes",
+    href: "/dashboard/recipes",
+    icon: <ChefHat className="text-neutral-300 h-5 w-5 flex-shrink-0" />
+  },
+  {
+    label: "Recommender",
+    href: "/dashboard/recommender",
+    icon: <Lightbulb className="text-neutral-300 h-5 w-5 flex-shrink-0" />
+  },
+  {
+    label: "Calendar",
+    href: "/dashboard/calendar",
+    icon: <Calendar className="text-neutral-300 h-5 w-5 flex-shrink-0" />
+  },
+  {
+    label: "Insights",
+    href: "/dashboard/insights",
+    icon: <TrendingUp className="text-neutral-300 h-5 w-5 flex-shrink-0" />
+  },
+  {
+    label: "AI Agent",
+    href: "/dashboard/agent",
+    icon: <Bot className="text-neutral-300 h-5 w-5 flex-shrink-0" />
+  },
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
   const supabase = createClient();
   const [userEmail, setUserEmail] = useState<string>("");
+  const [open, setOpen] = useState(false);
+
   useEffect(() => {
     const fetchUserName = async () => {
-      // 1. 獲取 auth 使用者
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -39,70 +69,68 @@ export function AppSidebar() {
   }, [supabase]);
 
   return (
-    <Sidebar collapsible="icon" className="border-r bg-white">
-      <div className="h-14" />
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+    <Sidebar open={open} setOpen={setOpen}>
+      <SidebarBody className="justify-between gap-10">
+        <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+          {/* Logo */}
+          <div className="font-bold text-xl text-neutral-200 mb-8">
+            {open ? "🌱 EpiCourier" : "🌱"}
+          </div>
 
-      <SidebarFooter>
-        <div className="border-t p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
-                <span className="text-primary text-sm font-medium">U</span>
-              </div>
-              {!collapsed && (
-                <div className="flex flex-col">
-                  <span className="text-muted-foreground text-xs">{userEmail}</span>
-                </div>
-              )}
-            </div>
-
-            <a
-              href="https://slashpage.com/site-fn8swy4xu372s9jrqr2qdgr6l/dwy5rvmjgexyg2p46zn9"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:bg-muted/50 inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors"
-              aria-label="Help Center (opens in a new tab)"
-              title="Help Center"
-            >
-              {/* question-mark-in-circle icon */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M9.09 9a3 3 0 1 1 5.83 1c-.26.9-1.22 1.5-1.91 2" />
-                <line x1="12" y1="17" x2="12" y2="17" />
-              </svg>
-              {!collapsed && <span>Help</span>}
-            </a>
+          {/* Menu Items */}
+          <div className="flex flex-col gap-2">
+            {menuItems.map((link, idx) => (
+              <SidebarLink key={idx} link={link} />
+            ))}
           </div>
         </div>
-      </SidebarFooter>
+
+        {/* Footer with User Info */}
+        <div className="border-t border-neutral-700 pt-4 space-y-3 mb-6">
+          {/* User Info */}
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-900">
+              <span className="text-sm font-medium text-emerald-200">
+                {userEmail ? userEmail[0].toUpperCase() : "U"}
+              </span>
+            </div>
+            {open && (
+              <div className="flex flex-col overflow-hidden">
+                <span className="text-xs text-neutral-400 truncate">
+                  {userEmail}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Help Link */}
+          <a
+            href="https://slashpage.com/site-fn8swy4xu372s9jrqr2qdgr6l/dwy5rvmjgexyg2p46zn9"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors hover:bg-neutral-800"
+            aria-label="Help Center (opens in a new tab)"
+            title="Help Center"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 flex-shrink-0 text-neutral-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 1 1 5.83 1c-.26.9-1.22 1.5-1.91 2" />
+              <line x1="12" y1="17" x2="12" y2="17" />
+            </svg>
+            {open && <span className="text-neutral-200">Help</span>}
+          </a>
+        </div>
+      </SidebarBody>
     </Sidebar>
   );
 }
