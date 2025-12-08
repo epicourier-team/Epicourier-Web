@@ -1,109 +1,152 @@
 # Contributing Guide
 
-Thank you for your interest in contributing to **Epicourier-Web**!
-This document provides a quick overview of how to contribute.
-For the complete workflow, please read our detailed
-[Git Branching, Merging, and Release Convention](https://github.com/epicourier-team/Epicourier-Web/wiki/Git-Branching,-Merging,-and-Release-Convention).
-
+Thank you for your interest in contributing to **Epicourier-v2**! This document provides the complete workflow for contributing to our project.
 
 ## 1. Getting Started
 
-1. **Fork** the repository on GitHub.
-2. **Clone** your fork:
+1.  **Fork** the repository on GitHub.
+2.  **Clone** your fork:
 
-   ```bash
-   git clone https://github.com/<your-username>/Epicourier-Web.git
-   cd Epicourier-Web
-   ```
-3. Set the upstream remote:
+    ```bash
+    git clone https://github.com/<your-username>/Epicourier-v2.git
+    cd Epicourier-v2
+    ```
 
-   ```bash
-   git remote add upstream https://github.com/epicourier-team/Epicourier-Web.git
-   ```
+3.  Set the upstream remote to track the original repository:
 
+    ```bash
+    git remote add upstream https://github.com/pranshavpatel/Epicourier-v2.git
+    ```
 
-## 2. Branch Naming
+## 2. Project Structure
 
-Follow our naming convention:
+-   **`backend/`**: FastAPi backend (Python).
+-   **`web/`**: Next.js frontend (TypeScript/React).
+-   **`data/`**: Data files and scripts.
 
+## 3. Development Workflow
+
+### Branch Naming Convention
+
+We follow a strict naming convention for branches to keep our history clean and organized.
+
+**Format:**
 ```
 <issue-number>-<type>/<short-description>
 ```
 
-For large, multi-domain features:
+**Types:**
+-   `feature`: New features or significant improvements.
+-   `bugfix`: Fixes for bugs or issues.
+-   `hotfix`: Critical fixes for production issues.
+-   `refactor`: Code restructuring without structural changes.
+-   `docs`: Documentation updates.
+-   `test`: Adding or modifying tests.
 
+**Examples:**
+-   `123-feature/add-login-api`
+-   `145-bugfix/fix-token-expiration`
+-   `201-docs/update-readme`
+
+### Making Changes
+
+1.  **Sync with Upstream**: Always start with a fresh state.
+    ```bash
+    git checkout main
+    git pull upstream main
+    ```
+
+2.  **Create a Branch**:
+    ```bash
+    git checkout -b 123-feature/add-smart-shopping-list
+    ```
+
+3.  **Make Changes**: Write clean, maintainable code.
+
+4.  **Run Tests**: Ensure you haven't broken anything.
+    ```bash
+    # Backend
+    cd backend
+    pytest
+
+    # Frontend
+    cd web
+    npm run test
+    ```
+
+### Commit Messages
+
+We follow the **Conventional Commits** specification.
+
+**Format:**
 ```
-<issue-number>-<type>/<short-description>/<domain>
+<type>(<scope>): <subject>
 ```
 
-Examples:
+**Types:**
+-   `feat`: A new feature
+-   `fix`: A bug fix
+-   `docs`: Documentation only changes
+-   `style`: Changes that do not affect the meaning of the code (white-space, formatting, etc)
+-   `refactor`: A code change that neither fixes a bug nor adds a feature
+-   `perf`: A code change that improves performance
+-   `test`: Adding missing tests or correcting existing tests
+-   `chore`: Changes to the build process or auxiliary tools
 
-* `123-feature/add-login-api`
-* `123-feature/add-login-api/backend`
-* `145-hotfix/fix-token-expiration`
+**Example:**
+```
+feat(auth): implement jwt token generation
+fix(pantry): resolve crash on item deletion
+```
 
-For a full explanation, see the
-[Branching Convention Wiki](https://github.com/epicourier-team/Epicourier-Web/wiki/Git-Branching,-Merging,-and-Release-Convention).
+## 4. Submitting a Pull Request (PR)
 
+1.  **Push** your branch to your fork:
+    ```bash
+    git push origin 123-feature/add-smart-shopping-list
+    ```
 
-## 3. Making Changes
+2.  Open a **Pull Request** on GitHub:
+    -   Target the `main` branch.
+    -   Title: Clear and descriptive (e.g., "Add Smart Shopping List Feature").
 
-1. Create a new branch from `main`:
+3.  **PR Description Template**:
+    -   **Summary**: What does this PR do?
+    -   **Fixes**: `Fixes #<issue-number>` (links the PR to the issue).
+    -   **Testing**: How did you verify the changes? (Screenshots, logs, etc.)
 
-   ```bash
-   git checkout main
-   git pull
-   git checkout -b 123-feature/add-login-api
-   ```
-2. Make your changes and commit with a
-   [Conventional Commit message](./commit-style-guide.md):
-
-   ```
-   feat: add login API for user authentication
-   ```
-3. Run tests before submitting:
-
-   ```bash
-   npm run test
-   ```
-
-
-## 4. Submitting a Pull Request
-
-1. Push your branch to your fork:
-
-   ```bash
-   git push origin 123-feature/add-login-api
-   ```
-2. Open a **Pull Request** to the corresponding branch:
-
-   * Typically → `main`
-   * For multi-domain work → parent feature branch (e.g., `123-feature/add-login-api`)
-3. Include in the PR:
-
-   * A short **summary** of the change
-   * `Fixes #<issue-number>` in the description
-   * **How you tested** the change (commands, screenshots, logs)
-   * Any specific notes for reviewers
-4. Request **at least two reviewers**.
-5. Merge only through **GitHub UI → “Create a merge commit”**
-   (no squash/rebase).
-
+4.  **Review Process**:
+    -   Request at least **two reviewers**.
+    -   Address comments and make necessary changes.
+    -   Once approved, merge via **"Create a merge commit"** (do not squash or rebase unless requested).
 
 ## 5. Main Branch Rules
 
-* No direct commits or pushes
-* No local merges into `main`
-* 2 reviewer approvals required
-* CI checks must pass before merging
+-   **Protected**: No direct commits to `main` are allowed.
+-   **Reviews**: All PRs require at least 2 approvals.
+-   **CI/CD**: All automated checks (tests, linting) must pass.
 
-These rules are enforced via **Branch Protection Settings**.
+## 6. Setup for Development
 
-
-## 6. Run and Test Locally
-
+### Backend (Python)
 ```bash
+cd backend
+python -m venv venv
+# Windows
+.\venv\Scripts\activate
+# Mac/Linux
+source venv/bin/activate
+
+pip install -r requirements.txt
+uvicorn api.index:app --reload --port 8000
+```
+
+### Frontend (Next.js)
+```bash
+cd web
 npm install
 npm run dev
-npm run test
 ```
+
+---
+Happy Coding! 🚀
