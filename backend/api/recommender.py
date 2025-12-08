@@ -190,12 +190,6 @@ def llm_filter_recipes(recipes_df, user_profile):
     - Dietary: {', '.join(dietary_prefs) if dietary_prefs else 'None'}
     - Allergies: {', '.join(allergies) if allergies else 'None'}
 
-    prompt = f"""
-Rules:
-- VEGETARIAN: Exclude meat, fish, poultry, seafood
-- VEGAN: Exclude all animal products
-- Exclude allergens
-
     Rules:
     - VEGETARIAN: Exclude meat, fish, poultry, seafood
     - VEGAN: Exclude all animal products
