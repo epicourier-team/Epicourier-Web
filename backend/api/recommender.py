@@ -186,18 +186,18 @@ def llm_filter_recipes(recipes_df, user_profile):
     
     prompt = f"""You are a dietary validator. Return ONLY the IDs of suitable recipes as a JSON array.
 
-User Requirements:
-- Dietary: {', '.join(dietary_prefs) if dietary_prefs else 'None'}
-- Allergies: {', '.join(allergies) if allergies else 'None'}
+    User Requirements:
+    - Dietary: {', '.join(dietary_prefs) if dietary_prefs else 'None'}
+    - Allergies: {', '.join(allergies) if allergies else 'None'}
 
-Recipes: {recipe_list}
+    Recipes: {recipe_list}
 
-Rules:
-- VEGETARIAN: Exclude meat, fish, poultry, seafood
-- VEGAN: Exclude all animal products
-- Exclude allergens
+    Rules:
+    - VEGETARIAN: Exclude meat, fish, poultry, seafood
+    - VEGAN: Exclude all animal products
+    - Exclude allergens
 
-Respond ONLY with JSON array of IDs: [1, 5, 12]"""
+    Respond ONLY with JSON array of IDs: [1, 5, 12]"""
     
     try:
         groq_client = load_groq_client()
