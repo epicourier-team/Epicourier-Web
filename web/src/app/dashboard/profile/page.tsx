@@ -18,6 +18,8 @@ export default function ProfilePage() {
     const [age, setAge] = useState("");
     const [height, setHeight] = useState("");
     const [weight, setWeight] = useState("");
+    const [previousWeight, setPreviousWeight] = useState<number | null>(null);
+    const [previousHeight, setPreviousHeight] = useState<number | null>(null);
     const [dietaryPreferences, setDietaryPreferences] = useState<string[]>([]);
     const [allergies, setAllergies] = useState<string[]>([]);
     const [kitchenEquipment, setKitchenEquipment] = useState<string[]>([]);
@@ -60,6 +62,8 @@ export default function ProfilePage() {
                     setAge(data.age?.toString() || "");
                     setHeight(data.height_cm?.toString() || "");
                     setWeight(data.weight_kg?.toString() || "");
+                    setPreviousWeight(data.weight_kg || null);
+                    setPreviousHeight(data.height_cm || null);
                     setDietaryPreferences(data.dietary_preferences || []);
                     setAllergies(data.allergies || []);
                     setKitchenEquipment(data.kitchen_equipment || []);
@@ -125,8 +129,8 @@ export default function ProfilePage() {
             });
         } else {
             // Only log to history if weight/height actually changed
-            const weightChanged = updates.weight_kg !== null && parseFloat(weight) !== (data[0]?.weight_kg || 0);
-            const heightChanged = updates.height_cm !== null && parseFloat(height) !== (data[0]?.height_cm || 0);
+            const weightChanged = updates.weight_kg !== null && updates.weight_kg !== previousWeight;
+            const heightChanged = updates.height_cm !== null && updates.height_cm !== previousHeight;
 
             if (weightChanged || heightChanged) {
                 try {
@@ -144,6 +148,10 @@ export default function ProfilePage() {
                     console.error("Failed to log metrics history", err);
                 }
             }
+
+            // Update the stored previous values for future comparisons
+            if (weightChanged) setPreviousWeight(updates.weight_kg);
+            if (heightChanged) setPreviousHeight(updates.height_cm);
 
             console.log("Profile saved successfully:", data);
             toast({
