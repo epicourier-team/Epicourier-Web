@@ -1,5 +1,5 @@
 [![CI/CD Pipeline](https://github.com/pranshavpatel/Epicourier-v2/actions/workflows/ci.yml/badge.svg)](https://github.com/pranshavpatel/Epicourier-v2/actions/workflows/ci.yml)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17537732.svg)](https://doi.org/10.5281/zenodo.17537732)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17852622.svg)](https://doi.org/10.5281/zenodo.17852622)
 [![codecov](https://codecov.io/github/epicourier-team/Epicourier-Web/graph/badge.svg?token=TTLT1APZ44)](https://codecov.io/github/epicourier-team/Epicourier-Web)
 [![Issues](https://img.shields.io/github/issues/pranshavpatel/Epicourier-v2)](https://github.com/pranshavpatel/Epicourier-v2/issues)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
