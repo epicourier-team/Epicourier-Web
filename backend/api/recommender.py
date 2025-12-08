@@ -190,7 +190,11 @@ def llm_filter_recipes(recipes_df, user_profile):
     - Dietary: {', '.join(dietary_prefs) if dietary_prefs else 'None'}
     - Allergies: {', '.join(allergies) if allergies else 'None'}
 
-    Recipes: {recipe_list}
+    prompt = f"""
+Rules:
+- VEGETARIAN: Exclude meat, fish, poultry, seafood
+- VEGAN: Exclude all animal products
+- Exclude allergens
 
     Rules:
     - VEGETARIAN: Exclude meat, fish, poultry, seafood
@@ -422,7 +426,7 @@ def filter_dietary_preferences(recipe_data, preferences):
 
 
 def calculate_pantry_score(ingredients, pantry_items):
-    """Calculate what % of recipe ingredients are in user's pantry."""
+    """Calculate percentage of recipe ingredients in user pantry."""
     if not pantry_items or not ingredients:
         return 0.0
     
@@ -439,8 +443,9 @@ def calculate_pantry_score(ingredients, pantry_items):
     return matches / len(ingredients) if ingredients else 0.0
 
 
+
 def score_kitchen_equipment(recipe, available_equipment):
-    """Give bonus if recipe matches available equipment."""
+    """Bonus score for matching equipment."""
     if not available_equipment or not recipe.get('tags'):
         return 0.0
     
@@ -450,6 +455,6 @@ def score_kitchen_equipment(recipe, available_equipment):
     # Check if any equipment is mentioned in tags
     for equip in equipment_lower:
         if any(equip in tag for tag in recipe_tags_lower):
-            return 1.0  # Full bonus if equipment matches
+            return 1.0
     
     return 0.0
