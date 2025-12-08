@@ -422,7 +422,8 @@ async def chat_agent(req: ChatRequest):
                 
                 # 2. Fallback C: CLI-style arguments (e.g. add_to_calendar --recipe_id 141 --date ...)
                 if not json_tool_call and not match:
-                     cli_match = re.search(r'^(\w+)\s+((?:--\w+\s+(?:\S+|"[^"]+")\s*)+)', content.strip())
+                     # Relaxed regex: allow command to appear anywhere in the line/text
+                     cli_match = re.search(r'(\w+)\s+((?:--\w+\s+(?:\S+|"[^"]+")\s*)+)', content.strip())
                      if cli_match:
                          func_name_cli = cli_match.group(1)
                          args_str_cli = cli_match.group(2)
