@@ -42,10 +42,18 @@ export default function RecommendPage() {
     setExpandedGoal(""); // Clear previous results
 
     try {
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError("You must be logged in to get recommendations.");
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch("/api/recommender", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ goal, numMeals }),
+        body: JSON.stringify({ goal, numMeals, userId: user.id }),
       });
 
       if (!res.ok) {
