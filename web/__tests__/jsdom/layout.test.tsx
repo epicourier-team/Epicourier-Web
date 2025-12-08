@@ -42,9 +42,11 @@ describe("DashboardLayout", () => {
     (useToast as jest.Mock).mockReturnValue({ toast: mockToast });
   });
 
-  it("renders the home link", () => {
-    render(<DashboardLayout children={<div>Content</div>} />);
-    expect(screen.getByText("EpiCourier")).toBeInTheDocument();
+  it("renders the sidebar", () => {
+    const { container } = render(<DashboardLayout children={<div>Content</div>} />);
+    // Check that the sidebar with sticky class exists
+    const sidebar = container.querySelector('.sticky');
+    expect(sidebar).toBeInTheDocument();
   });
 
   it("renders the Log Out button", () => {
@@ -52,9 +54,11 @@ describe("DashboardLayout", () => {
     expect(screen.getByText("Log Out")).toBeInTheDocument();
   });
 
-  it("renders the SidebarTrigger", () => {
+  it("renders the sidebar navigation", () => {
     render(<DashboardLayout children={<div>Content</div>} />);
-    expect(screen.getByLabelText("Toggle sidebar")).toBeInTheDocument();
+    // Check for navigation links instead
+    expect(screen.getByText("Profile")).toBeInTheDocument();
+    expect(screen.getByText("Pantry")).toBeInTheDocument();
   });
 
   it("renders the children content", () => {

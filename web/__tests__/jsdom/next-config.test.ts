@@ -13,7 +13,7 @@ describe("next.config.ts", () => {
 
   it("has images configuration", () => {
     expect(nextConfig.images).toEqual({
-      domains: ["www.themealdb.com"],
+      domains: ["www.themealdb.com", "images.unsplash.com"],
     });
   });
 
