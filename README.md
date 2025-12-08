@@ -187,5 +187,6 @@ Licensed under the **MIT License**. See [LICENSE.md](LICENSE.md) for details.
   url = {https://github.com/pranshavpatel/Epicourier-v2}
 }
 ```
+DOI: `https://doi.org/10.5281/zenodo.17852621`
 
 *Plan Smart. Shop Less. Eat Better.* 🥗🛒
